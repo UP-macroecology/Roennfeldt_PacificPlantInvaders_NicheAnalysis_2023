@@ -1,8 +1,8 @@
 # NichePac - Niche Analysis 2023
 
-DFG Project: NichePac
-Author: Anna Rönnfeldt
-WP1: Quantification of the niche dynamics of alien plant species in the Pacific region
+**DFG Project:** NichePac <br/>
+**Author:** Anna Rönnfeldt <br/>
+**WP1:** Quantification of the niche dynamics of alien plant species in the Pacific region <br/>
 
 ---------------------------------------------------------------
 
