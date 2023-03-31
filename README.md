@@ -4,7 +4,6 @@
 **Author:** Anna Rönnfeldt <br/>
 **WP1:** Quantification of the niche dynamics of alien plant species in the Pacific region <br/>
 
----------------------------------------------------------------
 
 ## Workflow
 
@@ -28,5 +27,11 @@ Occurrence data for 2788 alien plant species were downloaded from [BIEN](https:/
 
 ## Open issues
 
+Status assignment: 
+* getPowoNames does not work for Acoelorraphe wrightii
+* script 03_status_assignment, line 103: manual selection of likely POWO entries is required for 346 entries. A list of these can be found under results/intermediate/powo_page_opts.RData
+
+Workflow organisation:
+* status assignment is still split over several scripts (for the testing phase)
 
 ## References
