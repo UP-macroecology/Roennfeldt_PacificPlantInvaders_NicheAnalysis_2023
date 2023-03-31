@@ -1,6 +1,9 @@
 data/
 misc/
 writing/
+results/*
+!results/intermediate/powo_page_opts.RData
+
 
 
 # pre-defined seetings:
