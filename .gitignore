@@ -2,6 +2,9 @@ data/
 misc/
 writing/
 results/*
+!results/intermediate
+
+results/intermediate/*
 !results/intermediate/powo_page_opts.RData
 
 
