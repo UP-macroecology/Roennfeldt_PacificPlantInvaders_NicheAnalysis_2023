@@ -25,8 +25,14 @@ rm(list = ls())
 # source("scripts/functions.R")
 
 # required paths
-path_home <- "Z:/roennfeldt/C1/data"
-path_ds <- "Y:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders"
+
+# when working from home
+# path_home <- "Z:/roennfeldt/C1/data" 
+# path_ds <- "Y:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders"
+
+# work laptop
+path_home <- "M:/C1/data"
+path_ds <- "Z:/Arbeit/datashare/data/biodat/distribution/Pacific_invaders"
 
 # cluster paths
 path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
@@ -239,6 +245,11 @@ foreach(spp_index = 1:length(spp)) %do%
     intr_coords <- terra::vect(data.frame(lon = intr$lon, lat = intr$lat))
     # add crs
     crs(intr_coords) <- crs(tdwg1)
+    
+    # get coords and use them to select occs from the intr subset
+    crds_pac <- as.data.frame(crds(over_island))
+    colnames(crds_pac) <- c("lon", "lat")
+    pac_df <- semi_join(intr, crds_pac, by = c("lon", "lat")) 
 
 
     # count occurrences over pacific islands and save results
@@ -355,6 +366,12 @@ foreach(spp_index = 1:length(spp)) %do%
     over_island <- terra::intersect(intr_coords, pacific_islands)
     nr_pac <- length(over_island)
     
+    # get coords and use them to select occs from the intr subset
+    crds_pac <- as.data.frame(crds(over_island))
+    colnames(crds_pac) <- c("lon", "lat")
+    pac_df <- semi_join(intr, crds_pac, by = c("lon", "lat")) 
+    
+    save(pac_df, file=paste0("data/regional_occs/intr2_pac_",spp[spp_index],".RData"))
     
     regs <- unique(intr$tdwg_l1_code)
     regs <- regs[!is.na(regs)]
