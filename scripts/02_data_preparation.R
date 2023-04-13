@@ -90,7 +90,7 @@ occ_cleaned <- bind_rows(occ_bien_std, occ_gbif_std) %>%
   mutate_at(vars(lon, lat), round, 4) %>%             # round to four digits (corresponds to a maximum of 11.13 m at equator)
   dplyr::filter(!(is.na(lat) | is.na(lon)),           # only records with coords
                 !(lat == lon | lat == 0 | lon == 0),  # coords should not be equal
-                !(year < 1900 | year > 2021),         # no unrealistic years
+                !(year < 1900 | year > 2023),         # no unrealistic years
                 (is.na(coordinate_uncertainty) | coordinate_uncertainty < 10000)) %>%  # coordinate precision < 10km 
   arrange(native, coordinate_uncertainty) %>%                                # sort before distinct() to keep the most informative records 
   distinct(species, lon, lat, year, country, datasource, .keep_all = TRUE) %>%  # remove duplicate or redundant records
