@@ -37,13 +37,15 @@ specs_atr <- occ_enough2[["spp_names"]][["a_tropical"]]
 specs_aus <- occ_enough2[["spp_names"]][["australasia"]]
 specs_nam <- occ_enough2[["spp_names"]][["north_america"]]
 specs_sam <- occ_enough2[["spp_names"]][["south_america"]]
+specs_pac <- occ_enough2[["spp_names"]][["general"]]
 
-files_afr <- list.files(path = "data/regional_occs/", pattern = paste0("intr2_afr_", specs_afr, collapse = "|"))
-files_ate <- list.files(path = "data/regional_occs/", pattern = paste0("intr2_ate_", specs_ate, collapse = "|"))
-files_atr <- list.files(path = "data/regional_occs/", pattern = paste0("intr2_atr_", specs_atr, collapse = "|"))
-files_aus <- list.files(path = "data/regional_occs/", pattern = paste0("intr2_aus_", specs_aus, collapse = "|"))
-files_nam <- list.files(path = "data/regional_occs/", pattern = paste0("intr2_nam_", specs_nam, collapse = "|"))
-files_sam <- list.files(path = "data/regional_occs/", pattern = paste0("intr2_sam_", specs_sam, collapse = "|"))
+files_afr <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_afr_", specs_afr, collapse = "|"))
+files_ate <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_ate_", specs_ate, collapse = "|"))
+files_atr <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_atr_", specs_atr, collapse = "|"))
+files_aus <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_aus_", specs_aus, collapse = "|"))
+files_nam <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_nam_", specs_nam, collapse = "|"))
+files_sam <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_sam_", specs_sam, collapse = "|"))
+files_pac <- list.files(path = "data/regional_occs/", pattern = paste0("intr1_pac_", specs_pac, collapse = "|"))
 
 # for file in files
 # load and relocate files
@@ -53,7 +55,7 @@ for(file in files_afr){
   # load file from old folder
   t <- loadRData(paste0("data/regional_occs/",file))
   # save file in new folder
-  save(t, file = paste0("data/regional_occs_cluster_new2/", file))
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
 }
 
 
@@ -63,7 +65,7 @@ for(file in files_ate){
   # load file from old folder
   t <- loadRData(paste0("data/regional_occs/",file))
   # save file in new folder
-  save(t, file = paste0("data/regional_occs_cluster_new2/", file))
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
 }
 
 for(file in files_atr){
@@ -72,7 +74,7 @@ for(file in files_atr){
   # load file from old folder
   t <- loadRData(paste0("data/regional_occs/",file))
   # save file in new folder
-  save(t, file = paste0("data/regional_occs_cluster_new2/", file))
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
 }
 
 for(file in files_aus){
@@ -81,7 +83,7 @@ for(file in files_aus){
   # load file from old folder
   t <- loadRData(paste0("data/regional_occs/",file))
   # save file in new folder
-  save(t, file = paste0("data/regional_occs_cluster_new2/", file))
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
 }
 
 for(file in files_nam){
@@ -90,7 +92,7 @@ for(file in files_nam){
   # load file from old folder
   t <- loadRData(paste0("data/regional_occs/",file))
   # save file in new folder
-  save(t, file = paste0("data/regional_occs/", file))
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
 }
 
 for(file in files_sam){
@@ -99,5 +101,14 @@ for(file in files_sam){
   # load file from old folder
   t <- loadRData(paste0("data/regional_occs/",file))
   # save file in new folder
-  save(t, file = paste0("data/regional_occs_cluster_new2/", file))
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
+}
+
+for(file in files_pac){
+  
+  print(file)
+  # load file from old folder
+  t <- loadRData(paste0("data/regional_occs/",file))
+  # save file in new folder
+  save(t, file = paste0("data/regional_occs_cluster_new1/", file))
 }
