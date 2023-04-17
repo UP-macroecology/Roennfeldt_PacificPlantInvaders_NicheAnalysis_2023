@@ -16,26 +16,35 @@ rm(list = ls())
 # - getGiftNames()
 # - getGiftStatusInf()
 
-source("scripts/utils.R")
+source("scripts/functions.R")
 
 # required paths ------
 
-path_import <- file.path("/import","ecoc9z", "data-zurell", "roennfeldt", "C1")
-path_mnt <- file.path("/mnt", "ibb_share", "zurell", "biodat", "distribution", "Pacific_invaders")
+# path_import <- file.path("/import","ecoc9z", "data-zurell", "roennfeldt", "C1")
+# path_mnt <- file.path("/mnt", "ibb_share", "zurell", "biodat", "distribution", "Pacific_invaders")
 
 
 # 
 # # path_user <- "//ibb-fs01.ibb.uni-potsdam.de/users$/roennfeldt/C1/data" # TODO: maybe delete this path if it is not used on a regular bases 
-# path_ds <- "Z:Arbeit/datashare/data/biodat/distribution/Pacific_invaders" # when working from the work laptop
-# # path_ds <- "Z:AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders" # when working from home
+
+
+# work laptop
+# path_home <- "M:/C1/data"
+# path_ds <- "Z:/Arbeit/datashare/data/biodat/distribution/Pacific_invaders"
+
+
+# home office
+path_home <- "Z:/roennfeldt/C1/data"
+path_ds <- "Y:AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders" 
 
 # required data ------
 
 # TDWG level 3 regions (TDWG = Taxonomic Databases Working Group, Regions: World Geographical Scheme for Recording Plant Distributions: https://github.com/tdwg/wgsrpd)
-tdwg <- st_read(file.path(path_mnt,"tdwg_lvl3.geojson"))
+# tdwg <- st_read(file.path(path_mnt,"tdwg_lvl3.geojson"))
+tdwg <- st_read(file.path(path_home,"TDWG/wgsrpd-master/geojson/level3.geojson"))
 
 # occurrences (output of 2_data_prep.R)
-load("data/all_species/occ_cleaned_slim.RData")
+load("data/occ_cleaned_slim.RData")
 
 #------------------------------------#
 ####            POWO              ####
@@ -44,23 +53,26 @@ load("data/all_species/occ_cleaned_slim.RData")
 # 1. get POWO names -----
 
 # define species for which status information is required
-specs_all <- sort(unique(occ_cleaned_slim$species))
+# specs_all <- sort(unique(occ_cleaned_slim$species))
+
+#load("data/specs_all.RData")
 
 # remove species that always cause problems 
-flagged_names <- c("Acoelorraphe wrightii")
+flagged_names <- c("Acoelorraphe wrightii", "Amaranthus dubius", "Amaranthus tricolor")
 specs_all <- specs_all[!specs_all %in% flagged_names]
 
+# save(specs_all, file = "data/specs_all.RData")
 
 # prepare empty df to store info 
-powo_page_inf <- data.frame(searched_name = character(),
-                            lcvp_name = character(),
-                            powo_name = character(),
-                            powo_url = character(),
-                            ipni_id = character(),
-                            stringsAsFactors = FALSE)
+# powo_page_inf <- data.frame(searched_name = character(),
+#                             lcvp_name = character(),
+#                             powo_name = character(),
+#                             powo_url = character(),
+#                             ipni_id = character(),
+#                             stringsAsFactors = FALSE)
 
 # load half done object to continue work
-# load("results/intermediate/powo_page_inf_half.RData")
+# load("results/intermediate/powo_page_inf.RData")
 
 # define species for which powo page information has not yet been checked
 specs_done <- unique(powo_page_inf$searched_name)
@@ -80,16 +92,17 @@ for(spec in specs_left){
                              getPowoNames(spec, incl_lcvp_synonyms = TRUE, perfect_matches_only = TRUE))
   
   # stop after xx species (e.g. 200)
-  if (counter >= 67){
+  if (counter >= 163){
     break
   } # end of if 
   
 } # end of for loop over specs_left
 
-# save(powo_page_inf, file = "results/intermediate/powo_page_inf_half.RData")
+save(powo_page_inf, file = "results/intermediate/powo_page_inf.RData")
+
 
 # 1.2) manually select POWO pages for species names for which no perfect match was found in step 1)
-specs_no_powo_inf <- powo_page_inf %>% # for 12 species no matching POWO entry is found
+specs_no_powo_inf <- powo_page_inf %>% # for 279 species no matching POWO entry is found
   filter(is.na(powo_name)) %>%
   pull(searched_name)
 
@@ -148,6 +161,8 @@ powo_status_inf <- powo_status_inf %>%
 powo_status_check <- lapply(specs_all, checkPowoStatus, powo_stat_dt = powo_status_inf)
 # contradictions:
 powo_status_contr <- map_dfr(powo_status_check, ~.x$distr_contr) # 1996 entries for 191 unique species 
+
+# save(powo_status_contr, file = "results/intermediate/powo_status_contr.RData")
 # agreements:
 powo_status_match <- map_dfr(powo_status_check, ~.x$distr_match) # 78685
 
@@ -238,10 +253,10 @@ setdiff(TDWG_regions, POWO_regions2) # doesn't need to be empty; regions without
 # save(powo_dt_harmonized, file = "results/intermediate/powo_dt_harmonized.RData")
 
 # free memory:
-# rm(powo_dt)
-# rm(POWO_regions)
-# rm(TDWG_regions)
-# rm(POWO_regions2)
+rm(powo_dt)
+rm(POWO_regions)
+rm(TDWG_regions)
+rm(POWO_regions2)
 
 # 2. spatial joining ------------------------------------
 
@@ -262,7 +277,7 @@ sf_use_s2(FALSE) # switch off spherical geometry package S2, otherwise join does
 occ_tdwg_sf <- st_join(occ_sf, tdwg, st_intersects, left = TRUE) # all occurrences are kept, also those that don't intersect with a region
 # 26,243,289 occurrences (old: 1,125,053), ca. 57,279 occurrences joined to two regions (when regions overlap at the occurrence's location)
 
-# save(occ_tdwg_sf, file = "results/intermediate/occurrences_tdwg_region_sh.RData")
+# save(occ_tdwg_sf, file = "results/intermediate/occurrences_tdwg_region_sf.RData")
 
 # 2.1 additionally join occurrences which don't overlap with TDWG region to nearest TDWG region if it is not more than 10 km away:
 
