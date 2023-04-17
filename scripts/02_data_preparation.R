@@ -9,7 +9,8 @@ rm(list = ls())
 
 # define required paths
 # path_user <- "//ibb-fs01.ibb.uni-potsdam.de/users$/roennfeldt/C1/data/"
-path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
+# path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/" # from home
+path_ds <- "Z:/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/" # work laptop
 
 
 # load and prep data -----------------------------------------------------------
@@ -17,7 +18,7 @@ path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
 # BIEN data
 files <- list.files(paste0(path_ds, "download_bien_2023/"), ignore.case = FALSE, full.names = TRUE)
 occ_bien <- map_dfr(files, function(file){load(file); return(occ_df)}) # 5,318,461 records (instead of 5'824'132 records)
-length(unique(occ_bien$scrubbed_species_binomial)) #  2631 species (instead of 2540 species)
+length(unique(occ_bien$scrubbed_species_binomial)) #  2541 species (instead of 2540 species)
 spp_freq_bien <- occ_bien %>% 
   group_by(scrubbed_species_binomial) %>% 
   tally() %>%
@@ -69,10 +70,11 @@ occ_gbif_std = occ_gbif %>%
          dataset = "datasetName",
          native = "establishmentMeans",
          coordinate_uncertainty = "coordinateUncertaintyInMeters") %>% 
-  mutate(country = countrycode(country, origin = "country.name", destination = "iso3c"))
 # Kosovo has no ISO3c code -> gets country code NA -> think about fixing this
 # Problem while computing `country = countrycode(country, origin = "country.name", destination = "iso3c")`.
 # Some values were not matched unambiguously: Kosovo, Türkiye, unknown or invalid 
+  mutate(country = replace(country, country == "Türkiye", "Turkey")) %>%
+  mutate(country = countrycode(country, origin = "country.name", destination = "iso3c"))
 
 # free up memory
 rm(occ_bien) # to free up memory
@@ -82,8 +84,8 @@ rm(occ_gbif) # to free up memory
 # save(occ_gbif_std, file = file.path("data", "occ_gbif_std.RData"))
 
 
-load("data/occ_bien_std.RData")
-load("data/occ_gbif_std.RData")
+# load("data/occ_bien_std.RData")
+# load("data/occ_gbif_std.RData")
 
 # clean data -------------------------------------------------------------------
 occ_cleaned <- bind_rows(occ_bien_std, occ_gbif_std) %>% 
@@ -116,7 +118,7 @@ occ_cleaned_slim <- occ_cleaned %>%
 
 # 26,186,010 occurrences after this step
 
-# save(occ_cleaned_slim, file =  file.path("data","all_species", "occ_cleaned_slim.RData"))
+save(occ_cleaned_slim, file =  file.path("data", "occ_cleaned_slim.RData"))
 
 # free up memory
 rm(occ_cleaned)
