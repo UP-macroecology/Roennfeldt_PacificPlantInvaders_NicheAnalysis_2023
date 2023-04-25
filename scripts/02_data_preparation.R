@@ -122,15 +122,3 @@ save(occ_cleaned_slim, file =  file.path("data", "occ_cleaned_slim.RData"))
 
 # free up memory
 rm(occ_cleaned)
-
-# blacklist subset ----
-
-# subset the main data set for the 122 blacklist species
-spp_blacklist <- read.csv(paste0(path_ds,"Pacific_Invaders_GIFT_22_01.csv"), sep = ";" ) %>%
-  filter(inva_stat == "T", Islandgroup == "Hawaiian") %>%
-  distinct(Species) %>%
-  pull()
-
-
-blacklist_cleaned_slim <- occ_cleaned_slim[occ_cleaned_slim$species %in% spp_blacklist,]
-#save(blacklist_cleaned_slim, file = file.path("data", "blacklist_species", "blacklist_cleaned_slim.RData"))
