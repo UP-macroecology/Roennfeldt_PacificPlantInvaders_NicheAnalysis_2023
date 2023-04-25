@@ -8,10 +8,10 @@
 # preamble
 rm(list = ls())
 
-## Packages ---------------------------------------------------------------
+## Packages --------------------------------------------------------------------
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos='http://cran.us.r-project.org')
+    install.packages(x, repos = 'http://cran.us.r-project.org')
   require(x, character.only = TRUE)
 }
 package_vec <- c(
@@ -20,13 +20,19 @@ package_vec <- c(
 
 sapply(package_vec, install.load.package)
 
-# required paths
+# required paths ---------------------------------------------------------------
+
 # path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
 path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
 
-# load functions
-# required in this script: thin
-# source("scripts/functions.R")
+# required functions -----------------------------------------------------------
+
+# function to load in an object and assign it to an object name of choice
+loadRData <- function(fileName){
+  #loads an RData file, and returns it
+  load(fileName)
+  get(ls()[ls() != "fileName"])
+}
 
 # function for "fast" spatial thinning"
 thin <- function(sf, thin_dist = 5000, runs = 10, ncores = 10){
@@ -49,7 +55,7 @@ thin <- function(sf, thin_dist = 5000, runs = 10, ncores = 10){
   results_runs <- future_map(seeds, function(i){
     
     set.seed(i)
-    while(max(n_int) > 1){
+    while (max(n_int) > 1) {
       max_neighbors <- names(which(n_int == max(n_int)))
       
       # remove point with max neighbors
@@ -78,7 +84,7 @@ thin <- function(sf, thin_dist = 5000, runs = 10, ncores = 10){
 
 
 # load("results/enough_occs.RData")
-load(paste0(path_imp, "input_data/enough_occs.RData"))
+load(paste0(path_imp, "input_data/list_enough_occs1.RData"))
 
 # TODO: check origin of this object or create alternative if needed
 # world_mask <- rast("data/world_mask.tif")
@@ -86,7 +92,7 @@ load(paste0(path_imp, "input_data/enough_occs.RData"))
 
 # get names of relevant species ------------------------------------------------
 # species suitable for the analysis (>= 20 occs over the island region)
-spp <- occ_enough[["spp_names"]][["general"]][431:506]
+spp <- occ_enough_1[["spp_names"]][["general"]]
 
 
 
@@ -100,7 +106,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     
     world_mask <- rast(paste0(path_imp, "input_data/world_mask.tif"))
     
-    load(paste0(path_imp,"input_data/regional_occs/nat1_",spp[spp_index],".RData")) # object is called "t"
+    t <- loadRData(paste0(path_imp,"output/regional_occs/nat1_",spp[spp_index],".RData")) # the objects all have different names depending on the target region
     
     # select coordinates of the occs
     occ_coords <- as.data.frame(t[,c("lon", "lat")])
@@ -162,21 +168,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     abs_thinned_500 <- thin(abs_coords_500_sf, thin_dist = 3000, runs = 10, ncores = 1)
     
     
-    # create output file
-    # output map with occurrence and pseudo-absence data
-    # pdf(paste0(path_imp,"figures/presence_absence/nat1_buffer200_",spp[spp_index],".pdf"))
-    # plot(world_mask)
-    # points(abs_thinned_200, pch = 19, col = "black", cex = .2)
-    # points(occ_thinned_200, pch = 19, col = "red", cex = .2)
-    # dev.off()
-    # 
-    # pdf(paste0(path_imp,"figures/presence_absence/nat1_buffer500_",spp[spp_index],".pdf"))
-    # plot(world_mask)
-    # points(abs_thinned_500, pch = 19, col = "black", cex = .2)
-    # points(occ_thinned_500, pch = 19, col = "red", cex = .2)
-    # dev.off()
-    
-    #Merge presence and absence coordinates
+    # Merge presence and absence coordinates
     coords_final_nat_200 <- bind_rows(bind_cols(species = spp[spp_index], present = 1, occ_thinned),
                                       bind_cols(species = spp[spp_index], present = 0, abs_thinned_200)) %>%
       as.data.frame() %>%

@@ -11,11 +11,19 @@ sapply(package_vec, install.load.package)
 
 # required paths
 # path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
-path_imp <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/")
+path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
+
+# required functions -----------------------------------------------------------
+
+# function to load in an object and assign it to an object name of choice
+loadRData <- function(fileName){
+  #loads an RData file, and returns it
+  load(fileName)
+  get(ls()[ls() != "fileName"])
+}
 
 
-# function for "fast" spatial thinning"
-thin <- function(sf, thin_dist = 5000, runs = 10, ncores = 10){
+thin <- function(sf, thin_dist = 5000, runs = 10, ncores = 1){
   
   require(sf, quietly = TRUE)
   require(purrr, quietly = TRUE)
@@ -64,18 +72,17 @@ thin <- function(sf, thin_dist = 5000, runs = 10, ncores = 10){
 
 
 # load("results/enough_occs.RData")
-load(paste0(path_imp, "input_data/enough_occs.RData"))
-
+load(paste0(path_imp, "input_data/list_enough_occs1.RData"))
 # get names of relevant species ------------------------------------------------
 # species suitable for the analysis (>= 20 occs over the island region)
-spp <- occ_enough[["spp_names"]][["general"]]
+spp <- occ_enough_1[["spp_names"]][["general"]]
 
 # # create vector containing all the abbreviated region names
 # regions <- c("afr", "ate", "atr", "aus", "nam", "pac", "sam")
 # 
 
 # Start parallel computing
-no_cores <- 15
+no_cores <- 10
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
@@ -86,14 +93,15 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     world_mask <- rast(paste0(path_imp, "input_data/world_mask.tif"))
     
     # get all intr files that exist for one species
-    files <- list.files(path = paste0(path_imp,"input_data/regional_occs_intr/"), pattern = paste0("_",spp[spp_index],".RData"))
+    files_all <- list.files(path = paste0(path_imp,"output/regional_occs/"), pattern = paste0("_",spp[spp_index],".RData"))
+    files <- files_all[grep("intr1", files_all)]
     
     # for loop over files
     for(file in files){
       
       region <- unlist(str_split(file, pattern = "_"))[2]
       
-      load(paste0(path_imp,"input_data/regional_occs_intr/intr1_",region,"_",spp[spp_index],".RData")) # object is called "t"
+      t <- loadRData(paste0(path_imp,"output/regional_occs/intr1_",region,"_",spp[spp_index],".RData"))
       
       # select coordinates of the occs
       occ_coords <- as.data.frame(t[,c("lon", "lat")])
