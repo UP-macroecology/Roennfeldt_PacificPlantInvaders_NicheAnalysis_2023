@@ -3,7 +3,7 @@ library(dplyr)
 rm(list = ls())
 
 # required data
-load("results/intermediate/powo_page_inf_final.RData")
+load("results/intermediate/powo_page_inf.RData")
 
 # -------------------------------------------- #
 #     Get GloNAF status information         ####
@@ -13,8 +13,6 @@ load("results/intermediate/powo_page_inf_final.RData")
 # GloNAF contains status information based on TDWG regions, as POWO,
 # status information is either "alien" or "naturalized"
 
-# # GloNAF data:
-# glonaf_path <- file.path("data", "GLONAF")
 
 # reading the taxon csv-file downloaded from the website didn't work for me due to encoding problems,
 # converted csv beforehand to UTF8 encoding using notepad++:
@@ -37,17 +35,17 @@ rm(list_dt)
 # (either GloNAF tpl_input or standardized name + author must match either LCVP name or POWO name)
 # then join LCVP and POWO names
 glonaf_blacklist_dt <- glonaf_dt %>%
-  filter(tpl_input %in% powo_page_inf_final$lcvp_name | # name before GloNAF standardization
-           species_name %in% powo_page_inf_final$lcvp_name | # name after GloNAF standardization
-           tpl_input %in% powo_page_inf_final$powo_name |
-           species_name %in% powo_page_inf_final$powo_name) %>%
-  left_join(powo_page_inf_final[,c("lcvp_name", "powo_name")], by = c("tpl_input" = "lcvp_name"), keep = TRUE) %>%
+  filter(tpl_input %in% powo_page_inf$lcvp_name | # name before GloNAF standardization
+           species_name %in% powo_page_inf$lcvp_name | # name after GloNAF standardization
+           tpl_input %in% powo_page_inf$powo_name |
+           species_name %in% powo_page_inf$powo_name) %>%
+  left_join(powo_page_inf[,c("lcvp_name", "powo_name")], by = c("tpl_input" = "lcvp_name"), keep = TRUE) %>%
   distinct %>%
-  left_join(powo_page_inf_final[,c("lcvp_name", "powo_name")], by = c("tpl_input" = "powo_name"), keep = TRUE) %>%
+  left_join(powo_page_inf[,c("lcvp_name", "powo_name")], by = c("tpl_input" = "powo_name"), keep = TRUE) %>%
   distinct %>%
-  left_join(powo_page_inf_final[,c("lcvp_name", "powo_name")], by = c("species_name" = "lcvp_name"), keep = TRUE) %>%
+  left_join(powo_page_inf[,c("lcvp_name", "powo_name")], by = c("species_name" = "lcvp_name"), keep = TRUE) %>%
   distinct %>%
-  left_join(powo_page_inf_final[,c("lcvp_name", "powo_name")], by = c("species_name" = "powo_name"), keep = TRUE) %>%
+  left_join(powo_page_inf[,c("lcvp_name", "powo_name")], by = c("species_name" = "powo_name"), keep = TRUE) %>%
   distinct %>%
   mutate(lcvp_name = coalesce(lcvp_name.x, lcvp_name.y, lcvp_name.x.x, lcvp_name.y.y)) %>%
   mutate(powo_name = coalesce(powo_name.x, powo_name.y, powo_name.x.x, powo_name.y.y)) %>%

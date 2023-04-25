@@ -15,8 +15,8 @@ package_vec <- c(
 sapply(package_vec, install.load.package)
 
 # load required data
-load(file.path(path_imp, "input_data", "species_names.RData"))
-load(file.path(path_imp, "input_data", "powo_page_inf_final.RData"))
+load(file.path(path_imp, "input_data", "specs_all.RData"))
+load(file.path(path_imp, "input_data", "powo_page_inf.RData"))
 load(file.path(path_imp, "input_data", "glonaf_blacklist_dt.RData"))
 load(file.path(path_imp, "output", "all_specs_occ_status_POWO_GIFT.RData"))
 tdwg <- st_read(file.path(path_imp, "input_data", "tdwg_lvl3.geojson"))
@@ -48,7 +48,7 @@ all_specs_occ_status_POWO_GIFT_GloNAF <- foreach(s = 1:length(specs_all), .packa
                                                    # check whether GloNAF contains status information (alien or naturalized) for these regions:
 
                                                    # LCVP and POWO names by which GloNAF data should be extracted:
-                                                   lcvp_powo_name <- powo_page_inf_final %>%
+                                                   lcvp_powo_name <- powo_page_inf %>%
                                                      filter(searched_name == specs_all[s]) %>%
                                                      distinct(lcvp_name, powo_name)
                                                    status_powo_name <- as.character(unique(lcvp_powo_name$powo_name[!is.na(lcvp_powo_name$powo_name)]))
