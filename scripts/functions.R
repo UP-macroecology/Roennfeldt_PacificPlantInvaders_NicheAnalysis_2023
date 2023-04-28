@@ -465,7 +465,7 @@ getGiftStatusInf <- function(searched_name, GIFT_spec_genus, GIFT_spec_epithet){
     
     GIFT_species_distribution(genus = GIFT_spec_genus,
                               epithet = GIFT_spec_epithet, 
-                              aggregation = FALSE, # TRUE = only one status per polygon
+                              aggregation = TRUE, # TRUE = only one status per polygon
                               namesmatched = FALSE, # TRUE not necessary since harmonized species name is used
                               #remove_overlap = TRUE, # return only one of overlapping polygons, depending on the rules defined below:
                               #overlap_th = 0.1, # default, if polygons overlap by min. 10 % they are treated as overlapping, if they overlap less, both polygons are kept
@@ -474,8 +474,8 @@ getGiftStatusInf <- function(searched_name, GIFT_spec_genus, GIFT_spec_epithet){
                               GIFT_version = "beta") # doesn't allow including author in search
   }, error = function(e){
     print(paste("Connection to Gift information failed, try again later."))
-    spec_status_inf <- data.frame(blacklist_name = searched_name,
-                                  species = paste(GIFT_spec_genus, GIFT_spec_epithet),
+    spec_status_inf <- data.frame(species = searched_name,
+                                  GIFT_species = paste(GIFT_spec_genus, GIFT_spec_epithet),
                                   entity_ID = NA,
                                   native = NA,
                                   naturalized = NA,
@@ -485,18 +485,15 @@ getGiftStatusInf <- function(searched_name, GIFT_spec_genus, GIFT_spec_epithet){
   
   # extract and re-format information:
   spec_status_inf <- GIFT_spec_distr %>%
-    mutate(blacklist_name = searched_name) %>% 
-    mutate(GIFT_species = paste(GIFT_spec_genus, GIFT_spec_epithet)) %>% 
+    mutate(species = searched_name) %>%
+    mutate(GIFT_species = paste(GIFT_spec_genus, GIFT_spec_epithet)) %>%
     mutate(native = ifelse(native == 1, "native", "non-native"),
            naturalized = ifelse(naturalized == 1, "naturalized",
                                 "non-naturalized"),
            endemic_list = ifelse(endemic_list == 1, "endemic_list",
                                  "non-endemic_list")) %>%
-    select(blacklist_name, GIFT_species, entity_ID, native, naturalized, endemic_list) %>% 
-    filter_at(vars(native, naturalized, endemic_list), any_vars(!is.na(.))) %>% # remove entries without any status information
-    group_by(entity_ID) %>% # group by region
-    fill(native:endemic_list, .direction = "downup") %>% # melt status information of two entries of the same region (fills missing values in one entry with the values from another entry of the same region)
-    slice(1) # select only one status entry per region
+    select(species, GIFT_species, entity_ID, native, naturalized, endemic_list) %>%
+    filter_at(vars(native, naturalized, endemic_list), any_vars(!is.na(.)))  # remove entries without any status information
   
   return(spec_status_inf)
   
