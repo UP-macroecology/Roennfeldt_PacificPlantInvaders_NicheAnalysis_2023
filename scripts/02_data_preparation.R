@@ -122,3 +122,8 @@ save(occ_cleaned_slim, file =  file.path("data", "occ_cleaned_slim.RData"))
 
 # free up memory
 rm(occ_cleaned)
+
+
+# get all species names and save them for later
+specs_all <- sort(unique(occ_cleaned_slim$species))
+save(specs_all, file = "data/specs_all.RData")
