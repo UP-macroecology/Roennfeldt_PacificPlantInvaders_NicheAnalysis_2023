@@ -1,23 +1,98 @@
 library(dplyr)
-library(GIFT)
+library(sf)
+library(stringr)
+
+# required packages -------------------------------------------------------
+
+install.load.package <- function(x) {
+  if (!require(x, character.only = TRUE))
+    install.packages(x, repos='http://cran.us.r-project.org')
+  require(x, character.only = TRUE)
+}
+package_vec <- c(
+  "dplyr", "sf", "doParallel", "foreach", "GIFT", "stringr", "reticulate" # names of the packages required placed here as character objects
+)
+sapply(package_vec, install.load.package)
+
+devtools::install_github("barnabywalker/kewr")
+devtools::install_github("idiv-biodiversity/LCVP") # data package; needed to use lcvplants
+devtools::install_github("idiv-biodiversity/lcvplants")
+DIFFLIB <- reticulate::import("difflib") # load Python module
+
+require(kewr)
+require(lcvplants)
 
 rm(list = ls())
 
+# source("functions.R")
 source("scripts/functions.R")
+
+# paths -------------------------------------------------------------------
+
+# cluster
+# path_imp <- file.path("/import","ecoc9z", "data-zurell", "roennfeldt", "C1")
+# path_mnt <- file.path("/mnt", "ibb_share", "zurell", "biodat", "distribution", "Pacific_invaders")
+
+# work laptop
+# path_home <- "M:/C1/data"
+# path_ds <- "Z:/Arbeit/datashare/data/biodat/distribution/Pacific_invaders"
+
+# home office
+# path_home <- "Z:/roennfeldt/C1/data"
+# path_ds <- "Y:AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders" 
 
 
 # required data ----------------------------------------------------------------
+# load(paste0(path_imp,"/input_data/specs_all.RData"))
+# load(paste0(path_imp,"/input_data/occ_cleaned_slim.RData"))
+
 load("data/specs_all.RData")
 
-specs_all <- specs_all[1:50]
+# remove ACOELORRAPHE WRIGHTII because it causes errors
+flagged_names <- c("Acoelorraphe wrightii")
+specs_all <- specs_all[!specs_all %in% flagged_names]
+specs_names <- specs_all[51:150]
+
 
 
 # get GIFT status information ---------------------------------------------
 
 # 1) find corresponding species names in GIFT
 
-GIFT_names <- bind_rows(lapply(specs_all, getGiftNames, incl_lcvp_synonyms = TRUE))
-#save(GIFT_names, file = file.path("data", "GIFT_names.RData"))
+# prepare empty df to store info
+# GIFT_names <- data.frame(searched_name = character(),
+#                          GIFT_genus = character(),
+#                          GIFT_species_ep = character(),
+#                          stringsAsFactors = FALSE)
+
+load("data/status_info/GIFT_names.RData")
+
+# define species for which powo page information has not yet been checked
+specs_done <- unique(GIFT_names$searched_name)
+specs_left <- setdiff(specs_all, specs_done)
+
+counter <- 0
+
+# run loop over species
+for(spec in specs_left){
+  
+  counter <- counter + 1
+  print(counter)
+  
+  GIFT_names <- bind_rows(GIFT_names,
+                          getGiftNames(spec, incl_lcvp_synonyms = TRUE))
+  
+  # stop after xx species (e.g. 200)
+  if (counter >= 200){
+    break
+  } # end of if 
+  
+} # end of for loop over specs_left
+
+
+
+# GIFT_names <- bind_rows(lapply(specs_names, getGiftNames, incl_lcvp_synonyms = TRUE))
+save(GIFT_names, file = "data/status_info/GIFT_names.RData")
 
 
 # 2) extract status information from GIFT:
@@ -29,15 +104,15 @@ for (s in 1:nrow(GIFT_names)) {
                                        GIFT_spec_genus = GIFT_names$GIFT_genus[s],
                                        GIFT_spec_epithet = GIFT_names$GIFT_species_ep[s])
 }
-GIFT_status_all <- bind_rows(GIFT_status)
-#save(GIFT_status_all, file = file.path("data","status_information", "GIFT_status_all.RData"))
+GIFT_status_all_details <- bind_rows(GIFT_status)
+save(GIFT_status_all_details, file = paste0(path_imp,"/output/GIFT_status_all_details.RData"))
 rm(GIFT_status)
 
 
 #rename the statuses based on the distinct combinations
 # based on: https://biogeomacro.github.io/GIFT/articles/GIFT_tutorial.html#species-distribution
 
-GIFT_status <- GIFT_status_all %>%
+GIFT_status <- GIFT_status_all_details %>%
   mutate(status_GIFT = case_when(
     native == "native" & naturalized == "non-naturalized" ~ "native",
     native == "native" & is.na(naturalized) ~ "native",
@@ -48,22 +123,23 @@ GIFT_status <- GIFT_status_all %>%
   )) %>%
   select(species, GIFT_species, entity_ID, status_GIFT)
 
-save(GIFT_status, file = "data/status_information/GIFT_status.RData")
-
+save(GIFT_status, file = paste0(path_imp, "/output/GIFT_status.RData"))
 
 
 # 3) load spatial data of the GIFT regions with status information for the considered species:
 GIFT_polygons <- GIFT_shape(unique(GIFT_status_df$entity_ID), GIFT_version = "beta") 
-#save(GIFT_polygons, file = file.path("data", "Gift_polygons.RData"))
+save(GIFT_polygons, file = paste0(path_imp,"/output/Gift_polygons.RData"))
 
 
 # assign GIFT status to occurrences ---------------------------------------
 
 # register cores for parallel computation to speed it up:
-registerDoParallel(cores = 1) # doParallel package
-getDoParWorkers() # check registered number of cores
 
-occ_GIFT_status <- foreach(s = 1:length(specs_all), .packages = c("dplyr", "sf"),
+no_cores <- 6
+cl <- makeCluster(no_cores)
+registerDoParallel(cl)
+
+occ_GIFT_status <- foreach(s = 1:length(specs_all), .packages = c("dplyr", "sf", "GIFT", "stringr"),
                            .combine = "rbind", .verbose = TRUE) %dopar% {
                              
                              # GIFT status data for species s:
@@ -152,3 +228,8 @@ occ_GIFT_status <- foreach(s = 1:length(specs_all), .packages = c("dplyr", "sf")
                                slice(1) %>%
                                ungroup
                            }
+
+save(occ_GIFT_status, file = paste0(path_imp, "/output/occ_GIFT_status_max_10km_dist.RData"))
+
+# stop the cluster
+stopCluster(cl)
