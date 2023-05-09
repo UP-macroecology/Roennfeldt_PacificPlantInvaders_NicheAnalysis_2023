@@ -77,6 +77,7 @@ for (s in 1:nrow(GIFT_names_no_NA)) {
   } # end of for loop 
 
 
+# TODO: remove these two lines if they are not actually required
 # some species still had NAs and were be removed from GIFT status to avoid errors when binding the rows
 # GIFT_status <- GIFT_status[-2695]
 
