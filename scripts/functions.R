@@ -2,10 +2,10 @@ library(tidyverse)
 library(purrr)
 library(sf)
 library(kewr) # install from GitHub with: devtools::install_github("barnabywalker/kewr")
-# install from GitHub: 
+# install from GitHub:
 #devtools::install_github("idiv-biodiversity/LCVP") # data package; needed to use lcvplants
 #devtools::install_github("idiv-biodiversity/lcvplants")
-library(lcvplants) 
+library(lcvplants)
 library(GIFT) # install from GitHub with: devtools::install_github("https://github.com/BioGeoMacro/GIFT")
 library(reticulate) # R interface to Python modules
 DIFFLIB <- reticulate::import("difflib") # load Python module
