@@ -42,11 +42,11 @@ path_imp <- file.path("/import","ecoc9z", "data-zurell", "roennfeldt", "C1")
 # load("data/specs_all.RData")
 
 # remove ACOELORRAPHE WRIGHTII because it causes errors
-flagged_names <- c("Acoelorraphe wrightii")
-specs_all <- specs_all[!specs_all %in% flagged_names]
-
-
-
+# flagged_names <- c("Acoelorraphe wrightii")
+# specs_all <- specs_all[!specs_all %in% flagged_names]
+# 
+# 
+# 
 
 # get GIFT status information ---------------------------------------------
 
@@ -183,7 +183,7 @@ load(file.path(path_imp, "input_data", "GIFT_status.RData"))
 load(file.path(path_imp, "input_data", "occ_cleaned_slim.RData"))
 tdwg <- st_read(file.path(path_imp, "input_data", "tdwg_lvl3.geojson"))
 
-no_cores <- 4
+no_cores <- 6
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
