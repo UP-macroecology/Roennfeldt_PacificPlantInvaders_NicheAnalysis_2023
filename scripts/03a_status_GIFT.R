@@ -27,7 +27,7 @@ path_imp <- file.path("/import","ecoc9z", "data-zurell", "roennfeldt", "C1")
 # path_mnt <- file.path("/mnt", "ibb_share", "zurell", "biodat", "distribution", "Pacific_invaders")
 
 # work laptop
-# path_home <- "M:/C1/data"
+path_home <- "M:/C1/data"
 # path_ds <- "Z:/Arbeit/datashare/data/biodat/distribution/Pacific_invaders"
 
 # home office
@@ -183,9 +183,11 @@ load(file.path(path_imp, "input_data", "GIFT_status.RData"))
 load(file.path(path_imp, "input_data", "occ_cleaned_slim.RData"))
 tdwg <- st_read(file.path(path_imp, "input_data", "tdwg_lvl3.geojson"))
 
-no_cores <- 6
+no_cores <- 1
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
+
+specs_all <- specs_all
 
 occ_GIFT_status <- foreach(s = 1:length(specs_all), .packages = c("dplyr", "sf"),
                            .combine = "rbind", .verbose = TRUE) %dopar% {
