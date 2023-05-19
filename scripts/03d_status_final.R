@@ -1,26 +1,15 @@
 library(dplyr)
 
+
 rm(list = ls())
 
 load("data/status_info/occ_status_POWO_GIFT_GloNAF.RData")
+
 
 # rearrange the table
 occ_status_all <- occ_status_POWO_GIFT_GloNAF %>%
   select(!starts_with("GIFT") & !starts_with("powo") & !starts_with("lcvp")) %>% # drop columns holding additional information
   relocate("status_POWO", .before = "status_GIFT")  # all status columns should be at one position in the table 
-
-# free up memory
-rm(occ_status_POWO_GIFT_GloNAF)
-
-# smaller subset for testing ----------------------------------------------
-small <- occ_status_POWO_GIFT_GloNAF[2700:3800,]
-save(small, file = "data/intermediate/xx_small_status.RData")
-
-t <- small %>%
-  select(!starts_with("GIFT") & !starts_with("powo") & !starts_with("lcvp")) %>% # drop columns holding additional information
-  relocate("status_POWO", .before = "status_GIFT")  # all status columns should be at one position in the table 
-
-
 
 unique(occ_status_POWO_GIFT_GloNAF$status_POWO)
 unique(occ_status_POWO_GIFT_GloNAF$status_GIFT)
@@ -62,7 +51,6 @@ t22 <- subset(occ_status_all, status_POWO == "introduced" & is.na(status_GIFT) &
 t23 <- subset(occ_status_all, status_POWO == "introduced" & is.na(status_GIFT) & status_GloNAF == "naturalized") # 337429
 t24 <- subset(occ_status_all, status_POWO == "introduced" & is.na(status_GIFT) & status_GloNAF == "alien") # 1299
 
-
 #' --------------------------
 
 t25 <- subset(occ_status_all, status_POWO == "unknown" & status_GIFT == "native" & is.na(status_GloNAF)) # 468621
@@ -83,7 +71,6 @@ t36 <- subset(occ_status_all, status_POWO == "unknown" & is.na(status_GIFT) & st
 
 #' --------------------------
 
-
 t37 <- subset(occ_status_all, status_POWO == "native" & status_GIFT == "unknown" & is.na(status_GloNAF)) # 6477
 t38 <- subset(occ_status_all, status_POWO == "native" & status_GIFT == "unknown" & status_GloNAF == "naturalized") # 917
 t39 <- subset(occ_status_all, status_POWO == "native" & status_GIFT == "unknown" & status_GloNAF == "alien") # 0
@@ -91,6 +78,7 @@ t39 <- subset(occ_status_all, status_POWO == "native" & status_GIFT == "unknown"
 t40 <- subset(occ_status_all, status_POWO == "introduced" & status_GIFT == "unknown" & is.na(status_GloNAF)) # 158
 t41 <- subset(occ_status_all, status_POWO == "introduced" & status_GIFT == "unknown" & status_GloNAF == "naturalized") # 202
 t42 <- subset(occ_status_all, status_POWO == "introduced" & status_GIFT == "unknown" & status_GloNAF == "alien") # 0
+
 
 t43 <- subset(occ_status_all, status_POWO == "unknown" & status_GIFT == "unknown" & is.na(status_GloNAF)) # 71
 t44 <- subset(occ_status_all, status_POWO == "unknown" & status_GIFT == "unknown" & status_GloNAF == "naturalized") # 8
