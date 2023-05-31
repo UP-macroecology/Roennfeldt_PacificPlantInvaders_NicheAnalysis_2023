@@ -82,21 +82,13 @@ PaciFlora_specs <- read.table(file.path(path_import, "PaciFLora.txt"), header = 
   drop_na() %>%
   pull(Species)
 
-# read in specs_all, as this contains the names of the species that were already included pre May 2023 (kick-off meeting)
-load(file.path(path_import, "specs_all.RData"))
-
-
-#define list of species for which a download is still required
-new_specs <- setdiff(PaciFlora_specs, specs_all)
-
-
 # collect names of already downloaded species:
 inv_specs_dl = list.files(file.path(path_import, "download_gbif")) %>%
   str_remove(".RData") %>% 
   str_replace("_", " ")
 
 # create list of still to-be-downloaded species:
-inv_specs_final = setdiff(new_specs, inv_specs_dl) 
+inv_specs_final = setdiff(PaciFlora_specs, inv_specs_dl) 
 
 # set up cluster and download species (may be a good idea to run this on the cluster):
 cl = makeCluster(10)
