@@ -42,13 +42,13 @@ hybrids_corrected <- hybrids %>%
 # remove hybrids with the old format and add the corrected format
 species_all <- species_names %>%
   filter(!grepl('_x', species)) %>% # remove old format
-  rbind(data.frame(species = hybrids_corrected)) %>% # add corrected format
-  arrange(species) %>% # sort alphabetically
-  rename("species_no_x" = "species") # rename column
+  rbind(data.frame(species = hybrids_corrected)) # add corrected format
+
+
 
 
 species_all <- cbind(species_names$species , species_all) %>%
-  rename("species" = "species_names$species")
+  rename("species_old_format" = "species_names$species")
 
 save(species_all, file = "data/initial_species_list.RData")
 
