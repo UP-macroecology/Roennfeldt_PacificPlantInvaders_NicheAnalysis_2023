@@ -31,18 +31,16 @@ download_species <- function(spec_name){
   # download BIEN occurrence data for 'spec_name'
   occ_df = BIEN_occurrence_species(spec_name, 
                                    natives.only = FALSE, 
-                                   cultivated = TRUE, 
+                                   cultivated = FALSE, 
                                    native.status = TRUE, 
                                    political.boundaries = TRUE) 
   if(nrow(occ_df) == 0){ # if no occurrences available --> return NULL
     return(NULL)
   } else { # else --> return only relevant columns
-    return(occ_df[,colnames(occ_df) %in% c("scrubbed_species_binomial", "latitude", "longitude", 
-                                           "date_collected", "country", "datasource", "dataset",
-                                           "is_introduced", "native_status", "native_status_country", 
-                                           "native_status_state_province","native_status_reason",
-                                           "is_cultivated_observation", "is_cultivated_in_region", # added additional columns to idenity cultivated occs
-                                           "is_location_cultivated")])
+    return(occ_df[,colnames(occ_df) %in% c("latitude", "longitude", "date_collected",
+                                           "country", "datasource", "dataset",
+                                           "is_introduced", "native_status", "native_status_country")] %>%
+             mutate(species = spec_name, .before = "latitude"))
   }
 }
 
@@ -50,12 +48,8 @@ download_species <- function(spec_name){
 #          Loop over species and download         ####
 # -------------------------------------------------- #
 
-# read in data set on pacific island invaders. Source: https://bdj.pensoft.net/article/67318/
-PaciFlora_specs <- read.table(file.path(path_import, "PaciFLora.txt"), header = TRUE) %>%
-  dplyr::select(Species) %>%
-  distinct() %>%
-  drop_na() %>%
-  pull(Species)
+# species data 
+load(file.path(path_import, "initial_species_list.RData")) # object is called "species_all"
 
 # collect names of already downloaded (in the import folder) species:
 inv_specs_dl <- list.files(file.path(path_import, "download_bien")) %>% 
@@ -63,11 +57,11 @@ inv_specs_dl <- list.files(file.path(path_import, "download_bien")) %>%
   str_replace("_", " ")
 
 # create list of still to-be-downloaded species:
-inv_specs_final <- setdiff(PaciFlora_specs, inv_specs_dl)
+inv_specs_final <- setdiff(species_all, inv_specs_dl)
 
 
 # set up cluster and download species (may be a good idea to run this on the cluster):
-cl = makeCluster(10)
+cl = makeCluster(15)
 registerDoParallel(cl)
 
 # download data, retry if not successful:

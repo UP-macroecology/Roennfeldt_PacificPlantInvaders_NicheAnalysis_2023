@@ -67,20 +67,20 @@ download_species = function(spec_name){
   }) 
   
   # bind blocked data together
-  occ_df = bind_rows(download_list) %>% distinct()
+  occ_df = bind_rows(download_list) %>% 
+    distinct() %>%
+    mutate(species = spec_name, .before = "decimalLatitude") # add the initial input species name
   return(occ_df)
 }
+
 
 # -------------------------------------------------- #
 #          Loop over species and download         ####
 # -------------------------------------------------- #
 
-# read in data set on pacific island invaders. Source: https://bdj.pensoft.net/article/67318/
-PaciFlora_specs <- read.table(file.path(path_import, "PaciFLora.txt"), header = TRUE) %>%
-  dplyr::select(Species) %>%
-  distinct() %>%
-  drop_na() %>%
-  pull(Species)
+# species data 
+load(file.path(path_import, "initial_species_list.RData")) # object is called "species_all"
+
 
 # collect names of already downloaded species:
 inv_specs_dl = list.files(file.path(path_import, "download_gbif")) %>%
@@ -88,10 +88,10 @@ inv_specs_dl = list.files(file.path(path_import, "download_gbif")) %>%
   str_replace("_", " ")
 
 # create list of still to-be-downloaded species:
-inv_specs_final = setdiff(PaciFlora_specs, inv_specs_dl) 
+inv_specs_final = setdiff(species_all, inv_specs_dl) 
 
 # set up cluster and download species (may be a good idea to run this on the cluster):
-cl = makeCluster(10)
+cl = makeCluster(20)
 registerDoParallel(cl)
 
 # download data
