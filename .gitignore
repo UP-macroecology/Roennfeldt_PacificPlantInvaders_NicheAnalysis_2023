@@ -2,6 +2,7 @@ data/
 misc/
 writing/
 results/*
+plots/
 !results/intermediate
 
 results/intermediate/*
