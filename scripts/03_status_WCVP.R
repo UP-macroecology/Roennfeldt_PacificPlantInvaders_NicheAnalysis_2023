@@ -73,13 +73,13 @@ rm(distribution)
 
 # merge with occurrences --------------------------------------------------
 
-specs_wcvp <- unique(species_distributions$species)
+specs_wcvp <- unique(wcvp_status$species)
 
 no_cores <- 1
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
-occ_wcvp_status <- foreach(s = 1:length(specs_gift), .packages = c("dplyr", "sf", "units"),
+occ_wcvp_status <- foreach(s = 1:length(specs_wcvp), .packages = c("dplyr", "sf", "units"),
                            .combine = "rbind", .verbose = TRUE) %do% {
                              
                              # WCVP status data for species s:
@@ -170,13 +170,13 @@ occ_wcvp_status <- foreach(s = 1:length(specs_gift), .packages = c("dplyr", "sf"
                                group_by(occ_id) %>%
                                arrange(area, .by_group = TRUE) %>%
                                slice(1) %>%
-                               ungroup %>%
-                               rename("area_wcvp" = "area")
+                               ungroup 
                              
                            } # end of foreach
 
-save(occ_wcvp_status, file = "data/testing/occ_WCVP.RData")
+save(occ_wcvp_status, file = "data/testing/occ_WCVP_status.RData")
 
+stopCluster(cl)
 # -------------------------------------------------------------------------
 
 

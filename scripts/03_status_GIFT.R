@@ -120,7 +120,7 @@ GIFT_status_all_details <- bind_rows(GIFT_status)
 # based on: https://biogeomacro.github.io/GIFT/articles/GIFT_tutorial.html#species-distribution
 
 GIFT_status <- GIFT_status_all_details %>%
-  mutate(status_GIFT = case_when(
+  mutate(status = case_when(
     native == "native" & naturalized == "non-naturalized" ~ "native",
     native == "native" & is.na(naturalized) ~ "native",
     native == "non-native" & is.na(naturalized) ~ "non-native",
@@ -128,7 +128,7 @@ GIFT_status <- GIFT_status_all_details %>%
     native == "non-native" & naturalized == "non-naturalized" ~ "non-native",
     is.na(native) & is.na(naturalized) ~ "unknown"
   )) %>%
-  select(species, GIFT_species, entity_ID, status_GIFT)
+  select(species, GIFT_species, entity_ID, status)
 
 save(GIFT_status, file = "data/testing/GIFT_status.RData")
 rm(GIFT_status)
@@ -151,7 +151,6 @@ no_cores <- 1
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
-s <- 1
 
 occ_GIFT_status <- foreach(s = 1:length(specs_gift), .packages = c("dplyr", "sf"),
                            .combine = "rbind", .verbose = TRUE) %dopar% {
@@ -239,11 +238,10 @@ occ_GIFT_status <- foreach(s = 1:length(specs_gift), .packages = c("dplyr", "sf"
                                group_by(occ_id) %>%
                                arrange(area, .by_group = TRUE) %>%
                                slice(1) %>%
-                               ungroup %>%
-                               rename("area_gift" = "area")
+                               ungroup
                            }
 
 
-save(occ_GIFT_status, file = "data/testing/occ_GIFT.RData")
+save(occ_GIFT_status, file = "data/testing/occ_GIFT_status.RData")
 
 stopCluster(cl)
