@@ -63,7 +63,103 @@ save(occ_status_all, file = "data/testing/occ_status_all.RData")
 
 # check for conflicts -----------------------------------------------------
 
-occ_status_all <- occ_status_all[1:10,]
+load("data/testing/occ_status_all.RData")
+
+occ_status_all <- occ_status_all[sample(10),]
 
 # 1. assign final status if sources are in agreement
 
+t <- occ_status_all %>%
+  mutate(final_status = case_when(
+    
+    # ID 1
+    wcvp_status == "native" & gift_status == "native" & is.na(glonaf_status) ~ "native",
+    
+    # ID 2
+    wcvp_status == "native" & gift_status == "native" & glonaf_status == "naturalized" ~ "Glonaf_vs_rest",
+    
+    # ID 3
+    wcvp_status == "native" & gift_status == "native" & glonaf_status == "alien" ~ "Glonaf_vs_rest",
+    
+    # ID 4
+    wcvp_status == "native" & gift_status == "non-native" & is.na(glonaf_status) ~ "W_vs_G_no_Gl",
+    
+    # ID 5
+    wcvp_status == "native" & gift_status == "non-native" & glonaf_status == "naturalized" ~ "wcvp_vs_rest",
+    
+    # ID 6 
+    wcvp_status == "native" & gift_status == "non-native" & glonaf_status == "alien" ~ "wcvp_vs_rest",
+    
+    # ID 7
+    wcvp_status == "native" & gift_status == "naturalized" & is.na(glonaf_status) ~ "W_vs_G_no_Gl",
+    
+    # ID 8
+    wcvp_status == "native" & gift_status == "naturalized" & glonaf_status == "naturalized" ~ "wcvp_vs_rest",
+    
+    # ID 9
+    wcvp_status == "native" & gift_status == "naturalized" & glonaf_status == "alien" ~ "wcvp_vs_rest",
+    
+    # ID 10 
+    wcvp_status == "native" & is.na(gift_status) & is.na(glonaf_status) ~ "native",
+    
+    # ID 11
+    wcvp_status == "native" & is.na(gift_status) & glonaf_status == "naturalized" ~ "W_vs_Gl_no_G",
+    
+    # ID 12
+    wcvp_status == "native" & is.na(gift_status) & glonaf_status == "alien" ~ "W_vs_Gl_no_G",
+    
+    # ID 13
+    wcvp_status == "introduced" & gift_status == "native" & is.na(glonaf_status) ~ "W_vs_G_no_Gl",
+    
+    # ID 14 
+    wcvp_status == "introduced" & gift_status == "native" & glonaf_status == "naturalized" ~ "Gift_vs_rest",
+    
+    # ID 15 
+    wcvp_status == "introduced" & gift_status == "native" & glonaf_status == "alien" ~ "Gift_vs_rest",
+    
+    # ID 16
+    wcvp_status == "introduced" & gift_status == "non-native" & is.na(glonaf_status) ~ "introduced",
+    
+    # ID 17 
+    wcvp_status == "introduced" & gift_status == "non-native" & glonaf_status == "naturalized" ~ "introduced",
+    
+    # ID 18 
+    wcvp_status == "introduced" & gift_status == "non-native" & glonaf_status == "alien" ~ "introduced",
+    
+    # ID 19
+    wcvp_status == "introduced" & gift_status == "naturalized" & is.na(glonaf_status) ~ "introduced",
+    
+    # ID 20
+    wcvp_status == "introduced" & gift_status == "naturalized" & glonaf_status == "naturalized" ~ "introduced",
+    
+    # ID 21
+    wcvp_status == "introduced" & gift_status == "naturalized" & glonaf_status == "alien" ~ "introduced",
+    
+    # ID 22
+    wcvp_status == "introduced" & is.na(gift_status) & is.na(glonaf_status) ~ "introduced",
+    
+    # ID 23
+    wcvp_status == "introduced" & is.na(gift_status) & glonaf_status == "naturalized" ~ "introduced",
+    
+    # ID 24
+    wcvp_status == "introduced" & is.na(gift_status) & glonaf_status == "alien" ~ "introduced",
+    
+    # ID 25
+    is.na(wcvp_status) & gift_status == "native" & is.na(glonaf_status) ~ "native",
+    
+    # ID 26
+    is.na(wcvp_status) & gift_status == "native" & glonaf_status == "naturalized" ~ "G_vs_Gl_no_W",
+    
+    # ID 27
+    is.na(wcvp_status) & gift_status == "native" & glonaf_status == "alien" ~ "G_vs_Gl_no_W",
+    
+    # ID 28
+    is.na(wcvp_status) & gift_status == "non-native" & is.na(glonaf_status) ~ "introduced",
+    
+    # ID 29
+    is.na(wcvp_status) & gift_status == "non-native" & glonaf_status == "naturalized" ~ "introduced",
+    
+    # ID 30
+    is.na(wcvp_status) & gift_status == "non-native" & glonaf_status == "alien" ~ "introduced",
+    
+  ))
