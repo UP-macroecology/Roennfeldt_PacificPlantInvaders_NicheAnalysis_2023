@@ -66,7 +66,7 @@ save(occ_status_all, file = "data/testing/occ_status_all.RData")
 
 load("data/testing/occ_status_all.RData")
 
-occ_status_all <- occ_status_all[sample(200),]
+# occ_status_all <- occ_status_all[sample(200),]
 
 # 1. check status for agreements/conflicts between the sources
 
@@ -96,19 +96,19 @@ occ_status_merged <- occ_status_all %>%
     wcvp_status == "native" & gift_status == "non-native" & is.na(glonaf_status) ~ "W_vs_G_no_Gl",
     
     # ID 5
-    wcvp_status == "native" & gift_status == "non-native" & glonaf_status == "naturalized" ~ "wcvp_vs_rest",
+    wcvp_status == "native" & gift_status == "non-native" & glonaf_status == "naturalized" ~ "Wcvp_vs_rest",
     
     # ID 6 
-    wcvp_status == "native" & gift_status == "non-native" & glonaf_status == "alien" ~ "wcvp_vs_rest",
+    wcvp_status == "native" & gift_status == "non-native" & glonaf_status == "alien" ~ "Wcvp_vs_rest",
     
     # ID 7
     wcvp_status == "native" & gift_status == "naturalized" & is.na(glonaf_status) ~ "W_vs_G_no_Gl",
     
     # ID 8
-    wcvp_status == "native" & gift_status == "naturalized" & glonaf_status == "naturalized" ~ "wcvp_vs_rest",
+    wcvp_status == "native" & gift_status == "naturalized" & glonaf_status == "naturalized" ~ "Wcvp_vs_rest",
     
     # ID 9
-    wcvp_status == "native" & gift_status == "naturalized" & glonaf_status == "alien" ~ "wcvp_vs_rest",
+    wcvp_status == "native" & gift_status == "naturalized" & glonaf_status == "alien" ~ "Wcvp_vs_rest",
     
     # ID 10 
     wcvp_status == "native" & is.na(gift_status) & is.na(glonaf_status) ~ "native",
@@ -217,7 +217,8 @@ occ_status_merged <- occ_status_all %>%
     
     # ID 45
     is.na(wcvp_status) & gift_status == "unknown"  & glonaf_status == "alien" ~ "introduced"
-  ))
+  )) %>%
+  mutate(criterion_1 = status_check, criterion_2 = status_check)# copy column content to new columns that will be modified in the next step
 
 
 
@@ -227,7 +228,7 @@ occ_status_merged <- occ_status_all %>%
 # If there is a conflict between sources, use the information from the source that refers to a smaller region
 
 # if the area size is not of help, two criteria are used to proceed: 
-# Criterion 1: no source preferences; assign "contradictory"
+# Criterion 1: no source preferences; assign if region size cannot be used to make a decision "contradictory"
 # Criterion 2: prefer WCVP over the other two, as it has been targeted towards twdg lvl 3 
             # (no preferences between GIFT and GloNAF, assign "contradictory")
 
@@ -246,11 +247,134 @@ for (i in conflict_index) {
     # get sizes of the two areas to compare them (both in km^2)
     areas <- data.frame(source = c("wcvp", "gift"),
                         area_km2 = c(occ_status_merged[i, "wcvp_area"], occ_status_merged[i, "gift_area"]))
-  
-    smallest_source <- areas[which.min(areas$area_km2),1]
     
-  } # end if "W_vs_G_no_Gl"
+    if (areas[1,2] != areas[2,2]) {
+      # if areas don't have the same size:
+      
+      # identify which status source refers to the smaller region
+      smallest_source <- areas[which.min(areas$area_km2),1]
+      
+      # assign status info for both criteria based on this source
+      occ_status_merged[i,"criterion_1"] <- occ_status_merged[i, paste0(smallest_source, "_status")]
+      occ_status_merged[i,"criterion_2"] <- occ_status_merged[i, paste0(smallest_source, "_status")]
+      
+    } else {
+      # if areas have the same size: assign status info for both criteria based on their rules
+      
+      # criterion 1 (no source preferences)
+      occ_status_merged[i,"criterion_1"] <- "contradictory"
+      # criterion 2 (WCVP preferred)
+      occ_status_merged[i,"criterion_2"] <- occ_status_merged[i,"wcvp_status"]
+    
+    } # end of else
+  } # end of  if "W_vs_G_no_Gl"
   
+  
+  #'################# 
+  
+  if (occ_status_merged[i,"status_check"] == "W_vs_Gl_no_G") {
+    # WCVP and GloNAF both refer to tdwg level 3, so if they contradict each other
+    # in the status assignment, this conflict can not be resolved based on region size
+    # assign status info for both criteria based on their rules:
+    
+    # criterion 1 (no source preferences)
+    occ_status_merged[i,"criterion_1"] <- "contradictory"
+    # criterion 2 (WCVP preferred)
+    occ_status_merged[i,"criterion_2"] <- occ_status_merged[i,"wcvp_status"]
+    
+  } # end of if "W_vs_Gl_no_G"
+  
+  #'################# 
+  
+  if (occ_status_merged[i,"status_check"] == "G_vs_Gl_no_W") {
+    
+    # get sizes of the two areas to compare them (both in km^2)
+    areas <- data.frame(source = c("wcvp", "gift"),
+                        area_km2 = c(occ_status_merged[i, "wcvp_area"], occ_status_merged[i, "gift_area"]))
+    
+    if (areas[1,2] != areas[2,2]) {
+      # if areas don't have the same size:
+      
+      # identify which status source refers to the smaller region
+      smallest_source <- areas[which.min(areas$area_km2),1]
+      
+      if (smallest_source == "gift") {
+        # assign status info for both criteria based on gift
+        occ_status_merged[i,"criterion_1"] <- occ_status_merged[i, paste0(smallest_source, "_status")]
+        occ_status_merged[i,"criterion_2"] <- occ_status_merged[i, paste0(smallest_source, "_status")]
+        
+      } else {
+        # assign status info for both criteria based on glonaf
+        occ_status_merged[i,"criterion_1"] <- occ_status_merged[i,"glonaf_status"]
+        occ_status_merged[i,"criterion_2"] <- occ_status_merged[i,"glonaf_status"]
+      } # end of else smallest_source
+
+    } else {
+      # if the areas have the same size:
+      # no preferences between gift and glonaf, assign contradictory for both criteria
+      
+      # criterion 1 (no source preferences)
+      occ_status_merged[i,"criterion_1"] <- "contradictory"
+      # criterion 2 (WCVP preferred)
+      occ_status_merged[i,"criterion_2"] <- "contradictory"
+      
+    } # end of else around equal area size 
+  } # end of if "G_vs_Gl_no_W"
+  
+  #'################# 
+  
+  if (occ_status_merged[i,"status_check"] == "Wcvp_vs_rest") {
+    # this conflict can not be resolved based on region size
+    # assign status info for both criteria based on their rules:
+    
+    # criterion 1 (no source preferences)
+    occ_status_merged[i,"criterion_1"] <- "contradictory"
+    # criterion 2 (WCVP preferred)
+    occ_status_merged[i,"criterion_2"] <- occ_status_merged[i,"wcvp_status"]
+  
+  } # end of if "Wcvp_vs_rest"
+  
+  #'################# 
+  
+  if (occ_status_merged[i,"status_check"] == "Glonaf_vs_rest") {
+    # this conflict can not be resolved based on region size
+    # assign status info for both criteria based on their rules:
+    
+    # criterion 1 (no source preferences)
+    occ_status_merged[i,"criterion_1"] <- "contradictory"
+    # criterion 2 (WCVP preferred)
+    occ_status_merged[i,"criterion_2"] <- occ_status_merged[i,"wcvp_status"]
+  } # end of if "GloNAF_vs_rest"
+  
+  #'################# 
+  
+  if (occ_status_merged[i,"status_check"] == "Gift_vs_rest") {
+    
+    # get sizes of the two areas to compare them (both in km^2)
+    areas <- data.frame(source = c("wcvp", "gift"),
+                        area_km2 = c(occ_status_merged[i, "wcvp_area"], occ_status_merged[i, "gift_area"]))
+    
+    if (areas[1,2] != areas[2,2]) {
+      # if areas don't have the same size:
+      
+      # identify which status source refers to the smaller region
+      smallest_source <- areas[which.min(areas$area_km2),1]
+      
+      # assign status info for both criteria based on this source
+      occ_status_merged[i,"criterion_1"] <- occ_status_merged[i, paste0(smallest_source, "_status")]
+      occ_status_merged[i,"criterion_2"] <- occ_status_merged[i, paste0(smallest_source, "_status")]
+      
+    } else {
+      # if areas have the same size: assign status info for both criteria based on their rules
+      
+      # criterion 1 (no source preferences)
+      occ_status_merged[i,"criterion_1"] <- "contradictory"
+      # criterion 2 (WCVP preferred)
+      occ_status_merged[i,"criterion_2"] <- occ_status_merged[i,"wcvp_status"]
+      
+    } # end of else
+  } # end of if "GloNAF_vs_rest"
+    
 } # for loop over conflict_index
 
 unique(occ_status_merged$status_check)
