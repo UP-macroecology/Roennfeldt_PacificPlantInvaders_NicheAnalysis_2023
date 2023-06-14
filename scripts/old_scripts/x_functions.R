@@ -491,9 +491,9 @@ getGiftStatusInf <- function(searched_name, GIFT_spec_genus, GIFT_spec_epithet){
            naturalized = ifelse(naturalized == 1, "naturalized",
                                 "non-naturalized"),
            endemic_list = ifelse(endemic_list == 1, "endemic_list",
-                                 "non-endemic_list")) %>%
-    select(species, GIFT_species, entity_ID, native, naturalized, endemic_list) %>%
-    filter_at(vars(native, naturalized, endemic_list), any_vars(!is.na(.)))  # remove entries without any status information
+                                 "non-endemic_list"))# %>%
+    # select(species, GIFT_species, entity_ID, native, naturalized, endemic_list) %>%
+    # filter_at(vars(native, naturalized, endemic_list), any_vars(!is.na(.)))  # remove entries without any status information
   
   return(spec_status_inf)
   

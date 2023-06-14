@@ -87,3 +87,66 @@ t45 <- subset(occ_status_all, status_POWO == "unknown" & status_GIFT == "unknown
 t <- t45
 n_distinct(t$species)
 n_distinct(t$tdwg_l3_name)
+
+
+# create conflict column --------------------------------------------------
+
+occ_status_all_confl <- occ_status_all %>%
+  mutate(conflict_source = case_when(
+    
+    # Scenario ID 2 (= t2)
+    status_POWO == "native" & status_GIFT == "native" & status_GloNAF == "naturalized" ~ "GloNAF_vs_rest",
+
+    # Scenario ID 3 (= t3)
+    status_POWO == "native" & status_GIFT == "native" & status_GloNAF == "alien" ~ "GloNAF_vs_rest",
+    
+    # Scenario ID 4 (= t4)
+    status_POWO == "native" & status_GIFT == "non-native" & is.na(status_GloNAF) ~ "POWO_vs_GIFT",
+    
+    # Scenario ID 5 (= t5)
+    status_POWO == "native" & status_GIFT == "non-native" & status_GloNAF == "naturalized" ~ "POWO_vs_rest",
+    
+    # Scenario ID 6 (= t6)
+    status_POWO == "native" & status_GIFT == "non-native" & status_GloNAF == "alien" ~ "POWO_vs_rest",
+    
+    # Scenario ID 7 (= t7)
+    status_POWO == "native" & status_GIFT == "naturalized" & is.na(status_GloNAF) ~ "POWO_vs_GIFT",
+    
+    # Scenario ID 8 (= t8)
+    status_POWO == "native" & status_GIFT == "naturalized" & status_GloNAF == "naturalized" ~ "POWO_vs_rest",
+    
+    # Scenario ID 9 (= t9)
+    status_POWO == "native" & status_GIFT == "naturalized" & status_GloNAF == "alien" ~ "POWO_vs_rest",
+    
+    # Scenario ID 11 (= t11)
+    status_POWO == "native" & is.na(status_GIFT) & status_GloNAF == "naturalized" ~ "POWO_vs_GloNAF",
+    
+    # Scenario ID 12 (= t12)
+    status_POWO == "native" & is.na(status_GIFT) & status_GloNAF == "alien" ~ "POWO_vs_GloNAF",
+    
+    # Scenario ID 13 (= t13)
+    status_POWO == "introduced" & status_GIFT == "native" & is.na(status_GloNAF) ~ "POWO_vs_GIFT",
+    
+    # Scenario ID 14 (= t14)
+    status_POWO == "introduced" & status_GIFT == "native" & status_GloNAF == "naturalized" ~ "GIFT_vs_rest",
+    
+    # Scenario ID 15 (= t15)
+    status_POWO == "introduced" & status_GIFT == "native" & status_GloNAF == "alien" ~ "GIFT_vs_rest",
+    
+    # Scenario ID 26 (= t26)
+    status_POWO == "unknown" & status_GIFT == "native" & status_GloNAF == "naturalized" ~ "GIFT_vs_GloNAF",
+    
+    # Scenario ID 27 (= t27)
+    status_POWO == "unknown" & status_GIFT == "native" & status_GloNAF == "alien" ~ "GIFT_vs_GloNAF",
+    
+    # Scenario ID 38 (= t38)
+    status_POWO == "native" & status_GIFT == "unknown" & status_GloNAF == "naturalized" ~ "POWO_vs_GloNAF",
+    
+    # Scenario ID 39 (= t39)
+    status_POWO == "native" & status_GIFT == "unknown" & status_GloNAF == "alien" ~ "POWO_vs_GloNAF"
+  ))
+
+
+t2 <- subset(occ_status_all_confl, status_POWO == "native" & status_GIFT == "native" & status_GloNAF == "naturalized") # 2236902
+
+save(occ_status_all_confl, file = "data/intermediate/occ_status_all_conflicts.RData")

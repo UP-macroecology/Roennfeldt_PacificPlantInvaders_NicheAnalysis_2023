@@ -167,7 +167,7 @@ path_home <- "M:/C1/data"
 # rm(GIFT_status)
 #
 # # 3) load spatial data of the GIFT regions with status information for the considered species:
-# GIFT_polygons <- GIFT_shape(unique(GIFT_status_all_details$entity_ID), GIFT_version = "beta")
+# GIFT_polygons <- GIFT_shapes(unique(GIFT_status_all_details$entity_ID), GIFT_version = "beta")
 # save(GIFT_polygons, file = "data/status_info/Gift_polygons.RData")
 #
 
