@@ -24,7 +24,7 @@ species_names <- read.table("data/PaciFLora.txt", header = TRUE) %>%
 species_names <- species_names[c(121:123),]
 
 
-for (i in 1:nrow(species_names)){
+for (i in 1:nrow(species_names)) {
   
   print(i)
   print(species_names[i,"species_orig"])

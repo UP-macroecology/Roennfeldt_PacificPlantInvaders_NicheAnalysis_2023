@@ -1,86 +1,129 @@
+library(conflicted)
 library(foreach)
+library(doParallel)
 library(lcvplants)
 library(tidyverse)
 library(rWCVP) # required data: remotes::install_github('matildabrown/rWCVPdata')
 library(units)
+library(sf)
 
 rm(list = ls())
 
+filter <- dplyr::filter
 
 # required data -----------------------------------------------------------
 
-load("data/occ_cleaned_slim.RData")
-tdwg <- st_read("data/tdwg/geojson/level3.geojson")
-
-# load in the list of available wcvp names
+# list of available wcvp names
 wcvp_names <- rWCVPdata::wcvp_names
-
-load("data/specs_all.RData")
-
-specs <- specs_all[c(999, 2746)] # example species: "Crotalaria verrucosa" "Phyllostachys nigra"
-
-rm(specs_all)
-
-# 
-# # Paciflora names for hybrids are in a format that causes errors when running the wcvp_distribution() function
-# hybrids <- species_names %>%
-#   filter(grepl('_x', PaciFlora)) %>%
-#   pull() 
-# 
-# # hybrids_corrected <- data.frame(PaciFlora = str_replace(hybrids, "_x", ""))
-# hybrids_corrected <- hybrids %>%
-#   str_replace("_x", "") %>%
-#   str_replace(" ", " x ")
-# 
-# 
-# # remove hybrids with the old format and add the corrected format
-# species_names_corrected <- species_names %>%
-#   filter(!grepl('_x', PaciFlora)) %>% # remove old format
-#   rbind(data.frame(PaciFlora = hybrids_corrected)) %>% # add corected format
-#   arrange(PaciFlora) %>% # sort alphabetically
-#   pull(PaciFlora)
-# 
-# save(species_names_corrected, file = "data/initial_species_list.RData")
+# initial species list based on PaciFLora
+load("data/initial_species_list.RData")
 
 
 # WCVP species distribution -----------------------------------------------
 
+wcvp_matches <- wcvp_match_names(species_names$species_orig, name_col = "species_changed", progress_bar = TRUE) %>%
+  filter(!(multiple_matches == TRUE & wcvp_status != "Accepted"))
 
-# set.seed(7)
-# specs <- sample(species_names$PaciFlora, 5)
+wcvp_matches_refined <- wcvp_matches %>%
+  filter(wcvp_status == "Accepted") %>%
+  filter(match_edit_distance < 3) %>% # fuzzy search output should be less than three characters away from the initil input
+  distinct(wcvp_name) # duplicates are a result from different authors name, keep only unique names
 
-# specs <- species_names_corrected
+wcvp_matches_synonyms <- wcvp_matches %>%
+  filter(wcvp_status == "Synonym")
 
-wcvp_status <- foreach(s = 1:length(specs), .packages = c("dplyr"), .combine = "rbind", .verbose = TRUE) %do% {
-  
-  distribution <- wcvp_distribution(taxon = specs[s], taxon_rank = "species",
+# save synonyms for later
+save(wcvp_matches_synonyms, file = "data/status_assignment/wcvp_synonyms.RData")
+
+# check whether filtering arguments where enough (should return FALSE)
+# it could be that fewer names are returned from the wcvp search, because not all species work for this funtion
+nrow(wcvp_matches_refined) + nrow(wcvp_matches_synonyms) > nrow(species_names)
+
+wcvp_specs <- wcvp_matches_refined$wcvp_name
+
+
+save(wcvp_specs, file = "data/status_assignment/wcvp_specs.RData")
+
+
+wcvp_status <- foreach(s = 1:length(wcvp_specs), .packages = c("dplyr"), .combine = "rbind", .verbose = TRUE) %do% {
+
+  distribution <- wcvp_distribution(taxon = wcvp_specs[s], taxon_rank = "species",
                                     location_doubtful = FALSE, extinct = FALSE) %>%
-    mutate(species = specs[s]) %>%
+    mutate(species = wcvp_specs[s]) %>%
     relocate(species)
-  
+
   # calculate area and make sure it is in km^2 so that it is comparable to the gift polygons
-  
+
   distribution <- distribution %>%
-    mutate(area = drop_units(set_units(sf::st_area(distribution), "km^2"))) 
-  
-  
+    mutate(area = drop_units(set_units(sf::st_area(distribution), "km^2")))
+
+
   distribution
-  
-} # end of foreach 
+
+} # end of foreach
+
+save(wcvp_status, file = "data/status_assignment/wcvp_distribution.RData")
 
 rm(distribution)
-
+rm(wcvp_specs)
+rm(specs)
+rm(wcvp_matches_refined)
+rm(wcvp_matches_synonyms)
+rm(wcvp_matches)
 
 # merge with occurrences --------------------------------------------------
 
-specs_wcvp <- unique(wcvp_status$species)
+# preamble
+rm(list = ls())
 
-no_cores <- 1
+filter <- dplyr::filter
+
+# required packages ------------------------------------------------------------
+# set up to run on HPC
+
+install.load.package <- function(x) {
+  if (!require(x, character.only = TRUE))
+    install.packages(x, repos = 'http://cran.us.r-project.org', dep = TRUE)
+  require(x, character.only = TRUE)
+}
+package_vec <- c(
+  "sf", "units", "tidyverse", "foreach", "doParallel" # names of the packages required placed here as character objects
+)
+
+# install.packages(c("pillar", "phangorn")) # install packages that caused namespace errors before running the previously defined function
+sapply(package_vec, install.load.package)
+
+
+
+# required paths ------------------------------------------------------------------------
+path_import <- file.path("/import","ecoc9z", "data-zurell", "roennfeldt", "C1")
+
+
+# required data -----------------------------------------------------------
+load(paste0(path_import, "/output/occ_cleaned_slim.RData"))
+load(paste0(path_import, "/input/wcvp_distribution.RData"))
+tdwg <- st_read(paste0(path_import,"/input/level3.geojson"))
+
+
+# load("data/occ_cleaned_slim.RData")
+# load("data/status_assignment/wcvp_distribution.RData") # object is called wcvp_status
+# tdwg <- st_read("data/tdwg/geojson/level3.geojson")
+
+specs_initial <- unique(wcvp_status$species)
+
+
+specs_wcvp <- specs_initial
+
+
+no_cores <- 14
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
 occ_wcvp_status <- foreach(s = 1:length(specs_wcvp), .packages = c("dplyr", "sf", "units"),
-                           .combine = "rbind", .verbose = TRUE) %do% {
+                           .combine = "rbind", .verbose = TRUE) %dopar% { 
+                             
+                             
+                             print(s)
                              
                              # WCVP status data for species s:
                              wcvp_status_spec <- wcvp_status %>%
@@ -110,7 +153,7 @@ occ_wcvp_status <- foreach(s = 1:length(specs_wcvp), .packages = c("dplyr", "sf"
                              }
                              
                              
-                             if(nrow(occ_wcvp_poly_spec) == 0) return(occ_wcvp_poly_spec) # no occurrences for the species
+                             if (nrow(occ_wcvp_poly_spec) == 0) return(occ_wcvp_poly_spec) # no occurrences for the species
                              
                              # additionally match occurrences not inside any WCVP region to the closest WCVP region
                              # with status information, if it is <= 10 km away:
@@ -121,7 +164,7 @@ occ_wcvp_status <- foreach(s = 1:length(specs_wcvp), .packages = c("dplyr", "sf"
                                pull(occ_id)
                              
                              
-                             if(length(occ_ID_no_wcvp_poly) != 0) {
+                             if (length(occ_ID_no_wcvp_poly) != 0) {
                                
                                # occurrences not joined as sf :
                                occ_sf_spec_no_wcvp_poly <- occ_sf_spec %>%
@@ -156,42 +199,32 @@ occ_wcvp_status <- foreach(s = 1:length(specs_wcvp), .packages = c("dplyr", "sf"
                                  mutate(area = ifelse(!is.na(area.x), area.x, area.y)) %>%
                                  select(occ_id, species, LEVEL3_NAM, LEVEL3_COD, LEVEL2_COD, LEVEL1_COD, area)
                                
-                             } else {occ_GIFT_poly_spec_max10kmdist <- occ_GIFT_poly_spec %>%
+                             } else {occ_wcvp_poly_spec_max10kmdist <- occ_wcvp_poly_spec %>%
                                select(occ_id, species, LEVEL3_NAM, LEVEL3_COD, LEVEL2_COD, LEVEL1_COD, area)
                              }
                              
-                             # join status information to GIFT regions:
+                             try(
+                               
+                             # join status information to WCVP regions:
                              occ_wcvp_status_spec <- occ_wcvp_poly_spec_max10kmdist %>%
-                               left_join(wcvp_status_spec)
+                               left_join(wcvp_status_spec)) # end of try
                              
                              # since polygons are nested, more than 1 polygon may be joined to a single occurrence (e.g. Paraguay and Southern South America)
                              # in the following, for each occurrence the status information belonging to the smaller polygon is used:
                              occ_wcvp_status_spec_final <- occ_wcvp_status_spec %>%
+                               select(-geometry) %>%
                                group_by(occ_id) %>%
                                arrange(area, .by_group = TRUE) %>%
                                slice(1) %>%
                                ungroup 
                              
-                           } # end of foreach
 
-save(occ_wcvp_status, file = "data/testing/occ_WCVP_status.RData")
+                             } # end of foreach
+
+
+occ_wcvp_status <- occ_wcvp_status %>%
+  select(-c(LEVEL2_COD, LEVEL1_COD))
+
+save(occ_wcvp_status, file = paste0(path_import, "output/occ_WCVP_status.RData"))
 
 stopCluster(cl)
-# -------------------------------------------------------------------------
-
-
-n_occur[n_occur$Freq > 1,]
-
-table(occ_wcvp_status_spec_final$occ_id)
-
-occ_wcvp_status_spec_final[occ_wcvp_status_spec_final$occ_id > 1,]
-# 
-# # codes for level 3 regions in which species occurs
-# reg_cod_specs <- unique(wcvp_status_spec$LEVEL3_COD)
-# 
-# # level 3 polygons in which species occurs:
-# polygon_IDs_spec <- GIFT_status_spec$entity_ID
-
-# # GIFT polygons as sf:
-# wcvp_polygons_spec <- wcvp_status_spec %>%
-#   filter(entity_ID %in% polygon_IDs_spec)

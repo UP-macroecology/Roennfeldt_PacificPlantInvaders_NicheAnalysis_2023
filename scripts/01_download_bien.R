@@ -47,9 +47,12 @@ download_species <- function(spec_name){
 # -------------------------------------------------- #
 #          Loop over species and download         ####
 # -------------------------------------------------- #
+###
+# !!!!!!!!! Would no longer work with the new "initial_species_list! Needs to be reowrked accordingly
+
 
 # species data 
-load(file.path(path_import, "initial_species_list.RData")) # object is called "species_all"
+load(file.path(path_import, "initial_species_list.RData")) # object is called "species_names"
 
 # collect names of already downloaded (in the import folder) species:
 inv_specs_dl <- list.files(file.path(path_import, "download_bien")) %>% 
@@ -57,7 +60,7 @@ inv_specs_dl <- list.files(file.path(path_import, "download_bien")) %>%
   str_replace("_", " ")
 
 # create list of still to-be-downloaded species:
-inv_specs_final <- setdiff(species_all, inv_specs_dl)
+inv_specs_final <- setdiff(species_names$species_orig, inv_specs_dl)
 
 
 # set up cluster and download species (may be a good idea to run this on the cluster):

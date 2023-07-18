@@ -1,22 +1,20 @@
+library(conflicted)
 library(dplyr)
 library(sf)
 
+
 rm(list = ls())
 
+filter <- dplyr::filter
 
 # required data -----------------------------------------------------------
 
 # full initial species list
 load("data/initial_species_list.RData")
 
-# subset of species in occ_cleaned_slim
-load("data/specs_all.RData")
+# rename into specs
+specs <- species_names
 
-specs <- specs_all[c(999, 2746)] # example species: "Crotalaria verrucosa" "Phyllostachys nigra"
-specs <- subset(species_names, species_orig %in% specs)
-
-rm(specs_all)
-rm(species_names)
 
 # get GloNAF status information -------------------------------------------
 
@@ -27,7 +25,7 @@ rm(species_names)
 # reading the taxon csv-file downloaded from the website didn't work for me due to encoding problems,
 # converted csv beforehand to UTF8 encoding using notepad++:
 species_dt <- read.delim(file = "data/GloNAF/Taxon_x_List_GloNAF_vanKleunenetal2018Ecology_UTF8.csv")
-region_dt <- read.delim(file = "data/GloNAF/Region_GloNAF_vanKleunenetal2018Ecology.csv", sep =",")
+region_dt <- read.delim(file = "data/GloNAF/Region_GloNAF_vanKleunenetal2018Ecology.csv", sep = ",")
 list_dt <- read.delim(file = "data/GloNAF/List_GloNAF_vanKleunenetal2018Ecology.csv", sep = ",")
 
 glonaf_dt <- species_dt %>%
@@ -68,7 +66,7 @@ glonaf_status_info <- glonaf_dt %>%
   select(species_orig, species_changed, species_no_x, standardized_name, status, tdwg3)
 
 
-save(glonaf_status_info, file = "data/testing/GloNAF_status.RData")
+save(glonaf_status_info, file = "data/status_assignment/GloNAF_status.RData")
 
 
 # glonaf provides no polygons, so the status information will be added to the information form the other two status sources and the species occurrences later on
