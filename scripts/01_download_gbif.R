@@ -13,7 +13,7 @@ rm(list = ls())
 
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos='http://cran.us.r-project.org', dep = TRUE)
+    install.packages(x, repos = 'http://cran.us.r-project.org', dep = TRUE)
   require(x, character.only = TRUE)
 }
 package_vec <- c(
@@ -41,7 +41,7 @@ download_species = function(spec_name){
     as.character()
   n_occ = rgbif::occ_count(taxonKey = gbif_id, georeferenced = TRUE)
   
-  if(n_occ == 0){
+  if (n_occ == 0) {
     return(NULL)
   }
   
@@ -57,7 +57,7 @@ download_species = function(spec_name){
                                      hasCoordinate = TRUE, 
                                      limit = 100000, 
                                      decimalLongitude = long_range)$data
-    if(is.null(download_block)){
+    if (is.null(download_block)) {
       return(NULL)
     } else {
       return(download_block[,colnames(download_block) %in% c("scientificName", "species", "institutionCode", "datasetName",
@@ -77,9 +77,6 @@ download_species = function(spec_name){
 # -------------------------------------------------- #
 #          Loop over species and download         ####
 # -------------------------------------------------- #
-
-###
-# !!!!!!!!! Would no longer work with the new "initial_species_list! Needs to be reowrked accordingly
 
 # species data 
 load(file.path(path_import, "initial_species_list.RData")) # object is called "species_names"
@@ -102,11 +99,11 @@ foreach(spec_name = inv_specs_final, .packages = c("tidyverse", "taxize", "rgbif
   download_successful = FALSE
   iter = 0
   occ_df = NULL
-  while(!(download_successful) & iter < 5){
+  while (!(download_successful) & iter < 5) {
     tryCatch({
       occ_df = download_species(spec_name)
       download_successful = TRUE
-      if(!is.null(occ_df)){
+      if (!is.null(occ_df)) {
         save(occ_df, file = file.path(path_import, "download_gbif", paste0(str_replace_all(spec_name, " ", "_"), ".RData")))  
       }
     }, error = function(e){

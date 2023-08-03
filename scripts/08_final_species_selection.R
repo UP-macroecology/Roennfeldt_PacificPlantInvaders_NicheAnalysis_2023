@@ -6,11 +6,10 @@ rm(list = ls())
 
 # set paths
 
-path_imp <- "data/testing/"
+path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") # TODO
 
 # required data -----------------------------------------------------------
-load("data/regional_occs/criterion_1/occ_count_crit_1.RData")
-
+load(paste0(path_imp, "input/occ_count_crit_1.RData")) #TODO
 
 # determine the original number of suitable species
 
@@ -51,7 +50,7 @@ foreach(spp_index = 1:length(spp), .packages = c("tidyverse"),
                   
                   # load in native occ file for this species
                   
-                  load(paste0(path_imp, "coords_final_nat/coords_final_nat_200_",spp[spp_index],".RData")) # object: coords_final_nat_200
+                  load(paste0(path_imp, "coords_final_nat/coords_final_nat_200_",spp[spp_index],".RData")) # object: coords_final_nat_200 #TODO
                   
                   nr_nat <- nrow(coords_final_nat_200)
                   
@@ -61,7 +60,7 @@ foreach(spp_index = 1:length(spp), .packages = c("tidyverse"),
                   
                   # get the regions for which intr files have been saved
                   
-                  regions <- list.files(paste0(path_imp, "coords_final_intr/"), pattern = spp[spp_index]) %>% 
+                  regions <- list.files(paste0(path_imp, "coords_final_intr/"), pattern = spp[spp_index]) %>%  #TODO
                     str_remove(".RData") %>% 
                     str_split(pattern = "_") %>%
                     map(~ .x[[5]]) %>%
@@ -69,8 +68,9 @@ foreach(spp_index = 1:length(spp), .packages = c("tidyverse"),
                   
                   for (region in regions) {
                     
-                    load(paste0(path_imp, "coords_final_intr/coords_final_intr1_200_",region,"_",spp[spp_index],".RData"))
-                    # accidentaly saved these objects as "nat" instead of "intr"
+                    load(paste0(path_imp, "coords_final_intr/coords_final_intr1_200_",region,"_",spp[spp_index],".RData")) #TODO
+                    
+                    # accidentally saved these objects as "nat" instead of "intr"
                     nr_reg <- nrow(coords_final_nat_200)
                     
                     nr_occs_df[spp_index,region] <- nr_reg
@@ -90,6 +90,7 @@ suitable[suitable >= 20] <- 1
 suitable$species <- nr_occs_df$species
 suitable <- suitable %>% relocate(species)
 suitable$mainland_regions <- rowSums(suitable[,4:10], na.rm = TRUE)
-spp_suitable <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$mainland_regions == 0),]$species
+spp_final <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$mainland_regions == 0),]$species
 
+save(spp_final, file = paste0(path_imp, "output/final_species_list.RData")) #TODO
 

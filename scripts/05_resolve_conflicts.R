@@ -1,6 +1,6 @@
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos='http://cran.us.r-project.org')
+    install.packages(x, repos = 'http://cran.us.r-project.org')
   require(x, character.only = TRUE)
 }
 package_vec <- c(
@@ -96,7 +96,7 @@ occ_status_resolved <- foreach(s = 1:length(specs), .packages = "dplyr",
                                    
                                    #'################# 
                                    
-                                   # G_vs_Gl_no_W did not occur as an conflict. Skip this part
+                                   # G_vs_Gl_no_W did not occur as an conflict. Skiped this part
                                    
                                    # if (occ_specs[i,"status_check"] == "G_vs_Gl_no_W") {
                                    #   

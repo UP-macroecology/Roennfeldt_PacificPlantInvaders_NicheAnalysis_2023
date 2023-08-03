@@ -1,10 +1,10 @@
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos='http://cran.us.r-project.org')
+    install.packages(x, repos = 'http://cran.us.r-project.org')
   require(x, character.only = TRUE)
 }
 package_vec <- c(
-  "dplyr", "sf", "doParallel", "foreach", "terra", "purrr" # names of the packages required placed here as character objects
+  "dplyr", "sf", "doParallel", "foreach", "terra", "purrr", "stringr" # names of the packages required placed here as character objects
 )
 
 sapply(package_vec, install.load.package)
@@ -43,7 +43,7 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 1){
   results_runs <- future_map(seeds, function(i){
     
     set.seed(i)
-    while(max(n_int) > 1){
+    while (max(n_int) > 1) {
       max_neighbors <- names(which(n_int == max(n_int)))
       
       # remove point with max neighbors
@@ -91,17 +91,24 @@ spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 
 
 spp <- spp_suitable$species
 
+specs_done <- list.files(paste0(path_imp, "output/coords_final_intr/")) %>% 
+  str_remove(".RData") %>% 
+  str_split(pattern = "_") %>%
+  map(~ .x[[6]]) %>%
+  simplify() %>%
+  unique()
+
+spp <- setdiff(spp, specs_done)
 
 # create vector with all the abbreviated region names
 # regions <- c("afr", "ate", "atr", "aus", "nam", "pac", "sam")
 
 
 # Start parallel computing
-no_cores <- 6
+no_cores <- 20
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
-spp <- spp[-c(1:2)]
 
 foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "purrr", "furrr", "sfheaders")) %dopar% {
   try({

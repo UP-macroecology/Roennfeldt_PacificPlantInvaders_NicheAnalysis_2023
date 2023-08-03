@@ -102,11 +102,11 @@ specs_done <- list.files(paste0(path_imp, "output/coords_final_nat/")) %>%
   map(~ .x[[5]]) %>%
   simplify()
 
-spp<- setdiff(spp, specs_done)
+spp <- setdiff(spp, specs_done)
 
 
 # Start parallel computing
-no_cores <- 20
+no_cores <- 25
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 

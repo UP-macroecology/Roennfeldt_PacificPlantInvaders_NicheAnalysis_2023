@@ -7,7 +7,7 @@ rm(list = ls())
 
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos='http://cran.us.r-project.org', dep = TRUE)
+    install.packages(x, repos = 'http://cran.us.r-project.org', dep = TRUE)
   require(x, character.only = TRUE)
 }
 package_vec <- c(
@@ -34,7 +34,7 @@ download_species <- function(spec_name){
                                    cultivated = FALSE, 
                                    native.status = TRUE, 
                                    political.boundaries = TRUE) 
-  if(nrow(occ_df) == 0){ # if no occurrences available --> return NULL
+  if (nrow(occ_df) == 0) { # if no occurrences available --> return NULL
     return(NULL)
   } else { # else --> return only relevant columns
     return(occ_df[,colnames(occ_df) %in% c("latitude", "longitude", "date_collected",
@@ -47,9 +47,6 @@ download_species <- function(spec_name){
 # -------------------------------------------------- #
 #          Loop over species and download         ####
 # -------------------------------------------------- #
-###
-# !!!!!!!!! Would no longer work with the new "initial_species_list! Needs to be reowrked accordingly
-
 
 # species data 
 load(file.path(path_import, "initial_species_list.RData")) # object is called "species_names"
@@ -75,7 +72,7 @@ foreach(spec_index = 1:length(inv_specs_final), .packages = c("tidyverse", "BIEN
   download_successful = FALSE
   iter = 0
   occ_df = NULL
-  while(!(download_successful) & iter < 5){
+  while (!(download_successful) & iter < 5) {
     tryCatch({  # sometimes the connection to server is unstable, so wrap occurrence download in tryCatch()
       print(spec_name)
       occ_df = download_species(spec_name) # call above-defined download function with current species

@@ -13,7 +13,7 @@ rm(list = ls())
 
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos='http://cran.us.r-project.org', dep = TRUE)
+    install.packages(x, repos = 'http://cran.us.r-project.org', dep = TRUE)
   require(x, character.only = TRUE)
 }
 package_vec <- c(

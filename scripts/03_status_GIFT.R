@@ -56,7 +56,7 @@ getGiftNames <- function(spec, incl_lcvp_synonyms = FALSE){
   # check against LCVP:
   
   # search LCVP entries connected to the searched species name:
-  if(incl_lcvp_synonyms){
+  if (incl_lcvp_synonyms) {
     status_ok <- c("accepted", "synonym") # exclude unresolved and external results
   } else {status_ok <- "accepted"} # only accepted species names
   lcvp_spec_res <- unique(lcvp_fuzzy_search(spec, status = status_ok)$Output.Taxon) # lcvp_fuzzy_search from package lcvpplants
@@ -65,7 +65,7 @@ getGiftNames <- function(spec, incl_lcvp_synonyms = FALSE){
   GIFT_res_harm <- GIFT_spec_res$work_species[which(GIFT_spec_org %in% lcvp_spec_res)]
   
   # there is no exact match (e.g. due to slightly different names; 6 species of the 122 blacklist species)
-  if(length(GIFT_res_harm) == 0){
+  if (length(GIFT_res_harm) == 0) {
     
     # find most similar name with fuzzy matching:
     print("No exact match between Gift and LCVP name found. Used fuzzy matching instead. Consider checking the results manually.")
@@ -80,7 +80,7 @@ getGiftNames <- function(spec, incl_lcvp_synonyms = FALSE){
   # split in genus and species epithet:
   GIFT_harm_gen_epi <- unlist(str_split(GIFT_res_harm, pattern = " ", n = 2))
   
-  if(length(GIFT_harm_gen_epi) != 0){
+  if (length(GIFT_harm_gen_epi) != 0) {
     return(data.frame("searched_name" = spec,
                       "GIFT_genus" = GIFT_harm_gen_epi[1],
                       "GIFT_species_ep" = GIFT_harm_gen_epi[2]))
@@ -172,7 +172,7 @@ GIFT_names <- data.frame(searched_name = character(),
 # load("data/status_assignment/GIFT_names.RData")
 
 # run loop over species
-for(spec in specs_left){
+for (spec in specs_left) {
   
   GIFT_names <- bind_rows(GIFT_names,
                           getGiftNames(spec, incl_lcvp_synonyms = TRUE))
@@ -192,7 +192,7 @@ GIFT_names_NA <- data.frame(searched_name = character(),
                             stringsAsFactors = FALSE)
 
 # run loop over species
-for(spec in specs_NA){
+for (spec in specs_NA) {
 
   GIFT_names_NA <- bind_rows(GIFT_names_NA,
                              getGiftNames(spec, incl_lcvp_synonyms = TRUE))
@@ -219,10 +219,10 @@ for (s in 1:nrow(GIFT_names)) {
 
 # sometimes, no status information is returned, these empty list elements cause errors and have to be removed
 list_index <- NULL
-for(s in 1:length(GIFT_status)){
+for (s in 1:length(GIFT_status)) {
   
   # collect indices of list element without GIFT information (empty df)
-  if(nrow(GIFT_status[[s]]) == 0){list_index <- c(list_index, s)}
+  if (nrow(GIFT_status[[s]]) == 0) {list_index <- c(list_index, s)}
   
 } # end of loop over list indices
 
@@ -298,7 +298,7 @@ occ_GIFT_status <- foreach(s = 1:length(specs_gift), .packages = c("dplyr", "sf"
                                st_join(GIFT_polygons_spec, st_intersects, left = TRUE) %>% # occurrence must be inside the polygon
                                st_drop_geometry()
                              
-                             if(nrow(occ_GIFT_poly_spec) == 0) return(occ_GIFT_poly_spec) # no occurrences for the species
+                             if (nrow(occ_GIFT_poly_spec) == 0) return(occ_GIFT_poly_spec) # no occurrences for the species
                              
                              # additionally match occurrences not inside any GIFT region to the closest GIFT region
                              # with status information, if it is <= 10 km away:
@@ -308,7 +308,7 @@ occ_GIFT_status <- foreach(s = 1:length(specs_gift), .packages = c("dplyr", "sf"
                                filter(is.na(entity_ID)) %>%
                                pull(occ_id)
                              
-                             if(length(occ_ID_no_Gift_poly) != 0) {
+                             if (length(occ_ID_no_Gift_poly) != 0) {
                                
                                # occurrences not joined as sf :
                                occ_sf_spec_no_Gift_poly <- occ_sf_spec %>%

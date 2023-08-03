@@ -64,7 +64,6 @@ spp_2 <- spp_suitable_2$species
 
 
 # join everything together ------------------------------------------------
-
 species_overview <- species_names %>%
   left_join(spp_slim, by = c("species_orig" = "occ_cleaned_slim"), keep = TRUE) %>%
   left_join(spp_glonaf, by = "species_orig") %>%
@@ -86,3 +85,7 @@ table(t$criterion_1)
 
 spp_t <- na.omit(unique(t[t$criterion_1 == "included",]$species_orig))
 setdiff(spp_1,spp_t)
+
+occ_overview <- suitable_1
+
+save(occ_overview, file = "data/testing/occ_overview.RData")
