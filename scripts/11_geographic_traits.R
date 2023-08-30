@@ -1,8 +1,14 @@
 library(dplyr)
 library(maps)
 library(sf)
+library(terra)
 
 rm(list = ls())
+
+
+# reqired paths -----------------------------------------------------------
+
+bioclim_folder <- "Z:/Arbeit/datashare/data/envidat/biophysical/CHELSA_V1"
 
 # range size (calculated from polygons or convex hull?) 
 # latitudinal centroid (from polygons or convex hull?)
@@ -133,6 +139,31 @@ for (spp in specs) {
 save(native_centroid_df, file = "data/trait_analysis/native_centroid.RData")
 
 
-# post-thinning: ----------------------------------------------------------
+# niche breadth -----------------------------------------------------------
+
+# based on: (line 169)
+# https://github.com/UP-macroecology/EBBA_Niche_vs_Range_shifts/blob/main/scripts/3_prep_trait_data.R
 
 
+# niche breadth is quantified using the Shannon index of the occurrence density grid corrected for environmental prevalence
+# to be comparable across species, the environmental background must be the same:
+
+
+# bioclim variables:
+biovars_rast <- rast(file.path(bioclim_folder, 
+                               paste0("CHELSA_bio10_", paste0(c(paste0("0", 1:9),10:19)),".tif")))
+
+# global raster points (= environmental background, absences and presences):
+BL_global_points <- biovars_rast[[1]] %>% 
+  as.points
+
+# add bioclim variables to raster points:
+BL_vars_df <- terra::extract(biovars_rast, BL_global_points)
+
+# assess climate niche by using the first 2 PCA axes:
+# calibrating the PCA in the whole study area:
+pca.env <- dudi.pca(BL_vars_df[, paste0("bio", 1:19)], scannf = FALSE,
+                    nf = 2) # number of axes
+
+# predict the scores on the PCA axes:
+scores.globclim <- pca.env$li # PCA scores for global raster points
