@@ -76,37 +76,13 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 10){
 }
 
 # required data -----------------------------------------------------------
-load(paste0(path_imp, "input/occ_count_crit_1.RData"))
-# world_mask <- rast(paste0(path_imp, "input/world_mask.tif"))
+load(paste0(path_imp, "output/spp_last_30.RData"))
 
-# pre-select suitable species ------------------------------------------------
-
-occ_count_crit_1 <- occ_count_crit_1 %>% 
-  arrange(species) %>%
-  distinct(species, .keep_all = TRUE)
-
-suitable <- occ_count_crit_1[,-1]
-suitable[suitable < 20] <- 0
-suitable[suitable >= 20] <- 1
-suitable$species <- occ_count_crit_1$species
-suitable <- suitable %>% relocate(species)
-suitable$mainland_regions <- rowSums(suitable[,4:10])
-spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 0 | suitable$mainland_regions == 0),]
-
-spp <- spp_suitable$species
-
-
-specs_done <- list.files(paste0(path_imp, "output/coords_final_nat/")) %>% 
-  str_remove(".RData") %>% 
-  str_split(pattern = "_") %>%
-  map(~ .x[[5]]) %>%
-  simplify()
-
-spp <- setdiff(spp, specs_done)
-
+spp <- spp_last_30[!spp_last_30 %in% c("Silene gallica", "Stachys arvensis")]
+rm(spp_last_30)
 
 # Start parallel computing
-no_cores <- 5
+no_cores <- 2
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
