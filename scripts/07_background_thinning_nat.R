@@ -128,7 +128,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     occ_coords_sf <- st_as_sf(occ_coords, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
 
     # spatial thinning using the thin function
-    occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 10, ncores = 2)
+    occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 10, ncores = 1)
 
     # presence points as refference for the buffer
     presences <- vect(occ_coords, crs = "+proj=longlat +datum=WGS84")

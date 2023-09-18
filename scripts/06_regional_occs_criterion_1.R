@@ -34,11 +34,14 @@ rm(occ_cleaned_slim)
 occ_crit_1 <- subset(occ_status_resolved, criterion_1 == "native" | criterion_1 == "introduced")
 spp_1 <- unique(occ_crit_1$species) # 3645 unique species left (initially 3668)
 
-save(occ_crit_1, file = "data/regional_occs/occ_subset_crit_1.RData")
-save(spp_1, file = "data/regional_occs/spp_crit_1.RData")
+# save(occ_crit_1, file = "data/regional_occs/occ_subset_crit_1.RData")
+# save(spp_1, file = "data/regional_occs/spp_crit_1.RData")
 
-
+load("data/regional_occs/occ_subset_crit_1.RData")
+load("data/regional_occs/spp_crit_1.RData")
 # prep spatial data -------------------------------------------------------
+
+
 
 pac_islands <- vect("data/spatial_data/pacific_islands.shp") # island shape files
 
@@ -49,10 +52,13 @@ tdwg <- st_read("data/tdwg/geojson/level1.geojson")[-9,] # without antarctic
 
 #split the multipolygon up 
 tdwg_poly <- st_cast(tdwg, "POLYGON")
+rm(tdwg)
 
 # extract polygons per region and combine them in a SpatVector from the terra package
 # make sure that overlaps with pac_islands are removed 
 # (overkill, as I am doing it will all regions)
+
+pac_islands <- vect(subset(tdwg_poly, LEVEL1_NAM == "PACIFIC")) 
 
 europe <- vect(subset(tdwg_poly, LEVEL1_NAM == "EUROPE")) %>%
   erase(pac_islands)
@@ -78,7 +84,7 @@ rm(tdwg_poly, tdwg)
 
 # prepare reference crs
 # load chelsa tif as reference raster with a 1km resolution
-chelsa <- rast("Y:/AG26/Arbeit/datashare/data/envidat/biophysical/CHELSA_V2/global/CHELSA_pr_01_1980_V.2.1.tif")
+chelsa <- rast("Z:/Arbeit/datashare/data/envidat/biophysical/CHELSA_V2/global/CHELSA_pr_01_1980_V.2.1.tif")
 # change values to 1 to decrease size
 values(chelsa) <- 1 
 
@@ -101,7 +107,8 @@ colnames(occ_count_crit_1) <- c("species", "native_occs", "pacific_occs", "afric
 
 spp_initial <- spp_1
 
-load("data/regional_occs/criterion_1/occ_count_crit_1.RData")
+load("data/regional_occs/criterion_1_tdwg_pac/occ_count_crit_1.RData")
+
 spp_done <- unique(occ_count_crit_1$species)
 
 spp_left <- setdiff(spp_initial, spp_done)
@@ -137,7 +144,7 @@ foreach(spp_index = 1:length(spp_1), .packages = c("dplyr", "terra")) %do% # can
       
       # save df with native occurrences for further processing
       
-      save(nat, file = paste0("data/regional_occs/criterion_1/native/nat_occs",spp_1[spp_index],".RData"))
+      # save(nat, file = paste0("data/regional_occs/criterion_1/native/nat_occs",spp_1[spp_index],".RData"))
       
       # subset for introduced
       intr <- subset(occ_crit_1, criterion_1 == "introduced" & species == spp_1[spp_index])
@@ -165,142 +172,142 @@ foreach(spp_index = 1:length(spp_1), .packages = c("dplyr", "terra")) %do% # can
         intr_df_pac <- semi_join(intr, crds_pac, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_pac, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_pac_",spp_1[spp_index],".RData"))
+        save(intr_df_pac, file = paste0("data/regional_occs/criterion_1_tdwg_pac/introduced/intr_occs_pac_",spp_1[spp_index],".RData"))
         
       } # end of if over_pac
       
-      #'# africa -----------
-
-      # occ overlap
-      over_africa <- terra::intersect(intr_coords, africa)
-      nr_afr <- length(over_africa)
-
-      # if number of occs >= 20
-      if (length(over_africa) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_afr <- as.data.frame(crds(over_africa))
-        colnames(crds_afr) <- c("lon", "lat")
-        intr_df_afr <- semi_join(intr, crds_afr, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_afr, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_afr_",spp_1[spp_index],".RData"))
-
-      } # end of if over_africa
-
-      #'# europe ----------
-
-      # occ overlap
-      over_europe <- terra::intersect(intr_coords, europe)
-      nr_eur <- length(over_europe)
-
-      # if number of occs >= 20
-      if (length(over_europe) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_eur <- as.data.frame(crds(over_europe))
-        colnames(crds_eur) <- c("lon", "lat")
-        intr_df_eur <- semi_join(intr, crds_eur, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_eur, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_eur_",spp_1[spp_index],".RData"))
-
-      } # end of if over_europe
-
-      #'# asia  temperate ------------
-
-      # occ overlap
-      over_ate <- terra::intersect(intr_coords, asia_temperate)
-      nr_ate <- length(over_ate)
-
-      # if number of occs >= 20
-      if (length(over_ate) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_ate <- as.data.frame(crds(over_ate))
-        colnames(crds_ate) <- c("lon", "lat")
-        intr_df_ate <- semi_join(intr, crds_ate, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_ate, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_ate_",spp_1[spp_index],".RData"))
-
-      } # end of if over_ate
-
-      #'# asia  tropical ------------
-
-      # occ overlap
-      over_atr <- terra::intersect(intr_coords, asia_tropical)
-      nr_atr <- length(over_atr)
-
-      # if number of occs >= 20
-      if (length(over_atr) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_atr <- as.data.frame(crds(over_atr))
-        colnames(crds_atr) <- c("lon", "lat")
-        intr_df_atr <- semi_join(intr, crds_atr, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_atr, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_atr_",spp_1[spp_index],".RData"))
-
-      } # end of if over_atr
-
-      #'# australasia ---------
-
-      # occ overlap
-      over_aus <- terra::intersect(intr_coords, australasia)
-      nr_aus <- length(over_aus)
-
-      # if number of occs >= 20
-      if (length(over_aus) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_aus <- as.data.frame(crds(over_aus))
-        colnames(crds_aus) <- c("lon", "lat")
-        intr_df_aus <- semi_join(intr, crds_aus, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_aus, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_aus_",spp_1[spp_index],".RData"))
-
-      } # end of if over_aus
-
-      #'# north america ---------------------
-
-      # occ overlap
-      over_north_america <- terra::intersect(intr_coords, northern_america)
-      nr_nam <- length(over_north_america)
-
-      # if number of occs >= 20
-      if (length(over_north_america) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_nam <- as.data.frame(crds(over_north_america))
-        colnames(crds_nam) <- c("lon", "lat")
-        intr_df_nam <- semi_join(intr, crds_nam, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_nam, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_nam_",spp_1[spp_index],".RData"))
-
-      } # end of if over_nam
-
-      #'# south america -------
-
-      # occ overlap
-      over_south_america <- terra::intersect(intr_coords, southern_america)
-      nr_sam <- length(over_south_america)
-
-      # if number of occs >= 20
-      if (length(over_south_america) >= 20) {
-
-        # get coords and use them to select occs from the intr subset
-        crds_sam <- as.data.frame(crds(over_south_america))
-        colnames(crds_sam) <- c("lon", "lat")
-        intr_df_sam <- semi_join(intr, crds_sam, by = c("lon", "lat"))
-
-        # save for later processing
-        save(intr_df_sam , file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_sam_",spp_1[spp_index],".RData"))
-
-      } # end of if over_sam
+      #' #'# africa -----------
+      #' 
+      #' # occ overlap
+      #' over_africa <- terra::intersect(intr_coords, africa)
+      #' nr_afr <- length(over_africa)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_africa) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_afr <- as.data.frame(crds(over_africa))
+      #'   colnames(crds_afr) <- c("lon", "lat")
+      #'   intr_df_afr <- semi_join(intr, crds_afr, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_afr, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_afr_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_africa
+      #' 
+      #' #'# europe ----------
+      #' 
+      #' # occ overlap
+      #' over_europe <- terra::intersect(intr_coords, europe)
+      #' nr_eur <- length(over_europe)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_europe) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_eur <- as.data.frame(crds(over_europe))
+      #'   colnames(crds_eur) <- c("lon", "lat")
+      #'   intr_df_eur <- semi_join(intr, crds_eur, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_eur, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_eur_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_europe
+      #' 
+      #' #'# asia  temperate ------------
+      #' 
+      #' # occ overlap
+      #' over_ate <- terra::intersect(intr_coords, asia_temperate)
+      #' nr_ate <- length(over_ate)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_ate) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_ate <- as.data.frame(crds(over_ate))
+      #'   colnames(crds_ate) <- c("lon", "lat")
+      #'   intr_df_ate <- semi_join(intr, crds_ate, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_ate, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_ate_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_ate
+      #' 
+      #' #'# asia  tropical ------------
+      #' 
+      #' # occ overlap
+      #' over_atr <- terra::intersect(intr_coords, asia_tropical)
+      #' nr_atr <- length(over_atr)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_atr) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_atr <- as.data.frame(crds(over_atr))
+      #'   colnames(crds_atr) <- c("lon", "lat")
+      #'   intr_df_atr <- semi_join(intr, crds_atr, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_atr, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_atr_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_atr
+      #' 
+      #' #'# australasia ---------
+      #' 
+      #' # occ overlap
+      #' over_aus <- terra::intersect(intr_coords, australasia)
+      #' nr_aus <- length(over_aus)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_aus) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_aus <- as.data.frame(crds(over_aus))
+      #'   colnames(crds_aus) <- c("lon", "lat")
+      #'   intr_df_aus <- semi_join(intr, crds_aus, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_aus, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_aus_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_aus
+      #' 
+      #' #'# north america ---------------------
+      #' 
+      #' # occ overlap
+      #' over_north_america <- terra::intersect(intr_coords, northern_america)
+      #' nr_nam <- length(over_north_america)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_north_america) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_nam <- as.data.frame(crds(over_north_america))
+      #'   colnames(crds_nam) <- c("lon", "lat")
+      #'   intr_df_nam <- semi_join(intr, crds_nam, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_nam, file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_nam_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_nam
+      #' 
+      #' #'# south america -------
+      #' 
+      #' # occ overlap
+      #' over_south_america <- terra::intersect(intr_coords, southern_america)
+      #' nr_sam <- length(over_south_america)
+      #' 
+      #' # if number of occs >= 20
+      #' if (length(over_south_america) >= 20) {
+      #' 
+      #'   # get coords and use them to select occs from the intr subset
+      #'   crds_sam <- as.data.frame(crds(over_south_america))
+      #'   colnames(crds_sam) <- c("lon", "lat")
+      #'   intr_df_sam <- semi_join(intr, crds_sam, by = c("lon", "lat"))
+      #' 
+      #'   # save for later processing
+      #'   save(intr_df_sam , file = paste0("data/regional_occs/criterion_1/introduced/intr_occs_sam_",spp_1[spp_index],".RData"))
+      #' 
+      #' } # end of if over_sam
       
     } else {
       print("Not enough native occurrences")
@@ -322,4 +329,4 @@ foreach(spp_index = 1:length(spp_1), .packages = c("dplyr", "terra")) %do% # can
   }) # end of try criterion 1
 
 
-save(occ_count_crit_1, file = "data/regional_occs/criterion_1/occ_count_crit_1.RData")
+save(occ_count_crit_1, file = "data/regional_occs/criterion_1_tdwg_pac/occ_count_crit_1.RData")

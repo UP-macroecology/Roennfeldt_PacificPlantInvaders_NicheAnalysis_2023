@@ -1,26 +1,43 @@
-library(ade4)
-library(ecospat) 
-library(stringr)
-library(dplyr)
-library(purrr) # for simplify()
+# library(ade4)
+# library(ecospat) 
+# library(stringr)
+# library(dplyr)
+# library(purrr) # for simplify()
 
 rm(list = ls())
 
+## Packages --------------------------------------------------------------------
+install.load.package <- function(x) {
+  if (!require(x, character.only = TRUE))
+    install.packages(x, repos = 'http://cran.us.r-project.org')
+  require(x, character.only = TRUE)
+}
+package_vec <- c(
+  "dplyr", "doParallel", "foreach", "terra", "purrr", "stringr", "ade4", "ecospat" # names of the packages required placed here as character objects
+)
+
+sapply(package_vec, install.load.package)
+
+# paths ------------------
 path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") # TODO
 
 # load final species list
-load(paste0(path_imp, "output/final_species_list.RData")) #TODO
+load(paste0(path_imp, "output/final_species_list_preliminary.RData")) #TODO
 
-no_cores <- 15
+spp <- spp_final
+
+# ecospat niche comparison ---
+
+no_cores <- 3
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
 # loop over all species
-foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar% {
+foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecospat", "stringr", "purrr")) %dopar% {
   try({
     
     # load nat occurrences
-    load(paste0(path_imp,"final_input_nat/input_nat_",spp[spp_index],".RData")) #TODO
+    load(paste0(path_imp, "output/final_input_nat/input_nat_",spp[spp_index],".RData")) 
     
     
     # rename object to a shorter version and remove original
@@ -29,19 +46,18 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
     
     
     # get the regions in which this species occurs as introduced species
-    regions <- list.files(path = paste0(path_imp,"final_input_intr/"), pattern = paste0(spp[spp_index],".RData")) %>% #TODO
+    regions <- list.files(path = paste0(path_imp, "output/final_input_intr/"), pattern = paste0(spp[spp_index],".RData")) %>% #TODO
       str_remove(".RData") %>% 
       str_split(pattern = "_") %>%
       map(~ .x[[3]]) %>%
       simplify() %>%
       unique()
     
-    region <- regions[1]
     
     for (region in regions) {
       
       # load intr occs for current region
-      load(paste0(path_imp,"final_input_intr/input_intr_",region,"_",spp[spp_index],".RData")) #TODO
+      load(paste0(path_imp, "output/final_input_intr/input_intr_",region,"_",spp[spp_index],".RData")) #TODO
       
       # rename object to a shorter version and remove original
       input_intr <- data_prep_intr
@@ -54,22 +70,22 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
         # PCA environment ---------------------------------------------------------
         
         # define the regional PCA environment for this species
-        pca_env_regional <- dudi.pca(rbind(input_nat,input_intr)[,8:26], scannf = FALSE, nf = 2)
+        pca_env_regional <- dudi.pca(rbind(input_nat,input_intr)[,7:25], scannf = FALSE, nf = 2)
         
         # save the regional PCA for later
-        save(pca_env_regional, file = paste0(path_imp,"output/PCA/regional_pca_",region,"_",spp[spp_index],".RData")) #TODO
+        save(pca_env_regional, file = paste0(path_imp, "output/PCA/regional_pca_",region,"_",spp[spp_index],".RData")) #TODO
         
         # predict scores on the axis
         # PCA scores for the whole study area
         scores_globclim <- pca_env_regional$li
         # PCA scores for the species' native distribution
-        scores_sp_nat <- suprow(pca_env_regional, input_nat[which(input_nat[,2] == 1),8:26])$li
+        scores_sp_nat <- suprow(pca_env_regional, input_nat[which(input_nat[,2] == 1),7:25])$li
         # PCA scores for the species' invasive distribution
-        scores_sp_intr <- suprow(pca_env_regional, input_intr[which(input_intr[,2] == 1),8:26])$li
+        scores_sp_intr <- suprow(pca_env_regional, input_intr[which(input_intr[,2] == 1),7:25])$li
         # PCA scores for the whole native study area
-        scores_clim_nat <- suprow(pca_env_regional,input_nat[,8:26])$li
+        scores_clim_nat <- suprow(pca_env_regional,input_nat[,7:25])$li
         # PCA scores for the whole invaded study area
-        scores_clim_intr <- suprow(pca_env_regional,input_intr[,8:26])$li
+        scores_clim_intr <- suprow(pca_env_regional,input_intr[,7:25])$li
         
         
         # calculate occurrence densities grid -------------------------------------
@@ -94,7 +110,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
         D_overlap <- ecospat.niche.overlap(grid_clim_nat, grid_clim_intr, cor = TRUE)$D
         
         # save results
-        save(D_overlap, file = paste0(path_imp,"output/niche_overlap/overlap_",spp[spp_index],"_",region,".RData")) #TODO
+        save(D_overlap, file = paste0(path_imp, "output/niche_overlap/overlap_",spp[spp_index],"_",region,".RData")) #TODO
         
         
         
@@ -108,7 +124,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
         # niche conservatism
         # intersect between native and introduced range (intersection = 0)
         sim_test_conservatism <- ecospat.niche.similarity.test(grid_clim_nat, grid_clim_intr,
-                                                               rep = 1200,
+                                                               rep = 20,
                                                                intersection = 0, 
                                                                overlap.alternative = "higher",
                                                                expansion.alternative = "lower",
@@ -119,7 +135,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
         # niche shifts
         # intersect between native and introduced range (intersection = 0)
         sim_test_shift <- ecospat.niche.similarity.test(grid_clim_nat, grid_clim_intr,
-                                                        rep = 1200,
+                                                        rep = 20,
                                                         intersection = 0,
                                                         overlap.alternative = "lower",
                                                         expansion.alternative = "higher",
@@ -128,8 +144,8 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
                                                         rand.type = 2)
         
         #save results
-        save(sim_test_conservatism, file = paste0(path_imp,"output/niche_similarity/sim_conservatism_",spp[spp_index],"_",region,".RData")) #TODO
-        save(sim_test_shift, file = paste0(path_imp,"output/niche_similarity/sim_shift_",spp[spp_index],"_",region,".RData")) #TODO
+        save(sim_test_conservatism, file = paste0(path_imp, "output/niche_similarity/sim_conservatism_",spp[spp_index],"_",region,".RData")) #TODO
+        save(sim_test_shift, file = paste0(path_imp, "output/niche_similarity/sim_shift_",spp[spp_index],"_",region,".RData")) #TODO
         
         
         # SES ---------------------------------------------------------------------
@@ -147,7 +163,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
         ses_conservatism$ses.z.D <- (obs.o$D - mean(sim.o$D)) / sd(sim.o$D)				# standardised effect size calculated as standardised mean difference between observation and simulated values (the z-score)
         ses_conservatism$ses.z.I <- (obs.o$I - mean(sim.o$I)) / sd(sim.o$I)
         
-        save(ses_conservatism, file = paste0(path_imp,"output/niche_similarity/ses_conservatism_",spp[spp_index],"_",region,".RData")) #TODO
+        save(ses_conservatism, file = paste0(path_imp, "output/niche_similarity/ses_conservatism_",spp[spp_index],"_",region,".RData")) #TODO
         
         # standardised effect size - niche shift
         ses_shift <- list()
@@ -162,7 +178,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr")) %dopar
         ses_shift$ses.z.D <- (obs.o$D - mean(sim.o$D)) / sd(sim.o$D)				# standardised effect size calculated as standardised mean difference between observation and simulated values (the z-score)
         ses_shift$ses.z.I <- (obs.o$I - mean(sim.o$I)) / sd(sim.o$I)
         
-        save(ses_shift, file = paste0(path_imp,"output/niche_similarity/ses_shift",spp[spp_index],"_",region,".RData")) #TODO
+        save(ses_shift, file = paste0(path_imp,"output/niche_similarity/ses_shift_ ",spp[spp_index],"_",region,".RData")) #TODO
         
         # niche dynamics ----------------------------------------------------------
         
