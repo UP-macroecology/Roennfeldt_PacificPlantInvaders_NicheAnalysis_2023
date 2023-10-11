@@ -3,6 +3,12 @@ misc/
 writing/
 results/*
 plots/
+scripts/valen*
+scripts/remove*
+scripts/chapter_2*
+scripts/misc*
+scripts/old_scripts*
+*.xlsx
 !results/intermediate
 
 results/intermediate/*
