@@ -34,7 +34,7 @@ To reduce the run time for this computationally intensive step, a pre-selection 
 ### 6 - Final species selection
 The final species selection returns a list of species with enough occurrences - following the above described selection criterion - to still be suitable for the analysis (n = xx). 
 
-### 7 - Mering occurrences with climate data
+### 7 - Merging occurrences with climate data
 Each occurrence point is then matched with the according climate data. For this, all 19 bioclimatic variables from [CHELSA V2](https://chelsa-climate.org/) were used at a 1 km resolution. The resulting data is the final input for the following niche comparison.
 
 ### 8 - Niche comparison
