@@ -58,7 +58,7 @@ rm(tdwg)
 # make sure that overlaps with pac_islands are removed 
 # (overkill, as I am doing it will all regions)
 
-pac_islands <- vect(subset(tdwg_poly, LEVEL1_NAM == "PACIFIC")) 
+# pac_islands <- vect(subset(tdwg_poly, LEVEL1_NAM == "PACIFIC")) 
 
 europe <- vect(subset(tdwg_poly, LEVEL1_NAM == "EUROPE")) %>%
   erase(pac_islands)

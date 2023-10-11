@@ -355,7 +355,7 @@ for (spec in specs) {
 save(rel_niche_dynamics, file = "results/rel_niche_dynamics_overview.RData")
 
 # master overview ---------------------------------------------------------
-rm(list = setdiff(ls(),"path_data"))
+rm(list = setdiff(ls(), c("path_data", "similarity_res")))
 
 load("results/niche_overlap_overview.RData")
 load("results/niche_similarity_overview.RData")
@@ -457,11 +457,11 @@ for (spec in specs) {
                                        expansion = subset(results_dynamics, species == spec & region == reg & inter_method == "inter" & dyn_metric == "expansion")[,5],
                                        stability = subset(results_dynamics, species == spec & region == reg & inter_method == "inter" & dyn_metric == "stability")[,5],
                                        unfilling = subset(results_dynamics, species == spec & region == reg & inter_method == "inter" & dyn_metric == "unfilling")[,5],
-                                       rel.expansion = subset(rel_niche_dynamics, species == spec & region == reg & metric == "expansion")[,5],
-                                       rel.stability = subset(rel_niche_dynamics, species == spec & region == reg & metric == "stability")[,5],
-                                       rel.unfilling = subset(rel_niche_dynamics, species == spec & region == reg & metric == "unfilling")[,5],
-                                       rel.abandonment = subset(rel_niche_dynamics, species == spec & region == reg & metric == "abandonment")[,5],
-                                       rel.pioneering = subset(rel_niche_dynamics, species == spec & region == reg & metric == "pioneering")[,5],
+                                       rel.expansion = subset(rel_niche_dynamics, species == spec & region == reg & metric == "expansion")[,4],
+                                       rel.stability = subset(rel_niche_dynamics, species == spec & region == reg & metric == "stability")[,4],
+                                       rel.unfilling = subset(rel_niche_dynamics, species == spec & region == reg & metric == "unfilling")[,4],
+                                       rel.abandonment = subset(rel_niche_dynamics, species == spec & region == reg & metric == "abandonment")[,4],
+                                       rel.pioneering = subset(rel_niche_dynamics, species == spec & region == reg & metric == "pioneering")[,4],
                                        p.D.cons = p_D_cons,
                                        p.D.shift = p_D_shift,
                                        p.ES.cons = p_ES_cons,

@@ -75,7 +75,7 @@ for (spp in specs) {
     pull() %>%
     round(2)
   
-  # sum the area size of unique gift polygons when scvp area = NA
+  # sum the area size of unique gift polygons when wcvp area = NA
   # combine wcvp and gift area sizes
   native_range_both <- native_range_wcvp + df %>%
     filter(is.na(wcvp_LEVEL3_NAM)) %>%

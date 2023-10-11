@@ -76,13 +76,12 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 10){
 }
 
 # required data -----------------------------------------------------------
-load(paste0(path_imp, "output/spp_last_30.RData"))
+load(paste0(path_imp, "input/spp_val2.RData"))
 
-spp <- spp_last_30[!spp_last_30 %in% c("Silene gallica", "Stachys arvensis")]
-rm(spp_last_30)
+spp <- spp_val2
 
 # Start parallel computing
-no_cores <- 2
+no_cores <- 6
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
@@ -104,7 +103,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     occ_coords_sf <- st_as_sf(occ_coords, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
 
     # spatial thinning using the thin function
-    occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 10, ncores = 2)
+    occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 1, ncores = 1)
 
     # presence points as refference for the buffer
     presences <- vect(occ_coords, crs = "+proj=longlat +datum=WGS84")
@@ -133,7 +132,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     abs_coords_200_sf <- st_as_sf(abs_coords_200, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
 
     # thin background data
-    abs_thinned_200 <- thin(abs_coords_200_sf, thin_dist = 3000, runs = 10, ncores = 1)
+    abs_thinned_200 <- thin(abs_coords_200_sf, thin_dist = 3000, runs = 1, ncores = 1)
 
     # Merge presence and absence coordinates
     coords_final_nat_200 <- bind_rows(bind_cols(species = spp[spp_index], present = 1, occ_thinned),
