@@ -1,11 +1,11 @@
 
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
-    install.packages(x, repos ='http://cran.us.r-project.org')
+    install.packages(x, repos = 'http://cran.us.r-project.org')
   require(x, character.only = TRUE)
 }
 package_vec <- c(
-  "dplyr", "sf"# names of the packages required placed here as character objects
+  "dplyr", "sf", "tidyr", "tibble" # names of the packages required placed here as character objects
 )
 sapply(package_vec, install.load.package)
 
