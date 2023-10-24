@@ -6,9 +6,11 @@ library(terra)
 rm(list = ls())
 
 
-# reqired paths -----------------------------------------------------------
+# required paths -----------------------------------------------------------
 
 bioclim_folder <- "Z:/Arbeit/datashare/data/envidat/biophysical/CHELSA_V1"
+
+bioclim_folder <- "Z:/roennfeldt/C1/data/CHELSA_V2/"
 
 # range size (calculated from polygons or convex hull?) 
 # latitudinal centroid (from polygons or convex hull?)
@@ -55,6 +57,7 @@ native_range_df <- data.frame(species = specs,
                               range_both = NA)
 
 counter <- 0
+
 # loop over species
 for (spp in specs) {
   
