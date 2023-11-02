@@ -50,77 +50,80 @@ bioclim_folder <- "/mnt/ibb_share/zurell/envidat/biophysical/CHELSA_V1"
 # 
 
 
-# load the global pca environment and scores
+# load the global pca environmetn and scores
 load(paste0(path_imp, "output/PCA/global_pca.RData"))
 load(paste0(path_imp, "output/PCA/global_scores.RData"))
 
 # load final species list
 load(paste0(path_imp, "output/final_species_list_preliminary.RData")) #TODO
 
-spp <- spp_final
 
-no_cores <- 2
+spp_done <- str_remove_all(list.files(paste0(path_imp,"output/PCA/"), pattern = "niche_breadth_"), 
+                           pattern = paste(c("niche_breadth_", ".Rdata"), collapse = "|"))
+
+# spp_done <- str_remove_all(list.files("data/PCA/", pattern = "niche_breadth_"), 
+#                            pattern = paste(c("niche_breadth_", ".Rdata"), collapse = "|"))
+
+
+
+
+spp <- setdiff(spp_final, spp_done)
+
+spp_large_files <- NULL
+
+no_cores <- 1
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
 # loop over species:
-niche_breadth_df <- foreach(spp_index = 1:length(spp),
-                            .combine = rbind,
+foreach(spp_index = 1:length(spp),
                             .packages = c("ecospat", "ade4", "dplyr","terra"), 
                             .verbose = TRUE,
                             .errorhandling = "remove") %dopar% {
                               
-                              # data frame to store results:
-                              nb_spec_df <- data.frame("species" = sub("_", " ", spp[spp_index]),
-                                                       "niche_breadth_zcor" = NA)
+                              # only proceed with spp were the input file is below 1000000 bytes
+                              f_size <- file.size(paste0(path_imp, "output/final_input_nat/input_nat_",spp[spp_index],".RData"))
                               
-                              # load species occurrence data already matched with bioclim variables
-                              load(paste0(path_imp, "output/final_input_nat/input_nat_",spp[spp_index],".RData")) 
+                              if (f_size < 1000000) {
+                                # load species occurrence data already matched with bioclim variables
+                                load(paste0(path_imp, "output/final_input_nat/input_nat_",spp[spp_index],".RData")) 
+                                
+                                # rename object to a shorter version and remove original
+                                input_nat <- data_prep_nat
+                                rm(data_prep_nat)
+                                
+                                # data frame to store results:
+                                nb_spec_df <- data.frame("species" = sub("_", " ", spp[spp_index]),
+                                                         "niche_breadth_zcor" = NA)
+                                
+                                # PCA scores for species occurrences:
+                                regional_scores <- suprow(pca_env_global, input_nat[, paste0("bio", 1:19, "_1981-2010_V.2.1")])$li # PCA scores the native species distribution
+                                
+                                # calculate the Occurrence Densities Grid for Birdlife distribution:
+                                
+                                # native range area:
+                                grid_clim_native <- ecospat.grid.clim.dyn(glob = global_scores, # background pixels of the global range
+                                                                          glob1 = global_scores, # same for background pixels of the species
+                                                                          sp = regional_scores, # environmental values for the occurrences of the species
+                                                                          R = 100, 
+                                                                          th.sp = 0)
+                                
+                                nb_spec_df$niche_breadth_zcor <- vegan::diversity(as.vector(grid_clim_native$z.cor), index = "shannon")
+                                
+                                
+                                save(nb_spec_df, file = paste0(path_imp,"output/PCA/niche_breadth_",spp[spp_index],".Rdata"))
+                                
+                                rm(regional_scores)
+                                
+                              } else {
+                                spp_large_files <- c(spp_large_files, spp[spp_index])
+                                } # end of else
                               
-                              # rename object to a shorter version and remove original
-                              input_nat <- data_prep_nat
-                              rm(data_prep_nat)
-                        
-                              # PCA scores for species occurrences:
-                              regional_scores <- suprow(pca_env_global, input_nat[, paste0("bio", 1:19, "_1981-2010_V.2.1")])$li # PCA scores the native species distribution
-                              
-                              # calculate the Occurrence Densities Grid for Birdlife distribution:
-                              
-                              # native range area:
-                              grid_clim_native <- ecospat.grid.clim.dyn(glob = global_scores, # background pixels of the global range
-                                                                    glob1 = global_scores, # same for background pixels of the species
-                                                                    sp = regional_scores, # environmental values for the occurrences of the species
-                                                                    R = 100, 
-                                                                    th.sp = 0)
-                              
-                              nb_spec_df$niche_breadth_zcor <- vegan::diversity(as.vector(grid_clim_native$z.cor), index = "shannon")
-                              
-                              nb_spec_df
-                              
+                              spp_large_files
                             } # end of foreach over spp
 
-# save results
-save(niche_breadth_df, file = paste0(path_imp, "output/PCA/niche_breadth_df.RData") )
+
+save(spp_large_files, file = paste0(path_imp,"output/PCA/spp_large_files.Rdata"))
 
 
-# old (can be removed)
-
-# # list all species for which regional PCAs are available:
-# files <- list.files("data/PCA/") 
-#   
-# specs <- NULL
-# for (file in files) {
-#   
-#   spec <- unlist(str_split(file, pattern = "_"))[4] %>%
-#     str_replace(pattern = ".RData", "")
-#   
-#   specs <- c(specs, spec)
-# } # end of for loop over files
-# 
-# # only keep unique species names
-# specs <- unique(specs)
-# 
-# load("data/PCA/input_nat_Cynodon dactylon.RData")
-# 
-# 
-# scores_sp_nat2 <- suprow(pca_env_regional, data_prep_nat[which(data_prep_nat[,2] == 1),7:25])$li
+stopCluster(cl)

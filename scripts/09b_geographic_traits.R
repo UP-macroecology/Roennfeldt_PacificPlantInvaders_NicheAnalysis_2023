@@ -126,6 +126,8 @@ for (spp in specs) {
     na.omit() %>%
     pull()
   
+  sf_use_s2(FALSE)
+  
   # get the polygons for these regions and combine them into one multipolygon
   spp_range <- st_union(tdwg[tdwg$LEVEL3_NAM %in% region_names,5])
   
