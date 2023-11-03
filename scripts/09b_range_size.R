@@ -4,13 +4,12 @@
 library(dplyr)
 library(GIFT)
 library(sf)
-library(rmapshaper)
 library(terra)
 
 
 rm(list = ls())
 
-path_data <- "Y:/roennfeldt/C1/data/"
+path_data <- "Z:/roennfeldt/C1/data/"
 
 
 # required data -----------------------------------------------------------
@@ -35,7 +34,7 @@ native_centroid_df <- data.frame(species = spp_final,
                                  lon_centroid = NA,
                                  lat_centroid = NA)
 
-sf_use_s2(FALSE)
+# sf_use_s2(FALSE)
 
 # spp <- spp_final[1]
 
@@ -44,7 +43,8 @@ sf_use_s2(FALSE)
 counter <- 0
 
 
-spp_final <- spp_final[1:10]
+# spp_final <- spp_final[1:10]
+
 # loop over species
 for (spp in spp_final) {
   
@@ -94,7 +94,7 @@ for (spp in spp_final) {
   joined_df <- joined_df %>%
     distinct(lon, lat, wcvp_LEVEL3_COD, .keep_all = TRUE)
   
-  sf_use_s2(FALSE)
+  # sf_use_s2(TRUE)
   
   # # sum the area size of unique wcvp polygons 
   # native_range_wcvp <- joined_df %>%
@@ -141,28 +141,23 @@ for (spp in spp_final) {
     distinct(gift_entity_ID) %>%
     na.omit() %>%
     pull()
-  
+
   # get the polygons for these regions and combine them into one multipolygon
-  wcvp_range <- st_union(st_make_valid(tdwg[tdwg$LEVEL3_NAM %in% wcvp_names,5]))
-  gift_range <- st_union(st_make_valid(GIFT_shapes(entity_ID = gift_names)[,5]))
+  wcvp_range <- terra::aggregate(vect(tdwg[tdwg$LEVEL3_NAM %in% wcvp_names,5])) # aggregate -> single instead of multiple polygons
+  gift_range <- terra::aggregate(vect(st_make_valid(GIFT_shapes(entity_ID = gift_names)[,5])))
   
   # combine the ranges
-  total_range <- st_union(wcvp_range, gift_range)
+  total_range <- terra::aggregate(rbind(wcvp_range, gift_range))
   
-
-  sf_use_s2(TRUE)
-  
-  # get the centroid and its lon lat 
-  spp_centroid <- st_centroid(total_range)[[1]]
-  spp_lon <- as.data.frame(st_coordinates(spp_centroid))[1,1]
-  spp_lat <- as.data.frame(st_coordinates(spp_centroid))[1,2]
+  spp_centroid <- centroids(total_range)
+  spp_lon <- geom(spp_centroid)[3]
+  spp_lat <- geom(spp_centroid)[4]
   
   # add info to the existing df
   native_centroid_df[native_centroid_df$species == spp, "lon_centroid"] <- spp_lon
   native_centroid_df[native_centroid_df$species == spp, "lat_centroid"] <- spp_lat
   
   
-  sf_use_s2(TRUE)
   }) # end of try
   
 } # end of loop over species
@@ -173,55 +168,3 @@ for (spp in spp_final) {
 save(native_centroid_df, file = "data/trait_analysis/native_centroid.RData")
 save(native_centroid_df, file = "results/geographic_traits/native_centroid.RData")
 
-
-
-
-# testing -----------------------------------------------------------------
-
-
-s <- spp_final[1]
-
-
-t <- rbind(wcvp_range, gift_range)
-t2 <- terra::aggregate(t, by = NULL)
-t <- terra::aggregate(wcvp_range)
-# get the polygons for these regions and combine them into one multipolygon
-wcvp_range <- terra::aggregate(vect(tdwg[tdwg$LEVEL3_NAM %in% wcvp_names,5])) # aggregate -> single instead of multiple polygons
-gift_range <- terra::aggregate(vect(GIFT_shapes(entity_ID = gift_names)[,5]))
-
-# combine the ranges
-total_range <- terra::aggregate(rbind(wcvp_range, gift_range))
-
-spp_centroid <- centroids(total_range)
-spp_lon <- geom(spp_centroid)[3]
-spp_lat <- geom(spp_centroid)[4]
-
-
-# t <- terra::centroids(total_range)
-# 
-# total_range_vector <- vect(total_range)
-# 
-# map("world")
-# plot(total_range, add = TRUE, col = "blue")
-# plot(wcvp_range, add = TRUE, col = "red")
-# plot(gift_range, add = TRUE, col = "green")
-# 
-# t <- centroids(total_range_vector)
-# 
-# #-------------------------------
-# 
-# wcvp_regions <- st_union(tdwg[tdwg$LEVEL3_NAM %in% wcvp_names,5])
-# gift_regions <- st_union(GIFT_shapes(entity_ID = gift_names)[,5])
-# 
-# 
-# 
-# wcvp_regions2 <- st_make_valid(wcvp_regions)
-# t <- st_union(wcvp_regions, gift_regions)
-# 
-# 
-# st_centroid(gift_regions)
-# t <- st_centroid(wcvp_regions)
-# 
-# # get the polygons for these regions and combine them into one multipolygon
-# wcvp_range <- st_union(tdwg[tdwg$LEVEL3_NAM %in% wcvp_names,5])
-# gift_range <- st_union(GIFT_shapes(entity_ID = gift_names)[,5])
