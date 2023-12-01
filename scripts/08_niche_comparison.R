@@ -1,11 +1,13 @@
 # library(ade4)
-# library(ecospat) 
+# library(ecospat)
 # library(stringr)
 # library(dplyr)
 # library(purrr) # for simplify()
 
 rm(list = ls())
 
+# source("scripts/ecospat_mod.R")
+source("ecospat_mod.R")
 ## Packages --------------------------------------------------------------------
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
@@ -22,15 +24,24 @@ sapply(package_vec, install.load.package)
 path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") # TODO
 
 # load final species list
-load(paste0(path_imp, "output/final_species_list_preliminary.RData")) #TODO
+# load(paste0(path_imp, "output/final_species_list_preliminary_2.RData")) #TODO
+# spp <- spp_final
 
-spp <- spp_final
+load(paste0(path_imp, "input/spp_missed.RData"))
+spp <- spp_missed
+
+# when adding newly added species:
+# load(paste0(path_imp, "input/spp_newly_selected.RData")) #TODO
+# 
+# spp <- spp_new
 
 # ecospat niche comparison ---
 
-no_cores <- 3
+no_cores <- 1
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
+
+
 
 # loop over all species
 foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecospat", "stringr", "purrr")) %dopar% {
@@ -64,7 +75,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
       rm(data_prep_intr)
       
       # check whether input_intr has enough occurrences (>= 20)
-      if (nrow(input_intr) >= 20) {
+      if (nrow(subset(input_intr, present == 1)) >= 20) {
         
         
         # PCA environment ---------------------------------------------------------
@@ -123,8 +134,8 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         
         # niche conservatism
         # intersect between native and introduced range (intersection = 0)
-        sim_test_conservatism <- ecospat.niche.similarity.test(grid_clim_nat, grid_clim_intr,
-                                                               rep = 20,
+        sim_test_conservatism <- ecospat.niche.similarity.test.mod(grid_clim_nat, grid_clim_intr,
+                                                               rep = 1200,
                                                                intersection = 0, 
                                                                overlap.alternative = "higher",
                                                                expansion.alternative = "lower",
@@ -134,8 +145,8 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         
         # niche shifts
         # intersect between native and introduced range (intersection = 0)
-        sim_test_shift <- ecospat.niche.similarity.test(grid_clim_nat, grid_clim_intr,
-                                                        rep = 20,
+        sim_test_shift <- ecospat.niche.similarity.test.mod(grid_clim_nat, grid_clim_intr,
+                                                        rep = 1200,
                                                         intersection = 0,
                                                         overlap.alternative = "lower",
                                                         expansion.alternative = "higher",

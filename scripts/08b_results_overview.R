@@ -1,5 +1,7 @@
 library(stringr) # for str_trim
 
+rm(list = ls())
+
 # path_output <- "/import/ecoc9z/data-zurell/roennfeldt/C1/ouput/"
 path_data <- "Y:/roennfeldt/C1/data/ecospat/"
 
@@ -14,46 +16,59 @@ similarity_res <- function(df, spec, reg, setting, metric){
   return(v)
 }
 
+
+# required data -----------------------------------------------------------
+
+
+load("data/spp_suitable_after_thinning.RData")
+load("data/testing/checking_spp_numbers.RData")
+
 # overlap -----------------------------------------------------------------
 
 # empty df to store data in
 results_overlap <- data.frame(matrix(ncol = 3, nrow = 0))
 colnames(results_overlap) <- c("species", "region", "schoeners_D")
 
-# all niche overlap files saved in that folder
-files_overlap <- list.files(path = paste0(path_data,"niche_overlap/"), pattern = ".RData")
-
 # set counter to keep track of process
 counter <- 0
 
-for (file in files_overlap) {
+for (spp in spp_suitable) {
   
   counter <- counter + 1
   print(counter)
-  # load in niche overlap result
-  load(paste0(path_data, "niche_overlap/",file)) # object name: D_overlap
   
-  # remove ".RData from file name
-  file_short <- unlist(strsplit(file, split = "[.]"))[1]
   
-  # get the species and region name
-  spec_name <- unlist(strsplit(file_short, split = "_"))[2]
-  region_name <- unlist(strsplit(file_short, split = "_"))[3]
+  files_spp <- list.files(path = paste0(path_data,"niche_overlap_new/"), pattern = spp)
   
-  # add info to df
-  results_overlap <- rbind(results_overlap,
-                           data.frame(species = spec_name, 
-                                      region = region_name, 
-                                      schoeners_D = D_overlap))
+  for (file in files_spp) {
+    
+    # load in niche overlap result
+    load(paste0(path_data, "niche_overlap_new/", file)) # object name: D_overlap
+    
+    # remove ".RData from file name
+    file_short <- unlist(strsplit(file, split = "[.]"))[1]
+    
+    # get the region name
+    region_name <- unlist(strsplit(file_short, split = "_"))[3]
+    
+    
+    if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+      # add info to df
+      results_overlap <- rbind(results_overlap,
+                               data.frame(species = spp, 
+                                          region = region_name, 
+                                          schoeners_D = D_overlap))} # end of if condition
+    
+  } # end of for loop over files
 }
 
 # save results 
-save(results_overlap, file = "results/niche_overlap_overview.RData")
+save(results_overlap, file = "results/niche_overlap_overview_new.RData")
 
 
 # similarity & SES --------------------------------------------------------
 
-rm(list = setdiff(ls(), "path_data"))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "similarity_res", "nr_occs_df")))
 
 # 1. similarity test results
 # empty df to store data in
@@ -68,57 +83,63 @@ metrics <- c("D","expansion", "stability", "unfilling")
 
 # set counter to keep track of process
 counter <- 0
-for (setting in settings) {
+
+for (spp in spp_suitable) {
   
   counter <- counter + 1
   print(counter)
   
-  # all niche dynamics files saved in that folder
-  files_similarity <- list.files(path = paste0(path_data, "niche_similarity/"), pattern = setting)
-  
-  for (file in files_similarity) {
-    # load niche dynamic results
-    load(paste0(path_data,"niche_similarity/",file)) # object name: sim_test_XX
+  for (setting in settings) {
     
-    # remove ".RData from file name
-    file_short <- unlist(strsplit(file, split = "[.]"))[1]
+    # all niche dynamics files saved in that folder for this species and setting
+    files_similarity <- list.files(path = paste0(path_data, "niche_similarity_new/"), pattern = spp) 
     
-    # get species and region name
-    spec_name <- unlist(strsplit(file_short, split = "_"))[3]
-    region_name <- unlist(strsplit(file_short, split = "_"))[4]
+    files_similarity <- files_similarity[grepl(paste0(setting), files_similarity)]
+    
+    for (file in files_similarity) {
+      # load niche dynamic results
+      load(paste0(path_data,"niche_similarity_new/",file)) # object name: sim_test_XX
       
-    # add results to df (looping over the different metrics)
-    for (metric in metrics) {
+      # remove ".RData from file name
+      file_short <- unlist(strsplit(file, split = "[.]"))[1]
       
+      # get region name
+      region_name <- unlist(strsplit(file_short, split = "_"))[4]
       
-      # get results for current metric (object name differ depending on the method settings -> if conditions)
-      if (setting == "sim_conservatism") {
-        sim_set <- "conservatism"
-        sim_value <- sim_test_conservatism[[paste0("p.",metric)]]}
-      if (setting == "sim_shift") {
-        sim_set <- "shift"
-        sim_value <- sim_test_shift[[paste0("p.",metric)]]}
-      
-      # add to df
-      results_similarity <- rbind(results_similarity,
-                                  data.frame(species = spec_name, 
-                                             region = region_name, 
-                                             sim_setting = sim_set,
-                                             sim_metric = metric, 
-                                             value = sim_value))
-      
-    } # end loop over metrics
-  } # end loop over files
-} # end loop over settings
-
+      # add results to df (looping over the different metrics)
+      for (metric in metrics) {
+        
+        # get results for current metric (object name differ depending on the method settings -> if conditions)
+        if (setting == "sim_conservatism") {
+          sim_set <- "conservatism"
+          sim_value <- sim_test_conservatism[[paste0("p.",metric)]]}
+        if (setting == "sim_shift") {
+          sim_set <- "shift"
+          sim_value <- sim_test_shift[[paste0("p.",metric)]]}
+        
+        
+        if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+          
+          # add to df
+          results_similarity <- rbind(results_similarity,
+                                      data.frame(species = spp, 
+                                                 region = region_name, 
+                                                 sim_setting = sim_set,
+                                                 sim_metric = metric, 
+                                                 value = sim_value))} # end of if condition
+        
+      } # end loop over metrics
+    } # end loop over files
+  } # end of loop over settings
+} # end of loop over species
 
 # save results 
-save(results_similarity, file = "results/niche_similarity_overview.RData")
+save(results_similarity, file = "results/niche_similarity_overview_new.RData")
 
 
 # 2. SES based on similarity test results
 
-rm(list = setdiff(ls(), "path_data"))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "similarity_res", "nr_occs_df")))
 
 # empty df to store data in
 results_ses <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -128,65 +149,67 @@ colnames(results_ses) <- c("species", "region", "sim_setting", "sim_metric", "va
 settings <- c("ses_conservatism", "ses_shift") 
 metrics <- c("rank.D","rank.I", "z.D", "z.I")
 
-
-for (setting in settings) {
+counter <- 0
+for (spp in spp_suitable) {
   
-  # all niche dynamics files saved in that folder
-  files_ses <- list.files(path = paste0(path_data, "niche_similarity/"), pattern = setting)
+  counter <- counter + 1
+  print(counter)
   
-  for (file in files_ses) {
-    # load niche dynamic results
-    load(paste0(path_data,"niche_similarity/",file)) # object name: sim_test_XX
+  for (setting in settings) {
     
-    # remove ".RData from file name
-    file_short <- unlist(strsplit(file, split = "[.]"))[1]
+    # all niche dynamics files saved in that folder for this species and setting
+    files_ses <- list.files(path = paste0(path_data, "niche_similarity_new/"), pattern = spp) 
     
-    # get species and region name
-    spec_name <- unlist(strsplit(file_short, split = "_"))[3]
-    region_name <- unlist(strsplit(file_short, split = "_"))[4]
+    files_ses <- files_ses[grepl(paste0(setting), files_ses)]
     
-    # accidentally saved the ses_shift results with a whitespace in front of the species name 
-    # removing the whitespace:
-    if (setting == "ses_shift") {
-      spec_name <- str_trim(spec_name, "left") 
-    }
-    
-    # get ses results for the different settings/metrics
-    
-    for (metric in metrics) {
+    for (file in files_ses) {
+      # load niche dynamic results
+      load(paste0(path_data,"niche_similarity_new/",file)) # object name: sim_test_XX
       
+      # remove ".RData from file name
+      file_short <- unlist(strsplit(file, split = "[.]"))[1]
       
-      if (setting == "ses_conservatism") {
-        sim_set <- "conservatism"
-        sim_value <- ses_conservatism[[paste0("ses.",metric)]]
+      # get region name
+      region_name <- unlist(strsplit(file_short, split = "_"))[4]
+      
+      # get ses results for the different settings/metrics
+      
+      for (metric in metrics) {
+        
+        
+        if (setting == "ses_conservatism") {
+          sim_set <- "conservatism"
+          sim_value <- ses_conservatism[[paste0("ses.",metric)]]
         } # end of if over setting == "conservatism"
-      
-      if (setting == "ses_shift") {
-        sim_set <- "shift"
-        sim_value <- ses_shift[[paste0("ses.",metric)]]
+        
+        if (setting == "ses_shift") {
+          sim_set <- "shift"
+          sim_value <- ses_shift[[paste0("ses.",metric)]]
         } # end of if over setting == "shift"
+        
+        
+        if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+        # add to df
+        results_ses <- rbind(results_ses,
+                             data.frame(species = spp, 
+                                        region = region_name, 
+                                        sim_setting = sim_set,
+                                        sim_metric = metric, 
+                                        value = sim_value))} # end of if condition
+        
+      } # end loop over metrics
       
-      
-      
-      # add to df
-      results_ses <- rbind(results_ses,
-                                  data.frame(species = spec_name, 
-                                             region = region_name, 
-                                             sim_setting = sim_set,
-                                             sim_metric = metric, 
-                                             value = sim_value))
-      
-    } # end loop over metrics
-    
-  } # end loop over files
-} # end loop over settings
+    } # end loop over files
+  } # end loop over settings
+} # end of loop over species
+
 
 # save results 
-save(results_ses, file = "results/niche_ses_overview.RData")
+save(results_ses, file = "results/niche_ses_overview_new.RData")
 
 # dynamics ----------------------------------------------------------------
 
-rm(list = setdiff(ls(), "path_data"))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "similarity_res","nr_occs_df")))
 
 # empty df to store data in
 results_dynamics <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -197,62 +220,71 @@ settings <- c("inter", "whole")
 # metrics for niche dynamics
 metrics <- c("expansion", "stability", "unfilling")
 
-for (setting in settings) {
+counter <- 0
+
+for (spp in spp_suitable) {
   
-  # all niche dynamics files saved in that folder
-  files_dynamics <- list.files(path = paste0(path_data, "niche_dynamics/"), pattern = setting)
+  counter <- counter + 1
+  print(counter)
   
-  
-  for (file in files_dynamics) {
-    # load niche dynamic results
-    load(paste0(path_data, "niche_dynamics/",file)) # object name: niche_dyn_inter
     
-    # remove ".RData from file name
-    file_short <- unlist(strsplit(file, split = "[.]"))[1]
+  for (setting in settings) {
     
-    # get the intersection method, species, and region
-    spec_name <- unlist(strsplit(file_short, split = "_"))[4]
-    region_name <- unlist(strsplit(file_short, split = "_"))[5]
+
+    # all niche dynamics files saved in that folder for this species and setting
+    files_dynamics <- list.files(path = paste0(path_data, "niche_dynamics_new/"), pattern = spp) 
     
-    for (metric in metrics) {
+    files_dynamics <- files_dynamics[grepl(paste0(setting), files_dynamics)]
+    
+    for (file in files_dynamics) {
+      # load niche dynamic results
+      load(paste0(path_data, "niche_dynamics_new/",file)) # object name: niche_dyn_inter
       
-      # get results for current metric
-      if (setting == "inter") {
-        dyn_value <- niche_dyn_inter[["dynamic.index.w"]][[metric]]
-      }else{
-        dyn_value <- niche_dyn_whole[["dynamic.index.w"]][[metric]]
-      }
+      # remove ".RData from file name
+      file_short <- unlist(strsplit(file, split = "[.]"))[1]
       
-      # add to df
-      results_dynamics <- rbind(results_dynamics,
-                                data.frame(species = spec_name, 
-                                           region = region_name,
-                                           inter_method = setting, 
-                                           dyn_metric = metric, 
-                                           value = dyn_value))
+      # get the region
+      region_name <- unlist(strsplit(file_short, split = "_"))[5]
       
-    } # end loop over metrics
-  } # end loop over files    
-} # end loop over settings
+      for (metric in metrics) {
+        
+        # get results for current metric
+        if (setting == "inter") {
+          dyn_value <- niche_dyn_inter[["dynamic.index.w"]][[metric]]
+        }else{
+          dyn_value <- niche_dyn_whole[["dynamic.index.w"]][[metric]]
+        }
+        
+        if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+        # add to df
+        results_dynamics <- rbind(results_dynamics,
+                                  data.frame(species = spp, 
+                                             region = region_name,
+                                             inter_method = setting, 
+                                             dyn_metric = metric, 
+                                             value = dyn_value))} # end of if condition
+        
+      } # end loop over metrics
+    } # end loop over files    
+  } # end loop over settings
+} # end of loop over species
+
 
 # sort alphabetically (1. species, 2. region, 3. dyn_metric)
 results_dynamics <- results_dynamics[order(results_dynamics$species,results_dynamics$region, results_dynamics$dyn_metric),]
 
 # save results 
-save(results_dynamics, file = "results/niche_dynamics_overview.RData")
+save(results_dynamics, file = "results/niche_dynamics_overview_new.RData")
 
 
 # relative dynamics -------------------------------------------------------
-rm(list = setdiff(ls(), c("path_data", "results_dynamics")))
+rm(list = setdiff(ls(), c("path_data", "results_dynamics", "spp_suitable", "similarity_res")))
 
-specs_all <- unique(results_dynamics$species)
-
-specs <- setdiff(specs_all, c("Atriplex suberecta", 
-                              "Dysphania carinata", 
-                              "Fuchsia boliviana", 
-                              "Heterotheca grandiflora",
-                              "Passiflora edulis",
-                              "Spathodea campanulata"))
+specs <- setdiff(spp_suitable, c("Agave sisalana", "Spathodea campanulata"))
+# specs <- setdiff(spp_suitable, c("Agave sisalana",
+#                                  "Dysphania carinata",
+#                                  "Passiflora edulis",
+#                                  "Spathodea campanulata"))
 
 metrics <- c("stability", "unfilling", "expansion", "abandonment", "pioneering")
 
@@ -260,11 +292,12 @@ metrics <- c("stability", "unfilling", "expansion", "abandonment", "pioneering")
 rel_niche_dynamics <- data.frame(matrix(ncol = 5, nrow = 0))
 colnames(rel_niche_dynamics) <- c("species", "region", "metric", "percentage", "total")
 
-
+counter <- 0
 
 for (spec in specs) {
   
-  print(spec)
+  counter <- counter + 1
+  print(counter)
   
   regs <- unique(subset(results_dynamics, species == spec)$region)
   
@@ -352,25 +385,18 @@ for (spec in specs) {
 } # end loop over species
 
 # save results 
-save(rel_niche_dynamics, file = "results/rel_niche_dynamics_overview.RData")
+save(rel_niche_dynamics, file = "results/rel_niche_dynamics_overview_new.RData")
 
 # master overview ---------------------------------------------------------
-rm(list = setdiff(ls(), c("path_data", "similarity_res")))
+rm(list = setdiff(ls(), c("path_data", "similarity_res", "spp_suitable")))
 
-load("results/niche_overlap_overview.RData")
-load("results/niche_similarity_overview.RData")
-load("results/niche_ses_overview.RData")
-load("results/niche_dynamics_overview.RData")
-load("results/rel_niche_dynamics_overview.RData")
+load("results/niche_overlap_overview_new.RData")
+load("results/niche_similarity_overview_new.RData")
+load("results/niche_ses_overview_new.RData")
+load("results/niche_dynamics_overview_new.RData")
+load("results/rel_niche_dynamics_overview_new.RData")
 
-specs_all <- unique(results_overlap$species)
-
-specs <- setdiff(specs_all, c("Atriplex suberecta", 
-                              "Dysphania carinata", 
-                              "Fuchsia boliviana", 
-                              "Heterotheca grandiflora",
-                              "Passiflora edulis",
-                              "Spathodea campanulata"))
+specs <- setdiff(spp_suitable, c("Agave sisalana", "Spathodea campanulata"))
 
 # empty df to store data in
 master_results <- data.frame(matrix(ncol = 19, nrow = 0))
@@ -394,8 +420,13 @@ colnames(master_results) <- c("species",
                               "p.ES.cons", 
                               "p.U.cons")
 
-for (spec in specs) {
+counter <- 0
 
+for (spec in specs) {
+  
+  counter <- counter + 1
+  print(counter)
+  
   # determine regions this species has been introduced to
   regs <- unique(subset(results_dynamics, species == spec)$region)
   
@@ -471,7 +502,7 @@ for (spec in specs) {
 } # end of species loop
     
 # save results 
-save(master_results, file = "results/master_results.RData")
+save(master_results, file = "results/master_results_new.RData")
 
 # percentage niche conservatism -------------------------------------------
 
@@ -481,7 +512,7 @@ colnames(perc_df) <- c("region", "nr_species","nr_cons","nr_exp_lower", "nr_stab
 
 # region names
 regs <- unique(master_results$region)
-# c("Pacific Islands", "Africa", "Asia", "Australia", "Oceania", "North America", "South America", "Europe")
+
 for (reg in regs) {
   df <- subset(master_results, region == reg)
   spp_all <- nrow(df)
@@ -504,4 +535,4 @@ for (reg in regs) {
 }
 
 
-save(perc_df, file = "results/percentages_niche_conservatism.RData")
+save(perc_df, file = "results/percentages_niche_conservatism_new.RData")

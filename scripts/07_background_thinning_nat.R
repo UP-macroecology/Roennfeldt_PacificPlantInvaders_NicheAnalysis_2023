@@ -28,7 +28,7 @@ loadRData <- function(fileName){
 }
 
 # function for "fast" spatial thinning"
-thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 10){
+thin <- function(sf, thin_dist = 3000, runs = 1, ncores = 1){
   
   require(sf, quietly = TRUE)
   require(purrr, quietly = TRUE)
@@ -75,38 +75,39 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 10){
   out
 }
 
-# required data -----------------------------------------------------------
-load(paste0(path_imp, "input/occ_count_crit_1.RData"))
-# world_mask <- rast(paste0(path_imp, "input/world_mask.tif"))
+# # required data -----------------------------------------------------------
+# load(paste0(path_imp, "input/occ_count_crit_1.RData"))
+# # world_mask <- rast(paste0(path_imp, "input/world_mask.tif"))
+# 
+# # pre-select suitable species ------------------------------------------------
+# 
+# occ_count_crit_1 <- occ_count_crit_1 %>% 
+#   arrange(species) %>%
+#   distinct(species, .keep_all = TRUE)
+# 
+# suitable <- occ_count_crit_1[,-1]
+# suitable[suitable < 20] <- 0
+# suitable[suitable >= 20] <- 1
+# suitable$species <- occ_count_crit_1$species
+# suitable <- suitable %>% relocate(species)
+# suitable$mainland_regions <- rowSums(suitable[,4:10])
+# spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 0 | suitable$mainland_regions == 0),]
+# 
+# spp <- spp_suitable$species
+# 
+# 
+# specs_done <- list.files(paste0(path_imp, "output/coords_final_nat/")) %>% 
+#   str_remove(".RData") %>% 
+#   str_split(pattern = "_") %>%
+#   map(~ .x[[5]]) %>%
+#   simplify()
+# 
+# spp<- setdiff(spp, specs_done)
 
-# pre-select suitable species ------------------------------------------------
-
-occ_count_crit_1 <- occ_count_crit_1 %>% 
-  arrange(species) %>%
-  distinct(species, .keep_all = TRUE)
-
-suitable <- occ_count_crit_1[,-1]
-suitable[suitable < 20] <- 0
-suitable[suitable >= 20] <- 1
-suitable$species <- occ_count_crit_1$species
-suitable <- suitable %>% relocate(species)
-suitable$mainland_regions <- rowSums(suitable[,4:10])
-spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 0 | suitable$mainland_regions == 0),]
-
-spp <- spp_suitable$species
-
-
-specs_done <- list.files(paste0(path_imp, "output/coords_final_nat/")) %>% 
-  str_remove(".RData") %>% 
-  str_split(pattern = "_") %>%
-  map(~ .x[[5]]) %>%
-  simplify()
-
-spp <- setdiff(spp, specs_done)
-
+spp <- c("Zyosia matrella", "Xanthium strumarium", "Vuplia bromoides", "Vicia sativa")
 
 # Start parallel computing
-no_cores <- 5
+no_cores <- 4
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
@@ -128,9 +129,9 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     occ_coords_sf <- st_as_sf(occ_coords, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
 
     # spatial thinning using the thin function
-    occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 10, ncores = 1)
+    occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 1, ncores = 1)
 
-    # presence points as reference for the buffer
+    # presence points as refference for the buffer
     presences <- vect(occ_coords, crs = "+proj=longlat +datum=WGS84")
 
     # place buffer around presence points (radius = 200 to account for dispersal limitations)
@@ -157,7 +158,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
     abs_coords_200_sf <- st_as_sf(abs_coords_200, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
 
     # thin background data
-    abs_thinned_200 <- thin(abs_coords_200_sf, thin_dist = 3000, runs = 10, ncores = 1)
+    abs_thinned_200 <- thin(abs_coords_200_sf, thin_dist = 3000, runs = 1, ncores = 1)
 
     # Merge presence and absence coordinates
     coords_final_nat_200 <- bind_rows(bind_cols(species = spp[spp_index], present = 1, occ_thinned),
