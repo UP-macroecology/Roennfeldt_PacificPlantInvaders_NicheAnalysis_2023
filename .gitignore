@@ -7,8 +7,11 @@ scripts/valen*
 scripts/remove*
 scripts/chapter_2*
 scripts/misc*
+scripts/thinning_misc*
 scripts/old_scripts*
+scripts/individual_thinning*
 *.xlsx
+ecospat/
 !results/intermediate
 
 results/intermediate/*
