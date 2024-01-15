@@ -43,7 +43,7 @@ unique_sr_long <- unique(occ_status_all[c("species", "wcvp_LEVEL3_COD")]) %>%
   add_column(included = NA) %>% # add column for the processing in the next step
   add_column(sr_id = 1:nrow(unique_sr_long)) 
 
-save(unique_sr_long, file = "data/status_assignment/unique_sr.RData")
+# save(unique_sr_long, file = "data/status_assignment/unique_sr.RData")
 
 unique_sr <- unique_sr_long[116500:119814,] # only work with the ones that have not yet been included
 
