@@ -1,4 +1,5 @@
 library(dplyr)
+library(GIFT)
 library(maps)
 library(sf)
 library(terra)
@@ -43,23 +44,21 @@ bioclim_folder <- "Z:/roennfeldt/C1/data/CHELSA_V2/"
 # save(occ_status_resolved, file = "data/occ_status_resolved_lonlat.RData")
 
 load("data/occ_status_resolved_lonlat.RData")
+load("data/spp_suitable_after_thinning.RData")
 
 # native range size -------------------------------------------------------
 
 # approach one: calculate range size from the tdwg lvl 3 polygons (and gift areas where lvl 3 == NA)
 
-# get unique species names
-specs <- unique(occ_status_resolved$species)
-
 # prepare df
-native_range_df <- data.frame(species = specs,
+native_range_df <- data.frame(species = spp_suitable,
                               range_wcvp = NA,
                               range_both = NA)
 
 counter <- 0
 
 # loop over species
-for (spp in specs) {
+for (spp in spp_suitable) {
   
   counter <- counter + 1
   print(counter)
@@ -96,23 +95,28 @@ for (spp in specs) {
 
 save(native_range_df, file = "data/trait_analysis/native_range_size.RData")
 
-rm(list = setdiff(ls(), c("occ_status_resolved", "specs")))
 
 
 # latitudinal centroid ----------------------------------------------------
 
+rm(list = setdiff(ls(), c("occ_status_resolved", "spp_suitable")))
+
 # load in tdwg lvl 3
 tdwg <- st_read("data/tdwg/geojson/level3.geojson")
 
+# load GIFT polygons (prepared during status assignment)
+load("data/status_assignment/Gift_polygons.RData")
+
 # prepare df
-native_centroid_df <- data.frame(species = specs,
+native_centroid_df <- data.frame(species = spp_suitable,
                                  lon_centroid = NA,
                                  lat_centroid = NA)
 
 
 counter <- 0
+
 # loop over species
-for (spp in specs) {
+for (spp in spp_suitable) {
   
   counter <- counter + 1
   print(counter)
@@ -126,13 +130,34 @@ for (spp in specs) {
     na.omit() %>%
     pull()
   
-  sf_use_s2(FALSE)
+  if (length(region_names != 0)) {
+    
+    sf_use_s2(FALSE)
+    # get the polygons for these regions and combine them into one multipolygon
+    spp_range <- st_union(tdwg[tdwg$LEVEL3_NAM %in% region_names,5])
+    
+    # get the centroid and its lon lat 
+    spp_centroid <- st_centroid(spp_range)[[1]]
+    
+  } else {
+    
+    # GIFT centroid version if there is no WCVP info on the species
+    # get the names of the  GIFT regions to which the species is native
+    region_names <- df %>%
+      distinct(gift_entity_ID) %>%
+      na.omit() %>%
+      pull()
+    
+    sf_use_s2(FALSE)
+    
+    # get the polygons for these regions and combine them into one multipolygon
+    spp_range <- st_union(GIFT_polygons[GIFT_polygons$entity_ID %in% region_names, 13])
+    
+    # get the centroid and its lon lat 
+    spp_centroid <- st_centroid(spp_range)[[1]]
+  }
   
-  # get the polygons for these regions and combine them into one multipolygon
-  spp_range <- st_union(tdwg[tdwg$LEVEL3_NAM %in% region_names,5])
-  
-  # get the centroid and its lon lat 
-  spp_centroid <- st_centroid(spp_range)[[1]]
+
   spp_lon <- as.data.frame(st_coordinates(spp_centroid))[1,1]
   spp_lat <- as.data.frame(st_coordinates(spp_centroid))[1,2]
   
@@ -143,32 +168,32 @@ for (spp in specs) {
 
 save(native_centroid_df, file = "data/trait_analysis/native_centroid.RData")
 
-
-# niche breadth -----------------------------------------------------------
-
-# based on: (line 169)
-# https://github.com/UP-macroecology/EBBA_Niche_vs_Range_shifts/blob/main/scripts/3_prep_trait_data.R
-
-
-# niche breadth is quantified using the Shannon index of the occurrence density grid corrected for environmental prevalence
-# to be comparable across species, the environmental background must be the same:
-
-
-# bioclim variables:
-biovars_rast <- rast(file.path(bioclim_folder, 
-                               paste0("CHELSA_bio10_", paste0(c(paste0("0", 1:9),10:19)),".tif")))
-
-# global raster points (= environmental background, absences and presences):
-BL_global_points <- biovars_rast[[1]] %>% 
-  as.points
-
-# add bioclim variables to raster points:
-BL_vars_df <- terra::extract(biovars_rast, BL_global_points)
-
-# assess climate niche by using the first 2 PCA axes:
-# calibrating the PCA in the whole study area:
-pca.env <- dudi.pca(BL_vars_df[, paste0("bio", 1:19)], scannf = FALSE,
-                    nf = 2) # number of axes
-
-# predict the scores on the PCA axes:
-scores.globclim <- pca.env$li # PCA scores for global raster points
+# 
+# # niche breadth -----------------------------------------------------------
+# 
+# # based on: (line 169)
+# # https://github.com/UP-macroecology/EBBA_Niche_vs_Range_shifts/blob/main/scripts/3_prep_trait_data.R
+# 
+# 
+# # niche breadth is quantified using the Shannon index of the occurrence density grid corrected for environmental prevalence
+# # to be comparable across species, the environmental background must be the same:
+# 
+# 
+# # bioclim variables:
+# biovars_rast <- rast(file.path(bioclim_folder, 
+#                                paste0("CHELSA_bio10_", paste0(c(paste0("0", 1:9),10:19)),".tif")))
+# 
+# # global raster points (= environmental background, absences and presences):
+# BL_global_points <- biovars_rast[[1]] %>% 
+#   as.points
+# 
+# # add bioclim variables to raster points:
+# BL_vars_df <- terra::extract(biovars_rast, BL_global_points)
+# 
+# # assess climate niche by using the first 2 PCA axes:
+# # calibrating the PCA in the whole study area:
+# pca.env <- dudi.pca(BL_vars_df[, paste0("bio", 1:19)], scannf = FALSE,
+#                     nf = 2) # number of axes
+# 
+# # predict the scores on the PCA axes:
+# scores.globclim <- pca.env$li # PCA scores for global raster points
