@@ -10,7 +10,7 @@ path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") # TODO
 
 # required data -----------------------------------------------------------
 load(paste0(path_imp, "input/occ_count_crit_1.RData")) #TODO
-load(paste0(path_imp, "input/spp_val.RData"))
+# load(paste0(path_imp, "input/spp_val.RData"))
 # determine the original number of suitable species
 
 occ_count_crit_1 <- occ_count_crit_1 %>% 
@@ -28,7 +28,7 @@ spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 
 spp <- spp_suitable$species
 
 
-spp <- setdiff(spp, spp_val)
+# spp <- setdiff(spp, spp_val)
 
 # create df for that will store the number of occs per species and region
 # rows: 554 (number of specs in spp)
@@ -123,7 +123,7 @@ foreach(spp_index = 1:length(spp), .packages = c("tidyverse")) %do% {
 #           })} # end of foreach over spp
 
 
-save(nr_occs_df, file = paste0(path_imp, "output/nr_occs_df_preliminary.RData"))
+save(nr_occs_df, file = paste0(path_imp, "output/nr_occs_df_first_selection.RData"))
 
 
 # identify species that fit the final selection criterion:
@@ -140,5 +140,5 @@ suitable$mainland_regions <- rowSums(suitable[,4:10], na.rm = TRUE)
 spp_final <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$mainland_regions == 0),]$species
 
 
-save(spp_final, file = paste0(path_imp, "output/final_species_list_preliminary.RData")) #TODO
+save(spp_final, file = paste0(path_imp, "output/first_selection_species_list.RData")) #TODO
 
