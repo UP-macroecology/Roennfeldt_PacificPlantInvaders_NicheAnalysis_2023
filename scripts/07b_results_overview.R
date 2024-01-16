@@ -21,7 +21,7 @@ similarity_res <- function(df, spec, reg, setting, metric){
 
 
 load("data/spp_suitable_after_thinning.RData")
-load("data/testing/checking_spp_numbers.RData")
+load("data/nr_occs_df_after_thinning.RData")
 
 # overlap -----------------------------------------------------------------
 
@@ -38,12 +38,12 @@ for (spp in spp_suitable) {
   print(counter)
   
   
-  files_spp <- list.files(path = paste0(path_data,"niche_overlap_new/"), pattern = spp)
+  files_spp <- list.files(path = paste0(path_data,"niche_overlap/"), pattern = spp)
   
   for (file in files_spp) {
     
     # load in niche overlap result
-    load(paste0(path_data, "niche_overlap_new/", file)) # object name: D_overlap
+    load(paste0(path_data, "niche_overlap/", file)) # object name: D_overlap
     
     # remove ".RData from file name
     file_short <- unlist(strsplit(file, split = "[.]"))[1]
@@ -63,7 +63,7 @@ for (spp in spp_suitable) {
 }
 
 # save results 
-save(results_overlap, file = "results/niche_overlap_overview_new.RData")
+save(results_overlap, file = "results/ecospat/niche_overlap_results.RData")
 
 
 # similarity & SES --------------------------------------------------------
@@ -92,13 +92,13 @@ for (spp in spp_suitable) {
   for (setting in settings) {
     
     # all niche dynamics files saved in that folder for this species and setting
-    files_similarity <- list.files(path = paste0(path_data, "niche_similarity_new/"), pattern = spp) 
+    files_similarity <- list.files(path = paste0(path_data, "niche_similarity/"), pattern = spp) 
     
     files_similarity <- files_similarity[grepl(paste0(setting), files_similarity)]
     
     for (file in files_similarity) {
       # load niche dynamic results
-      load(paste0(path_data,"niche_similarity_new/",file)) # object name: sim_test_XX
+      load(paste0(path_data,"niche_similarity/",file)) # object name: sim_test_XX
       
       # remove ".RData from file name
       file_short <- unlist(strsplit(file, split = "[.]"))[1]
@@ -134,7 +134,7 @@ for (spp in spp_suitable) {
 } # end of loop over species
 
 # save results 
-save(results_similarity, file = "results/niche_similarity_overview_new.RData")
+save(results_similarity, file = "results/ecospat/niche_similarity_results.RData")
 
 
 # 2. SES based on similarity test results
@@ -158,13 +158,13 @@ for (spp in spp_suitable) {
   for (setting in settings) {
     
     # all niche dynamics files saved in that folder for this species and setting
-    files_ses <- list.files(path = paste0(path_data, "niche_similarity_new/"), pattern = spp) 
+    files_ses <- list.files(path = paste0(path_data, "niche_similarity/"), pattern = spp) 
     
     files_ses <- files_ses[grepl(paste0(setting), files_ses)]
     
     for (file in files_ses) {
       # load niche dynamic results
-      load(paste0(path_data,"niche_similarity_new/",file)) # object name: sim_test_XX
+      load(paste0(path_data,"niche_similarity/",file)) # object name: sim_test_XX
       
       # remove ".RData from file name
       file_short <- unlist(strsplit(file, split = "[.]"))[1]
@@ -205,7 +205,7 @@ for (spp in spp_suitable) {
 
 
 # save results 
-save(results_ses, file = "results/niche_ses_overview_new.RData")
+save(results_ses, file = "results/ecospat/niche_ses_results.RData")
 
 # dynamics ----------------------------------------------------------------
 
@@ -232,13 +232,13 @@ for (spp in spp_suitable) {
     
 
     # all niche dynamics files saved in that folder for this species and setting
-    files_dynamics <- list.files(path = paste0(path_data, "niche_dynamics_new/"), pattern = spp) 
+    files_dynamics <- list.files(path = paste0(path_data, "niche_dynamics/"), pattern = spp) 
     
     files_dynamics <- files_dynamics[grepl(paste0(setting), files_dynamics)]
     
     for (file in files_dynamics) {
       # load niche dynamic results
-      load(paste0(path_data, "niche_dynamics_new/",file)) # object name: niche_dyn_inter
+      load(paste0(path_data, "niche_dynamics/",file)) # object name: niche_dyn_inter
       
       # remove ".RData from file name
       file_short <- unlist(strsplit(file, split = "[.]"))[1]
@@ -274,13 +274,15 @@ for (spp in spp_suitable) {
 results_dynamics <- results_dynamics[order(results_dynamics$species,results_dynamics$region, results_dynamics$dyn_metric),]
 
 # save results 
-save(results_dynamics, file = "results/niche_dynamics_overview_new.RData")
+save(results_dynamics, file = "results/ecospat/niche_dynamics_results.RData")
 
 
 # relative dynamics -------------------------------------------------------
 rm(list = setdiff(ls(), c("path_data", "results_dynamics", "spp_suitable", "similarity_res")))
 
-specs <- setdiff(spp_suitable, c("Agave sisalana", "Spathodea campanulata"))
+specs <- spp_suitable
+
+# specs <- setdiff(spp_suitable, c("Agave sisalana", "Spathodea campanulata"))
 # specs <- setdiff(spp_suitable, c("Agave sisalana",
 #                                  "Dysphania carinata",
 #                                  "Passiflora edulis",
@@ -319,7 +321,10 @@ for (spec in specs) {
     s_x <- 1 - u
     
     # proportion non-analogue invaded niche stability and native stability
-    x <- s / s_x
+    if (s == 0 & s_x == 0) {
+     x <- 0
+    } else {x <- s / s_x}
+    
     
     # total niche (non-analogue)
     t <- u * x + s + e 
@@ -332,8 +337,14 @@ for (spec in specs) {
     # native niche (analogue)
     s_y <- 1 - u_a
     
-    # propotion analogue invaded niche stability and native stability
-    y <- s_a / s_y
+    # proportion analogue invaded niche stability and native stability
+    if (s_a == 0 & s_y == 0) {
+      y <- 0
+    } else {
+      if (s_y == 0) {
+        s_y <- 0.00000000000000001
+        y <- s_a / s_y
+      } else {y <- s_a / s_y}}
     
     # total niche (analogue)
     t_a <- u_a * y + s_a + e_a 
@@ -343,8 +354,10 @@ for (spec in specs) {
     e_rel_a1 <- e_a / t_a
     u_rel_a1 <- u_a * y / t_a
     
+    if (s_rel == 0 & s_rel_a1 == 0) {
+      i <- 0
+    } else {i <- s_rel / s_rel_a1}
     
-    i <- s_rel / s_rel_a1
     
     # define target values 
     s_rel_a <- s_rel_a1 * i # stability (%)
@@ -385,18 +398,19 @@ for (spec in specs) {
 } # end loop over species
 
 # save results 
-save(rel_niche_dynamics, file = "results/rel_niche_dynamics_overview_new.RData")
+save(rel_niche_dynamics, file = "results/ecospat/rel_niche_dynamics_results.RData")
 
 # master overview ---------------------------------------------------------
 rm(list = setdiff(ls(), c("path_data", "similarity_res", "spp_suitable")))
 
-load("results/niche_overlap_overview_new.RData")
-load("results/niche_similarity_overview_new.RData")
-load("results/niche_ses_overview_new.RData")
-load("results/niche_dynamics_overview_new.RData")
-load("results/rel_niche_dynamics_overview_new.RData")
+load("results/ecospat/niche_overlap_results.RData")
+load("results/ecospat/niche_similarity_results.RData")
+load("results/ecospat/niche_ses_results.RData")
+load("results/ecospat/niche_dynamics_results.RData")
+load("results/ecospat/rel_niche_dynamics_results.RData")
 
-specs <- setdiff(spp_suitable, c("Agave sisalana", "Spathodea campanulata"))
+specs <- spp_suitable
+# specs <- setdiff(spp_suitable, c("Agave sisalana", "Spathodea campanulata"))
 
 # empty df to store data in
 master_results <- data.frame(matrix(ncol = 19, nrow = 0))
@@ -404,21 +418,21 @@ colnames(master_results) <- c("species",
                               "region",
                               "overlap", 
                               "similarity", 
-                              "p.exp", 
-                              "p.stab", 
-                              "p.unf",
+                              "p_exp", 
+                              "p_stab", 
+                              "p_unf",
                               "expansion", 
                               "stability", 
                               "unfilling",
-                              "rel.expansion", 
-                              "rel.stability", 
-                              "rel.unfilling", 
-                              "rel.abandonment", 
-                              "rel.pioneering",
-                              "p.D.cons", 
-                              "p.D.shift",
-                              "p.ES.cons", 
-                              "p.U.cons")
+                              "rel_expansion", 
+                              "rel_stability", 
+                              "rel_unfilling", 
+                              "rel_abandonment", 
+                              "rel_pioneering",
+                              "p_D_cons", 
+                              "p_D_shift",
+                              "p_ES_cons", 
+                              "p_U_cons")
 
 counter <- 0
 
@@ -482,27 +496,27 @@ for (spec in specs) {
                                        region = as.factor(reg),
                                        overlap = subset(results_overlap, species == spec & region == reg)[,3],
                                        similarity = similarity,
-                                       p.exp = p_exp,
-                                       p.stab = p_stab,
-                                       p.unf = p_unf,
+                                       p_exp = p_exp,
+                                       p_stab = p_stab,
+                                       p_unf = p_unf,
                                        expansion = subset(results_dynamics, species == spec & region == reg & inter_method == "inter" & dyn_metric == "expansion")[,5],
                                        stability = subset(results_dynamics, species == spec & region == reg & inter_method == "inter" & dyn_metric == "stability")[,5],
                                        unfilling = subset(results_dynamics, species == spec & region == reg & inter_method == "inter" & dyn_metric == "unfilling")[,5],
-                                       rel.expansion = subset(rel_niche_dynamics, species == spec & region == reg & metric == "expansion")[,4],
-                                       rel.stability = subset(rel_niche_dynamics, species == spec & region == reg & metric == "stability")[,4],
-                                       rel.unfilling = subset(rel_niche_dynamics, species == spec & region == reg & metric == "unfilling")[,4],
-                                       rel.abandonment = subset(rel_niche_dynamics, species == spec & region == reg & metric == "abandonment")[,4],
-                                       rel.pioneering = subset(rel_niche_dynamics, species == spec & region == reg & metric == "pioneering")[,4],
-                                       p.D.cons = p_D_cons,
-                                       p.D.shift = p_D_shift,
-                                       p.ES.cons = p_ES_cons,
-                                       p.U.cons = p_U_cons))
+                                       rel_expansion = subset(rel_niche_dynamics, species == spec & region == reg & metric == "expansion")[,4],
+                                       rel_stability = subset(rel_niche_dynamics, species == spec & region == reg & metric == "stability")[,4],
+                                       rel_unfilling = subset(rel_niche_dynamics, species == spec & region == reg & metric == "unfilling")[,4],
+                                       rel_abandonment = subset(rel_niche_dynamics, species == spec & region == reg & metric == "abandonment")[,4],
+                                       rel_pioneering = subset(rel_niche_dynamics, species == spec & region == reg & metric == "pioneering")[,4],
+                                       p_D_cons = p_D_cons,
+                                       p_D_shift = p_D_shift,
+                                       p_ES_cons = p_ES_cons,
+                                       p_U_cons = p_U_cons))
     
   } # end of region loop
 } # end of species loop
     
 # save results 
-save(master_results, file = "results/master_results_new.RData")
+save(master_results, file = "results/ecospat/master_results.RData")
 
 # percentage niche conservatism -------------------------------------------
 
@@ -535,4 +549,4 @@ for (reg in regs) {
 }
 
 
-save(perc_df, file = "results/percentages_niche_conservatism_new.RData")
+save(perc_df, file = "results/ecospat/percentages_niche_conservatism.RData")
