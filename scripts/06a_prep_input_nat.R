@@ -20,12 +20,9 @@ rm(list = ls())
 path_imp  <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/") 
 
 # final species selection
-# load(paste0(path_imp, "output/final_species_list_preliminary.RData"))
+# load(paste0(path_imp, "output/first_selection_species_list.RData.RData"))
 
-# when adding newly added species:
-load(paste0(path_imp, "input/spp_newly_selected.RData")) #TODO
 
-spp_final <- spp_new
 # merge occurrences and climate data --------------------------------------
 
 no_cores <- 2
