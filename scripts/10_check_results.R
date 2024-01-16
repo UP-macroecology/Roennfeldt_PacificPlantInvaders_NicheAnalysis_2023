@@ -6,15 +6,16 @@
 
 library(dplyr)
 library(ggplot2)
-
+library(tidyr) # for %>% gather()
 rm(list = ls())
 
 
-load("results/master_results_new.RData")
-load("results/rel_niche_dynamics_overview_new.RData")
-load("results/niche_dynamics_overview_new.RData")
-load("results/niche_overlap_overview_new.RData")
-load("results/niche_ses_overview_new.RData")
+load("results/ecospat/master_results.RData")
+load("results/ecospat/rel_niche_dynamics_results.RData")
+load("results/ecospat/niche_dynamics_results.RData")
+load("results/ecospat/niche_overlap_results.RData")
+load("results/ecospat/niche_ses_results.RData")
+# load("results/ecospat/percentages_niche_conservatism.RData")
 
 
 # unique pacific species
@@ -65,7 +66,7 @@ ggplot(rel_niche_dynamics, aes(x = region, y = percentage, fill = metric)) +
   labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = c("Pacific Islands", "Africa", "Australasia", "Europe", "North America", "South America", "temperate Asia", "tropical Asia")) +
+                   labels = c("Pacific Islands\n n = 328", "Africa\n n = 223", "Australasia\n n = 227", "Europe\n n = 96", "N. America\n n = 209", "S. America\n n = 227", "temp. Asia\n n = 183", "trop. Asia\n n = 153")) +
   scale_fill_manual(name = "Niche dynamics", 
                     values = col_regular) +
   theme_bw(base_size = 20) +
@@ -79,14 +80,14 @@ ggplot(rel_niche_dynamics, aes(x = region, y = percentage, fill = metric)) +
 
 
 
-# relative dynamics - Prague poster
+# relative dynamics - Prague poster -> WHITE
 p <- ggplot(rel_niche_dynamics, aes(x = region, y = percentage, fill = metric)) +
   geom_boxplot(fatten = 1.5,
                colour = "#F2F2F2") +
   labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = c("Pacific Islands", "Africa", "Australasia", "Europe", "N. America", "S. America", "temperate Asia", "tropical Asia")) +
+                   labels = c("Pacific Islands\n n = 328", "Africa\n n = 223", "Australasia\n n = 227", "Europe\n n = 96", "N. America\n n = 209", "S. America\n n = 227", "temp. Asia\n n = 183", "trop. Asia\n n = 153")) +
   scale_fill_manual(name = "Niche dynamics", 
                     values = col_poster) +
   theme_bw(base_size = 20) +
@@ -100,8 +101,24 @@ p <- ggplot(rel_niche_dynamics, aes(x = region, y = percentage, fill = metric)) 
         axis.line = element_line(colour = "#F2F2F2"),
         axis.ticks = element_line(colour = "#F2F2F2"))
 
+# relative dynamics - Prague poster -> BLACK
+(p <- ggplot(rel_niche_dynamics, aes(x = region, y = percentage, fill = metric)) +
+  geom_boxplot(fatten = 1.5) +
+  labs(x = "Non-native region", y = "Niche dynamics (%)") +
+  scale_x_discrete(name = "\nNon-native region",
+                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
+                   labels = c("Pacific Islands\n n = 328", "Africa\n n = 223", "Australasia\n n = 227", "Europe\n n = 96", "N. America\n n = 209", "S. America\n n = 227", "temp. Asia\n n = 183", "trop. Asia\n n = 153")) +
+  scale_fill_manual(name = "Niche dynamics", 
+                    values = col_poster) +
+  theme_bw(base_size = 20) +
+  theme(panel.grid = element_blank(),
+        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA,),
+        legend.position = "none",
+        axis.text = element_text(colour = "#1B3C59")))
 
-ggsave("plots/results/Niche_dynamics.pdf", p, 
+ggsave("plots/results/Niche_dynamics.png", p, 
        bg = "transparent",
        width = 35,
        height = 17,
@@ -174,4 +191,101 @@ ggplot(results_ses, aes(x = region, y = value, fill = sim_setting)) +
   theme(panel.grid.major = element_blank(),
         legend.box.spacing = unit(3, "pt"),
         plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
+
+
+
+# 5. Niche conservatism ---------------------------------------------------
+
+df_con <- data.frame(similarity = c("Conservatism", "Conservatism", "Conservatism"),
+               freq = c(733, 913, 0))
+
+p <- ggplot(df_con, aes(x = similarity, y = freq)) +
+  labs(x = NULL, y = NULL) + 
+  geom_bar(stat = "identity") +
+  scale_x_discrete(labels = c("Niche \nconservatism", "Neither", "Niche \nswitching")) +
+  ylim(0,950) +
+  theme_bw(base_size = 20) +
+  theme(axis.line = element_line(),
+        panel.grid = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA,),
+        axis.text = element_text(colour = "#1B3C59"))
+
+ggsave("plots/results/Niche_conservatism_bar.png", p, 
+       bg = "transparent",
+       width = 13,
+       height = 18,
+       units = "cm")
+
+
+# per region
+load("results/ecospat/percentages_niche_conservatism.RData")
+
+
+
+# 6. stand. ESU --------------------------------------------------------------
+
+# TODO: move this seciton to the results_overview script and save the file there to load it back in here
+stand_ESU_wide <- master_results %>%
+  mutate(region = factor(region, levels = c("pac", "afr", "ate", "atr", "aus", "eur", "nam", "sam"))) %>%
+  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
+  mutate(expansion = rel_expansion / total_esu) %>%
+  mutate(stability = rel_stability / total_esu) %>%
+  mutate(unfilling = rel_unfilling / total_esu) %>%
+  select(c(species, region, unfilling, stability, expansion))
+
+stand_ESU <- rel_niche_dynamics %>%
+  select(-total) %>%
+  filter(metric %in% c("unfilling", "stability", "expansion"))
+
+combinations <- unique(stand_ESU[c("species", "region", "metric")])
+
+for (combi_index in 1:nrow(combinations)) {
+  
+  species <- combinations[combi_index,1]
+  region <- combinations[combi_index,2]
+  metric <- combinations[combi_index,3]
+  
+  
+  i <- as.numeric(which(stand_ESU$species == species & stand_ESU$region == region & stand_ESU$metric == metric))
+  i_w <- as.numeric(which(stand_ESU_wide$species == species & stand_ESU_wide$region == region))
+  
+  perc <- stand_ESU_wide[i_w, metric]
+  stand_ESU[i,"percentage"] <- perc
+  
+} # end of loop over combinations
+
+stand_ESU <- stand_ESU %>%
+  mutate(across(!c(species,percentage), as.factor)) %>%
+  mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion")))
+
+save(stand_ESU, file = "results/ecospat/stand_ESU.RData")
+
+# plot ESU niche dynamcis
+
+col_poster <- c("#FFE875","#A3DDEF","#87CF87")
+
+# relative dynamics - Prague poster -> BLACK
+(p <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
+    geom_boxplot(fatten = 1.5) +
+    labs(x = "Non-native region", y = "Niche dynamics (%)") +
+    scale_x_discrete(name = "\nNon-native region",
+                     limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
+                     labels = c("Pacific Islands\n n = 328", "Africa\n n = 223", "Australasia\n n = 227", "Europe\n n = 96", "N. America\n n = 209", "S. America\n n = 227", "temp. Asia\n n = 183", "trop. Asia\n n = 153")) +
+    scale_fill_manual(name = "Niche dynamics", 
+                      values = col_poster) +
+    theme_bw(base_size = 20) +
+    theme(panel.grid = element_blank(),
+          plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
+          panel.background = element_rect(fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA,),
+          legend.position = "none",
+          axis.text = element_text(colour = "#1B3C59")))
+
+ggsave("plots/results/Niche_dynamics.png", p, 
+       bg = "transparent",
+       width = 35,
+       height = 17,
+       units = "cm")
 
