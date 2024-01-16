@@ -23,21 +23,13 @@ sapply(package_vec, install.load.package)
 # paths ------------------
 path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") # TODO
 
-# load final species list
-# load(paste0(path_imp, "output/final_species_list_preliminary_2.RData")) #TODO
-# spp <- spp_final
-
-load(paste0(path_imp, "input/spp_missed.RData"))
-spp <- spp_missed
-
-# when adding newly added species:
-# load(paste0(path_imp, "input/spp_newly_selected.RData")) #TODO
-# 
-# spp <- spp_new
+# load final species selection
+load(paste0(path_imp, "input/spp_suitable_after_thinning.RData"))
+spp <- spp_suitable
 
 # ecospat niche comparison ---
 
-no_cores <- 1
+no_cores <- 10
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
@@ -48,7 +40,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
   try({
     
     # load nat occurrences
-    load(paste0(path_imp, "output/final_input_nat/input_nat_",spp[spp_index],".RData")) 
+    load(paste0(path_imp, "output/final_input_nat_rev/input_nat_",spp[spp_index],".RData")) 
     
     
     # rename object to a shorter version and remove original
@@ -57,7 +49,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
     
     
     # get the regions in which this species occurs as introduced species
-    regions <- list.files(path = paste0(path_imp, "output/final_input_intr/"), pattern = paste0(spp[spp_index],".RData")) %>% #TODO
+    regions <- list.files(path = paste0(path_imp, "output/final_input_intr_rev/"), pattern = paste0(spp[spp_index],".RData")) %>% #TODO
       str_remove(".RData") %>% 
       str_split(pattern = "_") %>%
       map(~ .x[[3]]) %>%
@@ -68,7 +60,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
     for (region in regions) {
       
       # load intr occs for current region
-      load(paste0(path_imp, "output/final_input_intr/input_intr_",region,"_",spp[spp_index],".RData")) #TODO
+      load(paste0(path_imp, "output/final_input_intr_rev/input_intr_",region,"_",spp[spp_index],".RData")) #TODO
       
       # rename object to a shorter version and remove original
       input_intr <- data_prep_intr
@@ -83,8 +75,9 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         # define the regional PCA environment for this species
         pca_env_regional <- dudi.pca(rbind(input_nat,input_intr)[,7:25], scannf = FALSE, nf = 2)
         
+        #TODO: check whether this line is still required
         # save the regional PCA for later
-        save(pca_env_regional, file = paste0(path_imp, "output/PCA/regional_pca_",region,"_",spp[spp_index],".RData")) #TODO
+        # save(pca_env_regional, file = paste0(path_imp, "output/PCA/regional_pca_",region,"_",spp[spp_index],".RData")) #TODO
         
         # predict scores on the axis
         # PCA scores for the whole study area
@@ -136,7 +129,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         # intersect between native and introduced range (intersection = 0)
         sim_test_conservatism <- ecospat.niche.similarity.test.mod(grid_clim_nat, grid_clim_intr,
                                                                rep = 1200,
-                                                               intersection = 0, 
+                                                               intersection = 0, # 0 means the analysis is only done for the intersection of native and introduced niche
                                                                overlap.alternative = "higher",
                                                                expansion.alternative = "lower",
                                                                stability.alternative = "higher",
@@ -147,7 +140,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         # intersect between native and introduced range (intersection = 0)
         sim_test_shift <- ecospat.niche.similarity.test.mod(grid_clim_nat, grid_clim_intr,
                                                         rep = 1200,
-                                                        intersection = 0,
+                                                        intersection = 0, 
                                                         overlap.alternative = "lower",
                                                         expansion.alternative = "higher",
                                                         stability.alternative = "lower",
