@@ -1,5 +1,6 @@
 library(ape)
 library(dplyr)
+library(phytools)
 library(tidytree)
 library(TreeTools)
 
@@ -61,23 +62,22 @@ for (spp in spp_final) {
   
   # 2. create vector containing the new tip labels based on the species name and region
   new_tips <- NULL
-  
+
   for (region in regions) {
-    
-    new_label <- paste0(sub(" ", "_",spp), "_", region) 
+
+    new_label <- paste0(sub(" ", "_",spp), "_", region)
     new_tips <- c(new_tips, new_label)
-    
-    rm(new_label)
-    
+
+
   } # end of for loop over regions
-  
-  # 3. add new tips 
-  
+
+  # 3. add new tips
+
   # !!only do this with the first species to keep distance the same for all cherries
   if (spp == spp_final[1]) {
     # identify at which edge the species is located in the phylogeny
     edge_to_split <- as.numeric(which.edge(tree_pac_mod, sub(" ","_",spp)))
-    
+
     # get edge length to determine the poistion at which to add the new branch and how long it is supposed to be
     initial_edge_length <- tree_pac[["edge.length"]][edge_to_split]
     # edge length below the new branch
@@ -85,53 +85,58 @@ for (spp in spp_final) {
     # edge length of new branch
     e_l <- initial_edge_length / 2
   }
-  
-  
+
+
   for (i in 1:length(new_tips)) {
     
+    print(new_tips[i])
     if (i == 1) {
       
+      print("yes")
       tree_pac_mod <- bind.tip(tree_pac_mod,
                                tip.label = new_tips[i],
                                edge.length = e_l,
                                where = which(tree_pac_mod$tip.label == sub(" ", "_",spp)),
                                position = e_b)
-      
-      
-      plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
-      
-    } else {
-      
+
+
+      # plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
+
+    }else{ 
+      print("no")
+
       tree_pac_mod <- bind.tip(tree_pac_mod,
                                tip.label = new_tips[i],
                                edge.length = e_l,
                                where = which(tree_pac_mod$tip.label == sub(" ", "_",spp)),
                                position = 7)
-      
-      plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
-      
+
+      # plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
+      # edgelabels()
+
+      # collaps internal edge to create polytomy
+      # !!this manipulates edge lenghts, which will have to be adjusted in the next step
+      tree_pac_mod <- CollapseEdge(tree_pac_mod, edge = min(which.edge(tree_pac_mod, c(new_tips[i], sub(" ", "_",spp)))) - 1)
+
+      # plot(tree_pac_mod, type = "c", main = "Collapsed Tree")
+
+      # readjust edge lenghts
+      tree_pac_mod$edge.length[which.edge(tree_pac_mod, new_tips[i])] <- e_l
+      # plot(tree_pac_mod, type = "c", main = "Cherry Tree")
+
     } # end of if else i == 1
-  } # end of for loop over new tip labels
-  
+
+  } # end of for loop over tips
+
+
+
   # 4. drop the "original" tip with the species name
   tree_pac_mod <- drop.tip(tree_pac_mod, tip = sub(" ", "_",spp))
-  
-  plot(tree_pac_mod, type = "c", main = "Modified Tree (dropped tip)")
-  # 5. collaps internal edge to create polytomy 
-  # !!this manipulates edge lenghts, which will have to be adjusted in the next step
-  tree_pac_mod <- CollapseEdge(tree_pac_mod, edge = which.edge(tree_pac_mod, new_tips)[1])
-  
-  plot(tree_pac_mod, type = "c", main = "Collapsed Tree")
-  
-  # 6. readjust edge lenghts 
-  for (tip in 2:length(new_tips)) {
-    tree_pac_mod$edge.length[which.edge(tree_pac_mod, new_tips[tip])] <- e_l
-  } # end of for loop over tips
-  
-  plot(tree_pac_mod, type = "c", main = "Cherry Tree")
-  edgelabels()
-} # end of for loop over species
 
+  # plot(tree_pac_mod, type = "c", main = "Modified Tree (dropped tip)")
+  # edgelabels()
+
+} # end of for loop over species
 
 
 # make sure that the tree has as many tips as there are unique species - region combinations
@@ -141,3 +146,13 @@ length(tree_pac_mod[["tip.label"]]) # 1465
 # save modified tree to be used in the trait analysis
 write.tree(tree_pac_mod, file = "data/Phylogeny_mod.tre")
 
+
+
+
+
+
+
+
+# testing: 
+
+t <- tree_pac_mod
