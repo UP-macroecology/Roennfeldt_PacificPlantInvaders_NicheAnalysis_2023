@@ -21,8 +21,10 @@ phylo_pacific <- read.tree("data/Phylogeny.tre")
 
 # prepare species selection -----------------------------------------------
 
+# spp_sample <- sample(spp_suitable, 50)
+# spp_suitable <- spp_sample[11:20]
 # only work with a sample to test the code:
-spp_suitable <- sample(spp_suitable, 3)
+# spp_suitable <- sample(spp_suitable, 5)
 spp_phylo <- phylo_pacific[["tip.label"]]
 
 spp_not_needed <- setdiff(spp_phylo, sub(' ','_',spp_suitable))
@@ -39,120 +41,102 @@ spp_final <- setdiff(spp_suitable, spp_no_match)
 tree_pac <- drop.tip(phylo_pacific, spp_not_needed)
 
 plot(tree_pac, type = "c", main = "Original Tree")
-edgelabels()
-nodelabels()
-
-rm(phylo_pacific)
+#edgelabels()
+#nodelabels()
 
 
-# object to be modified within the loop
-tree_pac_mod <- tree_pac
+ages <- round(seq(from = 0.01, to = 0.4, length.out = 16), 2)
 
-# spp <- spp_final[1]
-
-for (spp in spp_final) {
+for (age in ages) {
   
-  print(spp)
+  print(age)
   
-  # 1. identify which regions the species has been introduced to
-  regions <- master_results %>%
-    filter(species == spp) %>%
-    select(region) %>%
-    pull()
+  # object to be modified within the loop
+  tree_pac_mod <- tree_pac
   
-  # 2. create vector containing the new tip labels based on the species name and region
-  new_tips <- NULL
-
-  for (region in regions) {
-
-    new_label <- paste0(sub(" ", "_",spp), "_", region)
-    new_tips <- c(new_tips, new_label)
-
-
-  } # end of for loop over regions
-
-  # 3. add new tips
-
-  # !!only do this with the first species to keep distance the same for all cherries
-  if (spp == spp_final[1]) {
-    # identify at which edge the species is located in the phylogeny
-    edge_to_split <- as.numeric(which.edge(tree_pac_mod, sub(" ","_",spp)))
-
-    # get edge length to determine the poistion at which to add the new branch and how long it is supposed to be
-    initial_edge_length <- tree_pac[["edge.length"]][edge_to_split]
-    # edge length below the new branch
-    e_b <- initial_edge_length / 2
-    # edge length of new branch
-    e_l <- initial_edge_length / 2
-  }
-
-
-  for (i in 1:length(new_tips)) {
+  # counter <- 0
+  
+  for (spp in spp_final) {
     
-    print(new_tips[i])
-    if (i == 1) {
+    # counter <- counter + 1
+    # print(counter)
+    
+    # 1. identify which regions the species has been introduced to
+    regions <- master_results %>%
+      filter(species == spp) %>%
+      select(region) %>%
+      pull()
+    
+    # 2. create vector containing the new tip labels based on the species name and region
+    new_tips <- NULL
+    
+    for (region in regions) {
       
-      print("yes")
-      tree_pac_mod <- bind.tip(tree_pac_mod,
-                               tip.label = new_tips[i],
-                               edge.length = e_l,
-                               where = which(tree_pac_mod$tip.label == sub(" ", "_",spp)),
-                               position = e_b)
-
-
-      # plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
-
-    }else{ 
-      print("no")
-
-      tree_pac_mod <- bind.tip(tree_pac_mod,
-                               tip.label = new_tips[i],
-                               edge.length = e_l,
-                               where = which(tree_pac_mod$tip.label == sub(" ", "_",spp)),
-                               position = 7)
-
-      # plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
-      # edgelabels()
-
-      # collaps internal edge to create polytomy
-      # !!this manipulates edge lenghts, which will have to be adjusted in the next step
-      tree_pac_mod <- CollapseEdge(tree_pac_mod, edge = min(which.edge(tree_pac_mod, c(new_tips[i], sub(" ", "_",spp)))) - 1)
-
-      # plot(tree_pac_mod, type = "c", main = "Collapsed Tree")
-
-      # readjust edge lenghts
-      tree_pac_mod$edge.length[which.edge(tree_pac_mod, new_tips[i])] <- e_l
-      # plot(tree_pac_mod, type = "c", main = "Cherry Tree")
-
-    } # end of if else i == 1
-
-  } # end of for loop over tips
-
-
-
-  # 4. drop the "original" tip with the species name
-  tree_pac_mod <- drop.tip(tree_pac_mod, tip = sub(" ", "_",spp))
-
-  # plot(tree_pac_mod, type = "c", main = "Modified Tree (dropped tip)")
-  # edgelabels()
-
-} # end of for loop over species
-
-
-# make sure that the tree has as many tips as there are unique species - region combinations
-nrow(unique(subset(master_results, species %in% spp_final)[,c("species", "region")])) # 1465
-length(tree_pac_mod[["tip.label"]]) # 1465 
-
-# save modified tree to be used in the trait analysis
-write.tree(tree_pac_mod, file = "data/Phylogeny_mod.tre")
-
-
-
-
-
-
-
-
-# testing: 
-
-t <- tree_pac_mod
+      new_label <- paste0(sub(" ", "_",spp), "_", region)
+      new_tips <- c(new_tips, new_label)
+      
+      
+    } # end of for loop over regions
+    
+    
+    # 3. add new tips
+    for (i in 1:length(new_tips)) {
+      
+      if (i == 1) {
+        
+        # print("yes")
+        tree_pac_mod <- bind.tip(tree_pac_mod,
+                                 tip.label = new_tips[i],
+                                 edge.length = age,
+                                 where = which(tree_pac_mod$tip.label == sub(" ", "_",spp)),
+                                 position = age) # use same input as for the edge.length argument
+        
+        
+        # plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
+        
+      }else{ 
+        # print("no")
+        
+        tree_pac_mod <- bind.tip(tree_pac_mod,
+                                 tip.label = new_tips[i],
+                                 edge.length = age,
+                                 where = which(tree_pac_mod$tip.label == sub(" ", "_",spp)),
+                                 position = age)
+        
+        # plot(tree_pac_mod, type = "c", main = paste0("Modified Tree (i = ",i,")"))
+        # edgelabels()
+        
+        # collaps internal edge to create polytomy
+        # !!this manipulates edge lenghts, which will have to be adjusted in the next step
+        tree_pac_mod <- CollapseEdge(tree_pac_mod, edge = min(which.edge(tree_pac_mod, c(new_tips[i], sub(" ", "_",spp)))) - 1)
+        
+        # plot(tree_pac_mod, type = "c", main = "Collapsed Tree")
+        
+        # readjust edge lenghts
+        tree_pac_mod$edge.length[which.edge(tree_pac_mod, new_tips[i])] <- age
+        # plot(tree_pac_mod, type = "c", main = "Cherry Tree")
+        
+      } # end of if else i == 1
+      
+    } # end of for loop over tips
+    
+    
+    
+    # 4. drop the "original" tip with the species name
+    tree_pac_mod <- drop.tip(tree_pac_mod, tip = sub(" ", "_",spp))
+    
+    # plot(tree_pac_mod, type = "c", main = "Modified Tree (dropped tip)")
+    # edgelabels()
+    
+  } # end of for loop over species
+  
+  # plot(tree_pac_mod, type = "c", main = "Modified tree", cex = 0.5)
+  
+  # make sure that the tree has as many tips as there are unique species - region combinations
+  nrow(unique(subset(master_results, species %in% spp_final)[,c("species", "region")])) # 1465
+  length(tree_pac_mod[["tip.label"]]) # 1465 
+  
+  # save modified tree to be used in the trait analysis
+  write.tree(tree_pac_mod, file = paste0("data/phylogenies/same_age/Pac_tree_age_",age,".tre"))
+  
+} # loop over ages
