@@ -4,6 +4,10 @@
 **Author:** Anna Rönnfeldt <br/>
 **WP1:** Quantification of the niche dynamics of alien plant species in the Pacific region. <br/>
 
+## Open Issues
+
+* some species have native occurrences in the Pacific region, this could be due to a faulty status assignment from GIFT -> check whether this is the case + decide whether to include these in the analysis or not if this is not a wrongly assigned status
+
 
 ## Workflow
 
