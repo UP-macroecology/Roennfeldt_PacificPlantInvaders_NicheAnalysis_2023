@@ -83,16 +83,16 @@ load(paste0(path_imp, "output/PCA/global_scores.RData"))
 load(paste0(path_imp, "input/spp_suitable_after_thinning.RData"))
 
 spp_done <- list.files(paste0(path_imp, "output/PCA/"), pattern = "niche_breadth_centroid_twice_") %>%
-  str_remove(".Rdata") %>%
+  str_remove(".RData") %>%
   str_split(pattern = "_") %>%
-  map(~ .x[[4]]) %>%
+  map(~ .x[[5]]) %>%
   simplify()
 
 
 spp <- setdiff(spp_suitable, spp_done)
 
 
-no_cores <- 1
+no_cores <- 2
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
