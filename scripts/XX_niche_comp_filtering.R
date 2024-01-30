@@ -1,9 +1,11 @@
-
+# library(maps)
 library(ade4)
-library(ecospat)
-library(stringr)
 library(dplyr)
-library(purrr) # for simplify()
+library(ecospat)
+library(purrr) # for simplify()library(stringr)
+library(terra)
+library(foreach)
+library(doParallel)
 
 rm(list = ls())
 
@@ -17,15 +19,23 @@ path_ds  <- file.path("Y:/roennfeldt/C1/data/")
 
 load("data/spp_suitable_after_thinning.RData")
 
+spp <- spp_suitable
+
+# prepare df to store info in
+
+df_AC_occs <- data.frame(species = as.character(NULL), region = as.character(NULL), nat_AC = as.numeric(NULL), intr_AC = as.numeric(NULL), stringsAsFactors = TRUE) 
 
 # randomly select example species
-spp <- sample(spp_suitable, 1)
-spp_index <- 1
+spp <- sample(spp_suitable, 10)
+# spp_index <- 1
 
+counter <- 1
 # loop over all species
 foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecospat", "stringr", "purrr")) %do% {
   try({
     
+    print(counter)
+    counter <- counter + 1
     # load nat occurrences
     load(paste0(path_ds, "/final_input_nat/input_nat_",spp[spp_index],".RData")) 
     
@@ -39,12 +49,12 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
     regions <- list.files(path = paste0(path_ds, "/final_input_intr/"), pattern = paste0(spp[spp_index],".RData")) %>% #TODO
       str_remove(".RData") %>% 
       str_split(pattern = "_") %>%
-      map(~ .x[[3]]) %>%
+      purrr::map(~ .x[[3]]) %>%
       simplify() %>%
       unique()
     
     
-    region <- sample(regions, 1)
+    # region <- sample(regions, 1)
     
     for (region in regions) {
       
@@ -97,22 +107,76 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
                                                 th.sp = 0)
         
         
-        
-        ecospat.plot.niche.dyn(grid_clim_nat, grid_clim_intr, interest = 2,
-                               col.unf = "lightgoldenrod1", 
-                               col.exp = "darkseagreen3",
-                               col.stab = "lightblue2",
-                               colZ1 = "black",
-                               colZ2 = "darkred")
-        
-        
-        # case 1 - intr env extent is completely in nat:
-        
-        # terra::plot(grid_clim_nat[["Z"]], legend = F, col = c("white", "grey"))
-        # terra::points(grid_clim_nat[["sp"]], legend = F, add = T, col = "blue")
-        # terra::points(grid_clim_intr[["sp"]], legend = F, add = T, col = "red")
+        # map("world")
+        # points(subset(input_intr, present == 1)[,c("lon", "lat")], col = "red")
+        # points(subset(input_nat, present == 1)[,c("lon", "lat")], col = "blue")
         # 
+        # ecospat.plot.niche.dyn(grid_clim_nat, grid_clim_intr, interest = 2,
+        #                        col.unf = "lightgoldenrod1",
+        #                        col.exp = "darkseagreen3",
+        #                        col.stab = "lightblue2",
+        #                        colZ1 = "black",
+        #                        colZ2 = "red")
         
+      
+        
+        # case 1 - intr env extent is completely in nat: -----
+        
+        ext_nat <- grid_clim_nat$Z
+        ext_intr <- grid_clim_intr$Z
+        
+        ext_nat[ext_nat > 0] <- 1
+        ext_nat[ext_nat != 1] <- NA
+
+        ext_intr[ext_intr > 0] <- 1
+        ext_intr[ext_intr != 1] <- NA
+        
+
+        ext_AC <- terra::intersect(ext_nat, ext_intr) # returns TRUE or FALSE cell values
+        
+        values(ext_AC)[which(values(ext_AC)) == TRUE] <- 1
+        
+        # quant <- 0
+        # terra::contour(ext_AC, add = TRUE, levels = quantile(ext_AC[ext_AC > 0], c(0, quant)),
+        #                drawlabels = FALSE, lty = c(1, 2), col = "purple")
+        
+        ext_AC[ext_AC == 0] <- NA
+        
+        # plot(ext_AC)
+        
+
+        
+        vec_AC <- as.polygons(ext_AC, trunc = TRUE, dissolve = TRUE, values = TRUE,
+                         na.rm = TRUE, na.all = FALSE, extent = FALSE)
+        
+        # terra::lines(vec_AC, col ="purple")
+        
+        
+
+
+        # intr occs 
+        # terra::points(grid_clim_intr[["sp"]],  col = "darkred")
+        
+        intr_AC <- terra::intersect(terra::vect(grid_clim_intr[["sp"]]), vec_AC)
+        nr_intr <- as.numeric(length(intr_AC))
+        
+        # nat occs 
+        nat_AC <- terra::intersect(terra::vect(grid_clim_nat[["sp"]]), vec_AC)
+        nr_nat <- as.numeric(length(nat_AC))
+        
+        # terra::points(grid_clim_nat[["sp"]],  col = "darkblue")
+        # terra::points(nat_AC,  col = "lightblue")
+        # 
+        # add info to df
+        df_AC_occs <- rbind(df_AC_occs,
+                            data.frame(species = spp[spp_index],
+                                       region = region,
+                                       nat_AC = nr_nat,
+                                       intr_AC = nr_intr))
+
       } # end of if condition over input_intr
     } # end of for loop over regions
+    
   })} # end of foreach 
+
+save(df_AC_occs, file = "data/testing/df_AC_occs.RData")
