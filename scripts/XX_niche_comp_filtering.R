@@ -17,16 +17,20 @@ source("scripts/ecospat_mod.R")
 
 path_ds  <- file.path("Y:/roennfeldt/C1/data/") 
 
-load("data/spp_suitable_after_thinning.RData")
+load("data/testing/df_AC_occs.RData")
+df_AC_occs_done <- df_AC_occs
 
-spp <- spp_suitable
+load("data/spp_suitable_after_thinning.RData")
+spp <- setdiff(spp_suitable, unique(df_AC_occs_done$species))
+
+
 
 # prepare df to store info in
 
 df_AC_occs <- data.frame(species = as.character(NULL), region = as.character(NULL), nat_AC = as.numeric(NULL), intr_AC = as.numeric(NULL), stringsAsFactors = TRUE) 
 
 # randomly select example species
-spp <- sample(spp_suitable, 10)
+# spp <- sample(spp_suitable, 10)
 # spp_index <- 1
 
 counter <- 1
@@ -179,4 +183,66 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
     
   })} # end of foreach 
 
+df_AC_occs <- rbind(df_AC_occs_done, df_AC_occs)
 save(df_AC_occs, file = "data/testing/df_AC_occs.RData")
+
+# 
+
+rm(list = ls())
+
+load("data/testing/df_AC_occs.RData")
+
+length(unique(df_AC_occs$species))
+
+df_AC_occs <- df_AC_occs %>%
+  mutate(nat_enough = case_when(nat_AC < 20 ~ "exclude")) %>%
+  mutate(intr_enough = case_when(intr_AC < 20 ~ "exclude")) 
+
+df_exclude <- subset(df_AC_occs, nat_enough == "exclude" | intr_enough == "exclude")
+
+# combine this information with the regional occs count from script XX
+
+load("data/nr_occs_df_after_thinning.RData")
+
+suitable <- nr_occs_df[,-1]
+suitable[suitable < 20] <- 0
+suitable[suitable >= 20] <- 1
+suitable$species <- nr_occs_df$species
+suitable <- suitable %>% relocate(species)
+suitable$mainland_regions <- rowSums(suitable[,4:10])
+
+spp_suitable <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$mainland_regions == 0),]$species
+
+
+suitable_AC <- suitable
+
+for (r in 1:nrow(df_exclude)) {
+  
+  spec <- df_exclude[r,"species"]
+  reg <- df_exclude[r,"region"]
+  
+  suitable_AC[suitable_AC$species == spec,reg] <- 0
+  
+} # end of for loop over df_exclude rows
+
+
+spp_suitable_AC <- suitable_AC[!(suitable_AC$nat == 0 | suitable_AC$pac == 0 | suitable_AC$mainland_regions == 0),]$species
+
+save(spp_suitable_AC, file = "data/spp_suitable_AC.RData")
+
+
+table(suitable$afr)
+table(suitable$ate)
+table(suitable$atr)
+table(suitable$aus)
+table(suitable$eur)
+table(suitable$nam)
+table(suitable$sam)
+
+table(suitable_AC$afr)
+table(suitable_AC$ate)
+table(suitable_AC$atr)
+table(suitable_AC$aus)
+table(suitable_AC$eur)
+table(suitable_AC$nam)
+table(suitable_AC$sam)
