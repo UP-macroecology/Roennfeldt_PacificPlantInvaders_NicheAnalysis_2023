@@ -1,7 +1,69 @@
 library(sf)
 library(terra)
+library(landscapemetrics)
 
 rm(list = ls())
+
+
+
+# new test session --------------------------------------------------------
+
+# get a raster as reference for the spatial resolution we're working with
+chelsa <- rast("Z:/Arbeit/datashare/data/envidat/biophysical/CHELSA_V2/global/CHELSA_pr_01_1980_V.2.1.tif")
+# change values to 1 to decrease size
+values(chelsa) <- 1 
+
+
+# load in tdwg regions wwe're working with 
+tdwg <- st_read("data/tdwg/geojson/level1.geojson")[-c(6,9),] # without antarctic
+
+eur_vec <- vect(tdwg[1,3])
+
+eur_rast <- rasterize(eur_vec, chelsa, touches = TRUE)
+# cut raster to extent of the vector
+eur_rast_2 <- crop(eur_rast, ext(eur_vec))
+
+terra::plot(eur_rast, col = "lightgreen")
+
+terra::plot(vect(tdwg[1,3]), add = TRUE)
+
+terra::lines(ext(eur_vec))
+terra::lines(ext(eur_rast_2), col = "red")
+
+
+
+# metric: CAI_CV, which is a core are metric that is scaled to the mean and thus easily comparable
+
+lsm_c_cai_cv(eur_rast_2)$value
+lsm_c_clumpy(eur_rast_2)
+
+
+# build a loop:
+
+# prepare vector
+# prepare raster and crop it to the extent of the vector
+
+# get landscape metrics for the raster
+# store results in df
+
+
+# example from landscapemetrics package:
+landscape <- terra::rast(landscapemetrics::landscape)
+lsm_c_clumpy(landscape)
+
+
+lsm_c_cai_cv(landscape)
+
+
+
+terra::plot(landscape)
+
+
+
+# old version -------------------------------------------------------------
+
+
+
 
 tdwg <- st_read("data/tdwg/geojson/level1.geojson")[-c(6,9),] # without antarctic
 
