@@ -33,15 +33,13 @@ For each species all occurrences are split into smaller regional subsets based o
 
 ### 5 - Sampling backround data and data thinning
 
-To reduce the run time for this computationally intensive step, a pre-selection of species is done. Only species with at least 20 occurrences in their native range, as well as >= 20 introduced occurrences in the Pacific Region and at least one of the other regions respectively are suitable for the following niche comparison. For each remaining species (n = XX), background data is sampled within a 200 km buffer surrounding the presence points, with ten times as many pseudo-absences than presences. Both presences and pseudo-abensces are then thinned using a 3 km threshold to avoid spatial-autocorrelation. 
+To reduce the run time for this computationally intensive step, a pre-selection of species is done. Only species with at least 20 occurrences in their native range, as well as >= 20 introduced occurrences in the Pacific Region and at least one of the other regions respectively are suitable for the following niche comparison. For each remaining species, background data is sampled within a 200 km buffer surrounding the presence points, with ten times as many pseudo-absences than presences. Both presences and pseudo-abensces are then thinned using a 3 km threshold to avoid spatial-autocorrelation. 
 
-### 6 - Final species selection
-The final species selection returns a list of species with enough occurrences - following the above described selection criterion - to still be suitable for the analysis (n = xx). 
+### 6 - Merging occurrences with climate data
 
-### 7 - Merging occurrences with climate data
-Each occurrence point is then matched with the according climate data. For this, all 19 bioclimatic variables from [CHELSA V2](https://chelsa-climate.org/) were used at a 1 km resolution. The resulting data is the final input for the following niche comparison.
+Each occurrence point is then matched with the according climate data. For this, all 19 bioclimatic variables from [CHELSA V2](https://chelsa-climate.org/) were used at a 1 km resolution. The resulting data is the final input for the following niche comparison. This is, again, only done if there are enough occurrences (following the criteria mentioned in seciton 5) remaining after the spatial thinning.
 
-### 8 - Niche comparison
+### 7 - Niche comparison
 The niche comparison is in large parts based on the R package *ecospat*. Niche differences between native and non-native niche are quantified for each niche pair (n = XX) resulting from the introductions of the xx study species when introduced to different regions. If a species has been introduced to five regions, this results in five distinct comparisons with the species native niche. 
 
 The niche comparison runs through the following analysis steps:
@@ -53,10 +51,10 @@ The niche comparison runs through the following analysis steps:
 
 The results obtained for the individual niche pairs are then compiled in a separate script. There, required post-processing steps take place, e.g., the calculation of the **relative niche dynamics** from the original *ecospat* output.
 
-### 9 - Geographic characteristics of the native range
+### 8 - Geographic characteristics of the native range
 ~ pending ~
 
-### 10 - Species traits
+### 9 - Species traits
 ~ pending ~
 ### 11 - Trait analysis
 ~ pending ~
