@@ -23,6 +23,7 @@ similarity_res <- function(df, spec, reg, setting, metric){
 load("data/spp_suitable_after_thinning.RData")
 load("data/nr_occs_df_after_thinning.RData")
 
+load("data/spp_suitable_AC.RData")
 # overlap -----------------------------------------------------------------
 
 # empty df to store data in
@@ -62,13 +63,16 @@ for (spp in spp_suitable) {
   } # end of for loop over files
 }
 
+# subset for AC species
+results_overlap_AC <- subset(results_overlap, species %in% spp_suitable_AC)
+
 # save results 
 save(results_overlap, file = "results/ecospat/niche_overlap_results.RData")
-
+save(results_overlap_AC, file = "results/ecospat/niche_overlap_results_AC.RData")
 
 # similarity & SES --------------------------------------------------------
 
-rm(list = setdiff(ls(), c("path_data", "spp_suitable", "similarity_res", "nr_occs_df")))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res", "nr_occs_df")))
 
 # 1. similarity test results
 # empty df to store data in
@@ -133,13 +137,17 @@ for (spp in spp_suitable) {
   } # end of loop over settings
 } # end of loop over species
 
+
+# subset for AC species
+results_similarity_AC <- subset(results_similarity, species %in% spp_suitable_AC)
+
 # save results 
 save(results_similarity, file = "results/ecospat/niche_similarity_results.RData")
-
+save(results_similarity_AC, file = "results/ecospat/niche_similarity_results_AC.RData")
 
 # 2. SES based on similarity test results
 
-rm(list = setdiff(ls(), c("path_data", "spp_suitable", "similarity_res", "nr_occs_df")))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res", "nr_occs_df")))
 
 # empty df to store data in
 results_ses <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -203,13 +211,16 @@ for (spp in spp_suitable) {
   } # end loop over settings
 } # end of loop over species
 
+# subset for AC species
+results_ses_AC <- subset(results_ses, species %in% spp_suitable_AC)
 
 # save results 
 save(results_ses, file = "results/ecospat/niche_ses_results.RData")
+save(results_ses_AC, file = "results/ecospat/niche_ses_results_AC.RData")
 
 # dynamics ----------------------------------------------------------------
 
-rm(list = setdiff(ls(), c("path_data", "spp_suitable", "similarity_res","nr_occs_df")))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res","nr_occs_df")))
 
 # empty df to store data in
 results_dynamics <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -273,12 +284,15 @@ for (spp in spp_suitable) {
 # sort alphabetically (1. species, 2. region, 3. dyn_metric)
 results_dynamics <- results_dynamics[order(results_dynamics$species,results_dynamics$region, results_dynamics$dyn_metric),]
 
+# subset for AC species
+results_dynamics_AC <- subset(results_dynamics, species %in% spp_suitable_AC)
+
 # save results 
 save(results_dynamics, file = "results/ecospat/niche_dynamics_results.RData")
-
+save(results_dynamics_AC, file = "results/ecospat/niche_dynamics_results_AC.RData")
 
 # relative dynamics -------------------------------------------------------
-rm(list = setdiff(ls(), c("path_data", "results_dynamics", "spp_suitable", "similarity_res")))
+rm(list = setdiff(ls(), c("path_data", "results_dynamics", "spp_suitable", "spp_suitable_AC", "similarity_res")))
 
 specs <- spp_suitable
 
@@ -397,11 +411,15 @@ for (spec in specs) {
   
 } # end loop over species
 
+# subset for AC species
+rel_niche_dynamics_AC <- subset(rel_niche_dynamics, species %in% spp_suitable_AC)
+
 # save results 
 save(rel_niche_dynamics, file = "results/ecospat/rel_niche_dynamics_results.RData")
+save(rel_niche_dynamics_AC, file = "results/ecospat/rel_niche_dynamics_results_AC.RData")
 
 # master overview ---------------------------------------------------------
-rm(list = setdiff(ls(), c("path_data", "similarity_res", "spp_suitable")))
+rm(list = setdiff(ls(), c("path_data", "similarity_res", "spp_suitable", "spp_suitable_AC")))
 
 load("results/ecospat/niche_overlap_results.RData")
 load("results/ecospat/niche_similarity_results.RData")
@@ -515,8 +533,14 @@ for (spec in specs) {
   } # end of region loop
 } # end of species loop
     
+
+# subset for AC species
+master_results_AC <- subset(master_results, species %in% spp_suitable_AC)
+
+
 # save results 
 save(master_results, file = "results/ecospat/master_results.RData")
+save(master_results_AC, file = "results/ecospat/master_results_AC.RData")
 
 # percentage niche conservatism -------------------------------------------
 
@@ -548,5 +572,35 @@ for (reg in regs) {
                               perc_unf = spp_unf/spp_all))
 }
 
+# same for AC species
+# empty df to store data in
+perc_df_AC <- data.frame(matrix(ncol = 7, nrow = 0))
+colnames(perc_df) <- c("region", "nr_species","nr_cons","nr_exp_lower", "nr_stab_higher", "nr_unf_lower", "perc_con")
 
+# region names
+regs <- unique(master_results_AC$region)
+
+for (reg in regs) {
+  df <- subset(master_results_AC, region == reg)
+  spp_all <- nrow(df)
+  spp_cons <- nrow(df[df$similarity == "conservatism",])
+  spp_exp <- nrow(df[df$p.exp == "lower",])
+  spp_stab <- nrow(df[df$p.stab == "higher",])
+  spp_unf <- nrow(df[df$p.unf == "lower",])
+  
+  perc_df_AC <- rbind(perc_df_AC,
+                   data.frame(region = as.factor(reg),
+                              nr_species = spp_all,
+                              nr_cons = spp_cons,
+                              nr_exp_lower = spp_exp,
+                              nr_stab_higher = spp_stab,
+                              nr_unf_lower = spp_unf,
+                              perc_con = spp_cons/spp_all,
+                              perc_exp = spp_exp/spp_all,
+                              perc_stab = spp_stab/spp_all,
+                              perc_unf = spp_unf/spp_all))
+}
+
+# save results
 save(perc_df, file = "results/ecospat/percentages_niche_conservatism.RData")
+save(perc_df_AC, file = "results/ecospat/percentages_niche_conservatism_AC.RData")
