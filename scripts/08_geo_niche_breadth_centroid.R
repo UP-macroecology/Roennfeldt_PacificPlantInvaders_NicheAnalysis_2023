@@ -80,7 +80,7 @@ load(paste0(path_imp, "output/PCA/global_scores.RData"))
 
 
 # load final species selection
-load(paste0(path_imp, "input/spp_suitable_after_thinning.RData"))
+load(paste0(path_imp, "input/spp_suitable_AC.RData"))
 
 spp_done <- list.files(paste0(path_imp, "output/PCA/"), pattern = "niche_breadth_centroid_twice_") %>%
   str_remove(".RData") %>%
@@ -89,7 +89,7 @@ spp_done <- list.files(paste0(path_imp, "output/PCA/"), pattern = "niche_breadth
   simplify()
 
 
-spp <- setdiff(spp_suitable, spp_done)
+spp <- setdiff(spp_suitable_AC, spp_done)
 
 
 no_cores <- 2
