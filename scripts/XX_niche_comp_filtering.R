@@ -211,8 +211,8 @@ suitable$species <- nr_occs_df$species
 suitable <- suitable %>% relocate(species)
 suitable$mainland_regions <- rowSums(suitable[,4:10])
 
-spp_suitable <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$mainland_regions == 0),]$species
-
+suitable <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$mainland_regions == 0),]
+spp_suitable <- suitable$species
 
 suitable_AC <- suitable
 
@@ -226,7 +226,8 @@ for (r in 1:nrow(df_exclude)) {
 } # end of for loop over df_exclude rows
 
 
-spp_suitable_AC <- suitable_AC[!(suitable_AC$nat == 0 | suitable_AC$pac == 0 | suitable_AC$mainland_regions == 0),]$species
+suitable_AC <- suitable_AC[!(suitable_AC$nat == 0 | suitable_AC$pac == 0 | suitable_AC$mainland_regions == 0),]
+spp_suitable_AC <- suitable_AC$species
 
 save(spp_suitable_AC, file = "data/spp_suitable_AC.RData")
 
@@ -246,3 +247,5 @@ table(suitable_AC$aus)
 table(suitable_AC$eur)
 table(suitable_AC$nam)
 table(suitable_AC$sam)
+
+subset(suitable_AC, species %in% spp_suitable_AC)
