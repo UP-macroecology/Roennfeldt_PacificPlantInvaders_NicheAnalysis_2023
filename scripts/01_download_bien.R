@@ -49,7 +49,7 @@ download_species <- function(spec_name){
 # -------------------------------------------------- #
 
 # species data 
-load(file.path(path_import, "initial_species_list.RData")) # object is called "species_names"
+load(file.path(path_import, "PaciFLora_species_list.RData")) # object is called "species_names"
 
 # collect names of already downloaded (in the import folder) species:
 inv_specs_dl <- list.files(file.path(path_import, "download_bien")) %>% 

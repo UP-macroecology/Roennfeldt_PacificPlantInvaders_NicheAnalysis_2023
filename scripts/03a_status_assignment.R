@@ -21,7 +21,7 @@ source("scripts/functions.RData")
 
 # load data ---------------------------------------------------------------
 
-load("data/initial_species_list.RData")
+load("data/PaciFLora_species_list.RData")
 specs <- species_names$species_changed
 rm(species_names)
 

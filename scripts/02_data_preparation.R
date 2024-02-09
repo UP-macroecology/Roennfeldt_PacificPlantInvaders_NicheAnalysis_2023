@@ -96,8 +96,8 @@ occ_gbif_std = occ_gbif %>%
 rm(occ_bien) # to free up memory
 rm(occ_gbif) # to free up memory
 
-save(occ_bien_std, file = file.path(path_import, "occ_bien_std.RData"))
-save(occ_gbif_std, file = file.path(path_import, "occ_gbif_std.RData"))
+# save(occ_bien_std, file = file.path(path_import, "occ_bien_std.RData"))
+# save(occ_gbif_std, file = file.path(path_import, "occ_gbif_std.RData"))
 
 
 # clean data -------------------------------------------------------------------
@@ -136,6 +136,6 @@ save(occ_cleaned_slim, file =  file.path(path_import, "occ_cleaned_slim.RData"))
 
 
 # save unique species names available in occ_cleaned_slim
-specs_all <- sort(unique(occ_cleaned_slim$species))
-save(specs_all, file = file.path(path_import, "specs_all.RData"))
+spp_initial_list <- sort(unique(occ_cleaned_slim$species))
+save(spp_initial_list, file = file.path(path_import, "spp_initial_list.RData"))
 

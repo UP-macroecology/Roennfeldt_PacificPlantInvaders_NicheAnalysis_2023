@@ -21,7 +21,7 @@ species_names <- read.table("data/PaciFLora.txt", header = TRUE) %>%
 
 
 # reformat hybrids --------------------------------------------------------
-species_names <- species_names[c(121:123),]
+# species_names <- species_names[c(121:123),]
 
 
 for (i in 1:nrow(species_names)) {
@@ -41,7 +41,7 @@ for (i in 1:nrow(species_names)) {
 }
 
 
-save(species_names, file = "data/initial_species_list.RData")
+save(species_names, file = "data/PaciFLora_species_list.RData")
 
 
 
