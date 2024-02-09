@@ -5,8 +5,8 @@ library(dplyr)
 rm(list = ls())
 
 # path to data
-path_transfer <- "Y:/AG26/Transfer/Holle_Roennfeldt/"
-
+# path_transfer <- "Y:/AG26/Transfer/Holle_Roennfeldt/"
+path_transfer <- "T:/Holle_Roennfeldt/"
 
 # load data ---------------------------------------------------------------
 
@@ -56,11 +56,11 @@ trait_df <- cbind(species_pacific_traits_GIFT, species_pacific_traits_TRY$mycorr
 # first selection cycle ---------------------------------------------------
 
 # test whether woodiness and plant height are correlated
-shapiro.test(trait_df$mean_height_GIFT)
-shapiro.test(trait_df$woodiness)
+#shapiro.test(trait_df$mean_height_GIFT)
+#shapiro.test(trait_df$woodiness)
 
 # Add 1:1 line
-qqline(cats$cheetah_kmh)
+#qqline(cats$cheetah_kmh)
 
 
 # criterion 1: plant height -> mean 
@@ -100,40 +100,30 @@ trait_example_df <- trait_df %>%
 
 
 trait_data_all <- master_results %>%
-  select(c(species, region, overlap, expansion, stability, unfilling, rel.expansion, rel.stability, rel.unfilling, rel.abandonment, rel.pioneering)) %>%
+  select(c(species, region, overlap, expansion, stability, unfilling, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering)) %>%
   left_join(trait_example_df, by = "species") %>%
   na.omit() %>%
-  rename("rel_expansion" = "rel.expansion",
-         "rel_stability" = "rel.stability",
-         "rel_unfilling" = "rel.unfilling",
-         "rel_abandonment" = "rel.abandonment",
-         "rel_pioneering" = "rel.pioneering",
-         "mean_height" = "mean_height_GIFT",
+  rename("mean_height" = "mean_height_GIFT",
          "woodiness" = "woodiness_GIFT",
          "growth_form" = "growth_form_GIFT",
          "lifecycle" = "lifecycle_GIFT",
          "max_elev_range" = "max_elev_range_GIFT",
-         "mycorrhiza" = "mycorrhiza_both") 
-  
+         "mycorrhiza" = "mycorrhiza_both")
+
 
 save(trait_data_all, file = "data/trait_analysis/trait_data_all.RData")
 
-
-trait_data_all <- master_results %>%
-  select(c(species, region, overlap, expansion, stability, unfilling, rel.expansion, rel.stability, rel.unfilling, rel.abandonment, rel.pioneering)) %>%
-  left_join(trait_example_df, by = "species") %>%
-  na.omit() %>%
-  rename("rel_expansion" = "rel.expansion",
-         "rel_stability" = "rel.stability",
-         "rel_unfilling" = "rel.unfilling",
-         "rel_abandonment" = "rel.abandonment",
-         "rel_pioneering" = "rel.pioneering",
-         "mean_height" = "mean_height_GIFT",
-         "woodiness" = "woodiness_GIFT",
-         "growth_form" = "growth_form_GIFT",
-         "lifecycle" = "lifecycle_GIFT",
-         "max_elev_range" = "max_elev_range_GIFT",
-         "mycorrhiza" = "mycorrhiza_both") %>%
-  select(!c("overlap", "expansion", "unfilling", "stability", "species_id"))
-
-save(trait_data_all, file = "data/trait_analysis/trait_data_all_example.RData")
+# 
+# trait_data_all <- master_results %>%
+#   select(c(species, region, overlap, expansion, stability, unfilling, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering)) %>%
+#   left_join(trait_example_df, by = "species") %>%
+#   na.omit() %>%
+#   rename("mean_height" = "mean_height_GIFT",
+#          "woodiness" = "woodiness_GIFT",
+#          "growth_form" = "growth_form_GIFT",
+#          "lifecycle" = "lifecycle_GIFT",
+#          "max_elev_range" = "max_elev_range_GIFT",
+#          "mycorrhiza" = "mycorrhiza_both") %>%
+#   select(!c("overlap", "expansion", "unfilling", "stability", "species_id"))
+# 
+# save(trait_data_all, file = "data/trait_analysis/trait_data_all_example.RData")
