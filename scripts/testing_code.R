@@ -139,8 +139,12 @@ rast_analogue <- terra::crop(rast_intr, rast_nat)
 
 plot(rast_analogue)
 
-
 terra::plot(2*z1$w+z2$w,col=col_category, legend=FALSE)
+
+terra::plot(z1$z.uncor,col=gray(100:0 / 100),legend=FALSE, xlab = name.axis1, 
+            ylab = name.axis2, mar = c(3.1,3.1,2.1,3.1), add = TRUE)
+
+
 
 # outline of env available in the native range
 terra::contour(
@@ -154,8 +158,25 @@ terra::contour(
   drawlabels = FALSE, lty = c(1, 2), col = colZ2
 )
 
+
+ecospat.plot.niche.dyn(z1, z2)
 # outline of analogue env conditions
 terra::contour(
   rast_analogue, add = TRUE, levels = quantile(rast_analogue[rast_analogue> 0], c(0, quant)),
   drawlabels = FALSE, lty = c(1, 2), col = "purple"
 )
+
+# plot the native presence points 
+# That doesn't work, because they ly in geographic space, 
+# and we are here working with the environmental space
+
+ecospat.plot.niche.dyn(grid_clim_nat, grid_clim_intr,
+                       col.unf = "yellow",
+                       col.stab = "lightblue",
+                       col.exp = "green",
+                       colZ1 = "black",
+                       quant = 0.2)
+
+terra::points(grid_clim_intr[["sp"]], add = T, col = "darkred")
+
+terra::plot(grid_clim_nat[["w"]], col = c("white", "purple"), add = T)
