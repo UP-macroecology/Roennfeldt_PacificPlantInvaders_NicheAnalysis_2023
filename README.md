@@ -6,8 +6,7 @@
 
 ## Open Issues
 
-* some species have native occurrences in the Pacific region, this could be due to a faulty status assignment from GIFT -> check whether this is the case + decide whether to include these in the analysis or not if this is not a wrongly assigned status
-
+*status assignment: two species (_Guaiacum sanctum_ and _Piper aduncum_) have occurrences on the Pacific Islands that were assigned the status _native_ although it should be _introduced_. The source of the problem is the GIFT assignment, where USA instead of Hawai'i is used as the reference region. This should not be the case with the existing code -> find out where the error occurred. 
 
 ## Workflow
 
