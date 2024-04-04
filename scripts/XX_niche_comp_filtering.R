@@ -190,7 +190,7 @@ save(df_AC_occs, file = "data/testing/df_AC_occs.RData")
 
 rm(list = ls())
 
-load("data/testing/df_AC_occs.RData")
+load("data/clutter/testing/df_AC_occs.RData")
 
 length(unique(df_AC_occs$species))
 
@@ -229,6 +229,8 @@ for (r in 1:nrow(df_exclude)) {
 suitable_AC <- suitable_AC[!(suitable_AC$nat == 0 | suitable_AC$pac == 0 | suitable_AC$mainland_regions == 0),]
 spp_suitable_AC <- suitable_AC$species
 
+
+save(suitable_AC, file = "data/suitable_AC_df.RData")
 save(spp_suitable_AC, file = "data/spp_suitable_AC.RData")
 
 
