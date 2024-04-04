@@ -3,11 +3,11 @@ library(dplyr)
 
 rm(list = ls())
 
-load("results/ecospat/master_results.RData")
+load("results/ecospat/master_results_AC.RData")
 
 
 
-master_results <- master_results %>%
+master_results <- master_results_AC %>%
   mutate(region = factor(region, levels = c("pac", "afr", "ate", "atr", "aus", "eur", "nam", "sam"))) %>%
   select(c(species, region, overlap, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering)) %>%
   mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
@@ -23,7 +23,7 @@ m_pioneering <- glm(rel_pioneering ~ region, data = master_results, family = "bi
 # working with the standardised ESU values (based on rel. dynamics)
 m_expansion <- glm(stand_expansion ~ region, data = master_results, family = "binomial")
 m_stability <- glm(stand_stability ~ region, data = master_results, family = "binomial")
-m_unfilling <- glm(stand_unfillung ~ region, data = master_results, family = "binomial")
+m_unfilling <- glm(stand_unfilling ~ region, data = master_results, family = "binomial")
 
 
 

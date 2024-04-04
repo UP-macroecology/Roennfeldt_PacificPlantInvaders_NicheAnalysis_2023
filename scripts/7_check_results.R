@@ -50,10 +50,10 @@ results_ses_AC <- results_ses_AC %>%
 # 1. overlap --------------------------------------------------------------
 
 ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
-  geom_boxplot() +
+  geom_boxplot(fill = "grey") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = c("Pacific Islands", "Africa", "Australasia", "Europe", "North America", "South America", "temperate Asia", "tropical Asia")) +
+                   labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
   scale_y_continuous(name = "Niche overlap D\n", limits = c(0,1)) +
   theme_bw(base_size = 20) +
   theme(panel.grid.major = element_blank())
@@ -70,13 +70,13 @@ col_regular <- c("lightsalmon3","lightgoldenrod1","lightblue2","darkseagreen3", 
 col_poster <- c("#C76967","#FFE875","#A3DDEF","#87CF87",  "#927290")
 
 
-# relative dynamics
+# relative dynamics - per region
 ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
   geom_boxplot(fatten = 1.5) +
   labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = c("Pacific Islands\n n = 328", "Africa\n n = 223", "Australasia\n n = 227", "Europe\n n = 96", "N. America\n n = 209", "S. America\n n = 227", "temp. Asia\n n = 183", "trop. Asia\n n = 153")) +
+                   labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
   scale_fill_manual(name = "Niche dynamics", 
                     values = col_regular) +
   theme_bw(base_size = 20) +
@@ -84,10 +84,21 @@ ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
         plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA,),
+        legend.position = "top")
+
+
+# relative dynamics
+ggplot(rel_niche_dynamics_AC, aes(x = metric, y = percentage, fill = metric)) +
+  geom_boxplot(fatten = 1.5) +
+  labs(x = NULL, y = "Niche dynamics (%)\n") +
+  theme_bw(base_size = 20) +
+  scale_fill_manual(name = "Niche dynamics", 
+                    values = col_regular) +
+  theme(panel.grid.major = element_blank(),
+        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA,),
         legend.position = "none")
-
-
-
 
 
 # relative dynamics - Prague poster -> WHITE
@@ -135,18 +146,42 @@ ggsave("plots/results/Niche_dynamics.png", p,
        units = "cm")
 
 
+results_ecospat <- master_results_AC %>%
+  select(c(species, region, expansion, stability, unfilling)) %>% 
+  pivot_longer(!c(species, region), names_to = "dyn_metric", values_to = "percentage") %>%
+  mutate(across(!c(species, percentage), as.factor)) %>%
+  mutate(dyn_metric = factor(dyn_metric, levels = c("unfilling", "stability", "expansion")))
+  
+  
+  
 # original ecospat output
-ggplot(results_dynamics_AC, aes(x = region, y = value, fill = dyn_metric)) +
+ggplot(results_ecospat, aes(x = region, y = percentage, fill = dyn_metric)) +
   geom_boxplot(fatten = 1.5) +
   labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = c("Pacific Islands", "Africa", "Australasia", "Europe", "North America", "South America", "temperate Asia", "tropical Asia")) +
+                   labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 96", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
   scale_fill_manual(name = "Niche dynamics", 
-                    values = c("darkseagreen3", "lightblue2","lightgoldenrod1")) +
+                    values = c("lightgoldenrod1", "lightblue2", "darkseagreen3")) +
   theme_bw(base_size = 20) +
   theme(panel.grid.major = element_blank(),
-        legend.box.spacing = unit(3, "pt"),
+        legend.position = "top",
+        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
+
+
+df_es_original <- subset(results_ecospat, dyn_metric == "expansion" | dyn_metric == "stability")
+
+ggplot(df_es_original, aes(x = dyn_metric, y = percentage)) +
+  geom_boxplot(fatten = 1.5) +
+  labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
+  scale_x_discrete(name = "\nNon-native region",
+                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
+                   labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 96", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
+  scale_fill_manual(name = "Niche dynamics", 
+                    values = c("lightgoldenrod1", "lightblue2", "darkseagreen3")) +
+  theme_bw(base_size = 20) +
+  theme(panel.grid.major = element_blank(),
+        legend.position = "top",
         plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
 
 
@@ -239,7 +274,18 @@ stand_ESU <- master_results_AC %>%
   mutate(stability = rel_stability / total_esu) %>%
   mutate(unfilling = rel_unfilling / total_esu) %>%
   select(c(species, region, unfilling, stability, expansion)) %>%
-  pivot_longer(!c(species, region), names_to = "metric", values_to = "percentage")
+  pivot_longer(!c(species, region), names_to = "metric", values_to = "percentage") %>%
+  replace(is.na(.), 0) %>%
+  mutate(across(!c(species,percentage), as.factor)) %>%
+  mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion")))
+
+
+t <- subset(stand_ESU, region == "pac")
+
+summary(t)
+# t <- master_results_AC %>% filter(species %in% c("Agave sisalana", "Spathodea campanulata"))
+# 
+# t2 <- t
 
 # plot ESU niche dynamcis
 
@@ -251,7 +297,7 @@ col_poster <- c("#FFE875","#A3DDEF","#87CF87")
     labs(x = "Non-native region", y = "Niche dynamics (%)") +
     scale_x_discrete(name = "\nNon-native region",
                      limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                     labels = c("Pacific Islands\n n = 317", "Africa\n n = 212", "Australasia\n n = 217", "Europe\n n = 83", "N. America\n n = 200", "S. America\n n = 225", "temp. Asia\n n = 173", "trop. Asia\n n = 148")) +
+                     labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 96", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
     scale_fill_manual(name = "Niche dynamics", 
                       values = col_poster) +
     theme_bw(base_size = 20) +
