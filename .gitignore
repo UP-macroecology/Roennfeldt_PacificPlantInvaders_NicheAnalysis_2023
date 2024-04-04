@@ -9,6 +9,7 @@ scripts/chapter_2*
 scripts/misc*
 *.xlsx
 ecospat/
+other_studies/
 !results/intermediate
 
 results/intermediate/*
