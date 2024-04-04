@@ -4,41 +4,25 @@
 **Author:** Anna Rönnfeldt <br/>
 **WP1:** Quantification of the niche dynamics of alien plant species in the Pacific region. <br/>
 
-## Open Issues
-
-*status assignment: two species (_Guaiacum sanctum_ and _Piper aduncum_) have occurrences on the Pacific Islands that were assigned the status _native_ although it should be _introduced_. The source of the problem is the GIFT assignment, where USA instead of Hawai'i is used as the reference region. This should not be the case with the existing code -> find out where the error occurred. 
 
 ## Workflow
 
-Base for the species list used in the analysis is the [PaciFLora](https://bdj.pensoft.net/article/67318/) data set. It lists 3963 plant species known to occur as naturalised species in the Pacific Region. 
+The analysis builds on the global occurrence data of the plant species listed in the [PaciFLora](https://bdj.pensoft.net/article/67318/) data set. Each occurrence point is matches with a biogeographic status (*native* or *introduced*). Code for the data preparation can be found in a seperate [repository](https://github.com/UP-macroecology/GlobalOccurrences.git). 
 
-### 1 - Download species data
-The global occurrence data for these species were downloaded from [BIEN](https://biendata.org/) and [GBIF](https://www.gbif.org/) in June 2023.
 
-### 2 - Data preparation
-The downloaded occurrence records from the two sources were then cleaned to remove duplicates and occurrences with erroneous time stamps or coordinates, and harmonised to combine them into one data set at a 1 km resolution. 
-
-### 3 - Assign invasion status
-The main source for information on the invasion status (native, introduced, contradictory or unknown) of a species occurrence is the [World Checklist of Vascular Plants (WCVP)](http://www.plantsoftheworldonline.org/) at the base resolution of level 3 of tdwg. To close data gaps, two additional sources were used: [Global Inventory of Floras and Traits (GIFT)](https://gift.uni-goettingen.de/home) and [Global Naturalized Alien Flora (GloNAF)](https://glonaf.org/). <br/>
-
-Merging the status information from these three sources resulted in some conflicts. If the sources that caused the conflict referred to areas of different sizes (e.g., Honshu and Japan), the status from the source referring to the smaller area is used. If the sources refer to the same area size, two cirteria can be used to deal with conflicts:
-
-* **Criterion 1**: All sources are weighted equally. Occurrences with conflicts in the status assignment get the status *contradicctory*.
-* **Criterion 2**: Status information provided by WCVP is perferred, because it has been targeted towards the level 3 resolution of tdwg.
-
-### 4 - Splitting data into regional occurrences
-
-For each species all occurrences are split into smaller regional subsets based on their invasion status: one subset with all *native* occurrences, and then the *introduced* occurrences for the Pacific Islands, and seven of the level 1 twdg regions: Australasia, Africa, tropical Asia, temperate Asia, Europe, North America, and South America. Occurrences assigned the status *contradictory* or *unknown* were excluded. 
-
-### 5 - Sampling backround data and data thinning
+### 1 - Sampling backround data and data thinning
 
 To reduce the run time for this computationally intensive step, a pre-selection of species is done. Only species with at least 20 occurrences in their native range, as well as >= 20 introduced occurrences in the Pacific Region and at least one of the other regions respectively are suitable for the following niche comparison. For each remaining species, background data is sampled within a 200 km buffer surrounding the presence points, with ten times as many pseudo-absences than presences. Both presences and pseudo-abensces are then thinned using a 3 km threshold to avoid spatial-autocorrelation. 
 
-### 6 - Merging occurrences with climate data
+### 2 - First species selection to speed up next step 
+
+### 3 - Merging occurrences with climate data
 
 Each occurrence point is then matched with the according climate data. For this, all 19 bioclimatic variables from [CHELSA V2](https://chelsa-climate.org/) were used at a 1 km resolution. The resulting data is the final input for the following niche comparison. This is, again, only done if there are enough occurrences (following the criteria mentioned in seciton 5) remaining after the spatial thinning.
 
-### 7 - Niche comparison
+### 4 - Final species selection 
+
+### 5 - Niche comparison
 The niche comparison is in large parts based on the R package *ecospat*. Niche differences between native and non-native niche are quantified for each niche pair (n = XX) resulting from the introductions of the xx study species when introduced to different regions. If a species has been introduced to five regions, this results in five distinct comparisons with the species native niche. 
 
 The niche comparison runs through the following analysis steps:
@@ -50,12 +34,7 @@ The niche comparison runs through the following analysis steps:
 
 The results obtained for the individual niche pairs are then compiled in a separate script. There, required post-processing steps take place, e.g., the calculation of the **relative niche dynamics** from the original *ecospat* output.
 
-### 8 - Geographic characteristics of the native range
+### 6 - Trait analysis
+
 ~ pending ~
 
-### 9 - Species traits
-~ pending ~
-### 11 - Trait analysis
-~ pending ~
-### 12 - Visualising the results
-~ pending ~
