@@ -10,6 +10,7 @@ rm(list = ls())
 
 
 select <- dplyr::select
+source("scripts/functions.R")
 
 regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
 
@@ -69,12 +70,12 @@ max_stb <- max(traits_res_s$estimate, na.rm = TRUE)
 min_unf <- min(traits_res_u$estimate, na.rm = TRUE)
 max_unf <- max(traits_res_u$estimate, na.rm = TRUE)
 
-min_exp <- min(traits_res_e$varimp, na.rm = TRUE)
-max_exp <- max(traits_res_e$varimp, na.rm = TRUE)
-min_stb <- min(traits_res_s$varimp, na.rm = TRUE)
-max_stb <- max(traits_res_s$varimp, na.rm = TRUE)
-min_unf <- min(traits_res_u$varimp, na.rm = TRUE)
-max_unf <- max(traits_res_u$varimp, na.rm = TRUE)
+# min_exp <- min(traits_res_e$varimp, na.rm = TRUE)
+# max_exp <- max(traits_res_e$varimp, na.rm = TRUE)
+# min_stb <- min(traits_res_s$varimp, na.rm = TRUE)
+# max_stb <- max(traits_res_s$varimp, na.rm = TRUE)
+# min_unf <- min(traits_res_u$varimp, na.rm = TRUE)
+# max_unf <- max(traits_res_u$varimp, na.rm = TRUE)
 
 # # try to create a heatmap (lol)
 # ggplot(traits_res_e, aes(region, term)) +
@@ -92,42 +93,53 @@ max_unf <- max(traits_res_u$varimp, na.rm = TRUE)
 #   ggtitle("Unfilling") +
 #   theme_bw()
 
+
+
 covariates <- unique(traits_res_e$term)
 
+e_efs_mtx <- traits_res_e %>% 
+  select(region, estimate, term) %>% 
+  pivot_wider(names_from = region, values_from = estimate) %>% 
+  select(!term) %>% 
+  as.matrix(rownames.force = TRUE)
 
-
-traits_e_wide <- traits_res_e %>% 
+e_imp_mtx <- traits_res_e %>% 
   select(region, varimp, term) %>% 
   pivot_wider(names_from = region, values_from = varimp) %>% 
-  select(!term)
+  select(!term) %>% 
+  as.matrix(rownames.force = TRUE)
 
-exp_mtx <- as.matrix(traits_e_wide, rownames.force = TRUE)
-rownames(exp_mtx) <- covariates
+u_efs_mtx <- traits_res_u %>% 
+  select(region, estimate, term) %>% 
+  pivot_wider(names_from = region, values_from = estimate) %>% 
+  select(!term) %>% 
+  as.matrix(rownames.force = TRUE)
 
-
-traits_s_wide <- traits_res_s %>% 
+u_imp_mtx <- traits_res_u %>% 
   select(region, varimp, term) %>% 
   pivot_wider(names_from = region, values_from = varimp) %>% 
-  select(!term)
+  select(!term) %>% 
+  as.matrix(rownames.force = TRUE)
 
-stb_mtx <- as.matrix(traits_s_wide, rownames.force = TRUE)
-rownames(stb_mtx) <- covariates
+s_efs_mtx <- traits_res_s %>% 
+  select(region, estimate, term) %>% 
+  pivot_wider(names_from = region, values_from = estimate) %>% 
+  select(!term) %>% 
+  as.matrix(rownames.force = TRUE)
 
-
-traits_u_wide <- traits_res_u %>% 
+s_imp_mtx <- traits_res_s %>% 
   select(region, varimp, term) %>% 
   pivot_wider(names_from = region, values_from = varimp) %>% 
-  select(!term)
+  select(!term) %>% 
+  as.matrix(rownames.force = TRUE)
 
-unf_mtx <- as.matrix(traits_u_wide, rownames.force = TRUE)
-rownames(unf_mtx) <- covariates
 
 windows()
 
 txt_col <- "black"
 na_col <- "white"
 
-corrplot(exp_mtx, 
+corrplot(e_efs_mtx, 
          col.lim = c(min_exp, max_exp), 
          is.corr = FALSE,
          tl.col = txt_col,
@@ -135,8 +147,17 @@ corrplot(exp_mtx,
          na.label.col = na_col,
          outline = TRUE)
 
+corrplot_mod(e_efs_mtx, 
+             e_imp_mtx,
+             col.lim = c(min_exp, max_exp), 
+             is.corr = FALSE,
+             tl.col = txt_col,
+             na.label = "square",
+             na.label.col = na_col,
+             outline = TRUE)
 
-corrplot(stb_mtx, 
+
+corrplot(s_efs_mtx, 
          col.lim = c(min_stb, max_stb), 
          is.corr = FALSE,
          tl.col = txt_col,
@@ -144,7 +165,7 @@ corrplot(stb_mtx,
          na.label.col = na_col,
          outline = TRUE)
 
-corrplot(unf_mtx, 
+corrplot(u_efs_mtx, 
          col.lim = c(min_unf, max_unf), 
          is.corr = FALSE,
          tl.col = txt_col,
@@ -154,47 +175,54 @@ corrplot(unf_mtx,
 
 
 
-Cairo(file = "plots/trait_analysis/regional_expansion.png",  width = 640, height = 480, type="png", pointsize=12, 
+Cairo(file = "plots/trait_analysis/regional_expansion_mod.png",  width = 640, height = 480, type="png", pointsize=12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
-corrplot(exp_mtx, 
-         col.lim = c(min_exp, max_exp), 
-         is.corr = FALSE,
-         tl.col = txt_col,
-         na.label = "square",
-         na.label.col = na_col)
+corrplot_mod(corr = e_efs_mtx, 
+             m_efs = e_imp_mtx,
+             col.lim = c(min_exp, max_exp), 
+             is.corr = FALSE,
+             tl.col = txt_col,
+             na.label = "square",
+             na.label.col = na_col,
+             outline = TRUE)
 
 dev.off()
 
-Cairo(file = "plots/trait_analysis/regional_stability.png",  width = 640, height = 480, type="png", pointsize=12, 
+Cairo(file = "plots/trait_analysis/regional_stability_mod.png",  width = 640, height = 480, type="png", pointsize=12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
 
-corrplot(stb_mtx, 
-         col.lim = c(min_stb, max_stb), 
-         is.corr = FALSE,
-         tl.col = txt_col,
-         na.label = "square",
-         na.label.col = na_col)
+corrplot_mod(corr = s_efs_mtx, 
+             m_efs = s_imp_mtx,
+             col.lim = c(min_stb, max_stb), 
+             is.corr = FALSE,
+             tl.col = txt_col,
+             na.label = "square",
+             na.label.col = na_col,
+             outline = TRUE)
 
 dev.off()
 
-Cairo(file = "plots/trait_analysis/regional_unfilling.png",  width = 640, height = 480, type = "png", pointsize = 12, 
+Cairo(file = "plots/trait_analysis/regional_unfilling_mod.png",  width = 640, height = 480, type = "png", pointsize = 12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
-corrplot(unf_mtx, 
-         col.lim = c(min_unf, max_unf), 
-         is.corr = FALSE,
-         tl.col = txt_col,
-         na.label = "square",
-         na.label.col = na_col)
+corrplot_mod(corr = u_imp_mtx, 
+             m_efs = u_efs_mtx,
+             col.lim = c(min_unf, max_unf), 
+             is.corr = FALSE,
+             tl.col = txt_col,
+             na.label = "square",
+             na.label.col = na_col,
+             outline = TRUE)
 
 dev.off()
 
 
 
 
-# updated plot ------------------------------------------------------------
+# correct for seedmass ----------------------------------------------------
+
 
 
 
