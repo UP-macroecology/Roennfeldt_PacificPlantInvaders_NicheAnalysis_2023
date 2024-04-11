@@ -14,14 +14,12 @@ source("scripts/functions.R")
 
 regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
 
-covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max_elev_range", "lon_centroid", "lat_centroid", "range_size_nat",
+# covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max_elev_range", "lat_nat", "lon_nat", "range_size_nat",
+#               "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
+
+# without lon/lat
+covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max_elev_range", "range_size_nat",
                 "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
-
-# drop seedmass:
-# covariates <- c("mean_height", "growth_form", "lifecycle", "max_elev_range", "lon_centroid", "lat_centroid", "range_size_nat",
-#                 "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
-
-# reg <- regions[1]
 
 traits_res_e <- tibble()
 traits_res_s <- tibble()
@@ -44,7 +42,7 @@ for (reg in regions) {
   traits_res_reg_s <- traits_res %>%
     as_tibble() %>% 
     mutate(region = reg, model = "stability", term = Trait, estimate = stability_coef, std.error = stability_stderr, statistic = stability_coef/stability_stderr, p.value = stability_p, varimp = stability_varimp) %>%
-    select(region, model, term, estimate, std.error, statistic, p.value, varimp) %>% 
+    select(region, model, term, estimate, std.error, statistic, p.value, varimp)  %>% 
     filter(term %in% covariates)
   
   traits_res_reg_u <- traits_res %>%
@@ -63,35 +61,22 @@ for (reg in regions) {
 } # end of for loop
 
 
-min_exp <- min(traits_res_e$estimate, na.rm = TRUE)
-max_exp <- max(traits_res_e$estimate, na.rm = TRUE)
-min_stb <- min(traits_res_s$estimate, na.rm = TRUE)
-max_stb <- max(traits_res_s$estimate, na.rm = TRUE)
-min_unf <- min(traits_res_u$estimate, na.rm = TRUE)
-max_unf <- max(traits_res_u$estimate, na.rm = TRUE)
 
-# min_exp <- min(traits_res_e$varimp, na.rm = TRUE)
-# max_exp <- max(traits_res_e$varimp, na.rm = TRUE)
-# min_stb <- min(traits_res_s$varimp, na.rm = TRUE)
-# max_stb <- max(traits_res_s$varimp, na.rm = TRUE)
-# min_unf <- min(traits_res_u$varimp, na.rm = TRUE)
-# max_unf <- max(traits_res_u$varimp, na.rm = TRUE)
 
-# # try to create a heatmap (lol)
-# ggplot(traits_res_e, aes(region, term)) +
-#   geom_tile(aes(fill = estimate)) +
-#   scale_fill_gradientn(colors = brewer.pal(9, "YlGnBu")) +
-#   ggtitle("Expansion")
-# 
-# ggplot(traits_res_s, aes(region, term, fill = estimate)) +
-#   geom_tile() +
-#   ggtitle("Stability") +
-#   theme_bw()
-# 
-# ggplot(traits_res_u, aes(region, term, fill = estimate)) +
-#   geom_tile() +
-#   ggtitle("Unfilling") +
-#   theme_bw()
+
+# testing -----------------------------------------------------------------
+
+
+setting <- "mod_seed"
+# setting <- "original"
+
+
+if (setting == "mod_seed") {
+  traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.962
+  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -3.420
+  traits_res_s[traits_res_s$region == "sam" & traits_res_s$term == "mean_seedmass","estimate"] <- -2.221
+  traits_res_s[traits_res_s$region == "eur" & traits_res_s$term == "mean_seedmass","estimate"] <- 4.046
+}
 
 
 
@@ -103,11 +88,13 @@ e_efs_mtx <- traits_res_e %>%
   select(!term) %>% 
   as.matrix(rownames.force = TRUE)
 
+
 e_imp_mtx <- traits_res_e %>% 
   select(region, varimp, term) %>% 
   pivot_wider(names_from = region, values_from = varimp) %>% 
   select(!term) %>% 
   as.matrix(rownames.force = TRUE)
+
 
 u_efs_mtx <- traits_res_u %>% 
   select(region, estimate, term) %>% 
@@ -134,53 +121,86 @@ s_imp_mtx <- traits_res_s %>%
   as.matrix(rownames.force = TRUE)
 
 
-windows()
+
+rownames(e_efs_mtx) <- covariates
+rownames(e_imp_mtx) <- covariates
+rownames(u_efs_mtx) <- covariates
+rownames(u_imp_mtx) <- covariates
+rownames(s_efs_mtx) <- covariates
+rownames(s_imp_mtx) <- covariates
+
+min_exp <- min(traits_res_e$estimate, na.rm = TRUE)
+max_exp <- max(traits_res_e$estimate, na.rm = TRUE)
+min_stb <- min(traits_res_s$estimate, na.rm = TRUE)
+max_stb <- max(traits_res_s$estimate, na.rm = TRUE)
+min_unf <- min(traits_res_u$estimate, na.rm = TRUE)
+max_unf <- max(traits_res_u$estimate, na.rm = TRUE)
+
+# windows()
+# 
+
+# 
+# corrplot(e_efs_mtx, 
+#          col.lim = c(min_exp, max_exp), 
+#          is.corr = FALSE,
+#          tl.col = txt_col,
+#          na.label = "square",
+#          na.label.col = na_col,
+#          outline = TRUE)
+# 
+# corrplot_mod(m_imp = e_imp_mtx, 
+#              m_efs = e_efs_mtx,
+#              col.lim = c(min_exp, max_exp), 
+#              is.corr = FALSE,
+#              tl.col = txt_col,
+#              na.label = "square",
+#              na.label.col = na_col,
+#              outline = TRUE)
+# 
+# 
+# corrplot(s_efs_mtx, 
+#          col.lim = c(min_stb, max_stb), 
+#          is.corr = FALSE,
+#          tl.col = txt_col,
+#          na.label = "square",
+#          na.label.col = na_col,
+#          outline = TRUE)
+# 
+# corrplot_mod(m_imp = s_imp_mtx,
+#              m_efs = s_efs_mtx, 
+#              col.lim = c(min_stb, max_stb), 
+#              is.corr = FALSE,
+#              tl.col = txt_col,
+#              na.label = "square",
+#              na.label.col = na_col,
+#              outline = TRUE)
+# 
+# corrplot(u_efs_mtx, 
+#          col.lim = c(min_unf, max_unf), 
+#          is.corr = FALSE,
+#          tl.col = txt_col,
+#          na.label = "square",
+#          na.label.col = na_col,
+#          outline = TRUE)
+# 
+# corrplot_mod(m_imp = u_imp_mtx, 
+#              m_efs = u_efs_mtx,
+#              col.lim = c(min_unf, max_unf), 
+#              is.corr = FALSE,
+#              tl.col = txt_col,
+#              na.label = "square",
+#              na.label.col = na_col,
+#              outline = TRUE)
 
 txt_col <- "black"
 na_col <- "white"
 
-corrplot(e_efs_mtx, 
-         col.lim = c(min_exp, max_exp), 
-         is.corr = FALSE,
-         tl.col = txt_col,
-         na.label = "square",
-         na.label.col = na_col,
-         outline = TRUE)
-
-corrplot_mod(e_efs_mtx, 
-             e_imp_mtx,
-             col.lim = c(min_exp, max_exp), 
-             is.corr = FALSE,
-             tl.col = txt_col,
-             na.label = "square",
-             na.label.col = na_col,
-             outline = TRUE)
-
-
-corrplot(s_efs_mtx, 
-         col.lim = c(min_stb, max_stb), 
-         is.corr = FALSE,
-         tl.col = txt_col,
-         na.label = "square",
-         na.label.col = na_col,
-         outline = TRUE)
-
-corrplot(u_efs_mtx, 
-         col.lim = c(min_unf, max_unf), 
-         is.corr = FALSE,
-         tl.col = txt_col,
-         na.label = "square",
-         na.label.col = na_col,
-         outline = TRUE)
-
-
-
-Cairo(file = "plots/trait_analysis/regional_expansion_mod.png",  width = 640, height = 480, type="png", pointsize=12, 
+Cairo(file = "plots/trait_analysis/regional_expansion_seedmod.png",  width = 640, height = 480, type="png", pointsize=12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
-corrplot_mod(corr = e_efs_mtx, 
-             m_efs = e_imp_mtx,
-             col.lim = c(min_exp, max_exp), 
+corrplot_mod(m_imp = e_imp_mtx,
+             m_efs = e_efs_mtx,
+             col.lim = c(min_exp, max_exp),
              is.corr = FALSE,
              tl.col = txt_col,
              na.label = "square",
@@ -189,12 +209,12 @@ corrplot_mod(corr = e_efs_mtx,
 
 dev.off()
 
-Cairo(file = "plots/trait_analysis/regional_stability_mod.png",  width = 640, height = 480, type="png", pointsize=12, 
+Cairo(file = "plots/trait_analysis/regional_stability_seedmod.png",  width = 640, height = 480, type="png", pointsize=12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
 
-corrplot_mod(corr = s_efs_mtx, 
-             m_efs = s_imp_mtx,
+corrplot_mod(m_imp = s_imp_mtx,
+             m_efs = s_efs_mtx, 
              col.lim = c(min_stb, max_stb), 
              is.corr = FALSE,
              tl.col = txt_col,
@@ -204,10 +224,10 @@ corrplot_mod(corr = s_efs_mtx,
 
 dev.off()
 
-Cairo(file = "plots/trait_analysis/regional_unfilling_mod.png",  width = 640, height = 480, type = "png", pointsize = 12, 
+Cairo(file = "plots/trait_analysis/regional_unfilling_seedmod.png",  width = 640, height = 480, type = "png", pointsize = 12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
-corrplot_mod(corr = u_imp_mtx, 
+corrplot_mod(m_imp = u_imp_mtx, 
              m_efs = u_efs_mtx,
              col.lim = c(min_unf, max_unf), 
              is.corr = FALSE,

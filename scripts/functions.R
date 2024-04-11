@@ -141,14 +141,14 @@ getGiftStatusInf <- function(searched_name, GIFT_spec_genus, GIFT_spec_epithet){
 
 # modCorrplot -------------------------------------------------------------
 
-corrplot_mod = function(corr,
+corrplot_mod = function(m_imp,
                     m_efs,
                     method = c('circle', 'square', 'ellipse', 'number', 'shade', 'color', 'pie'),
                     type = c('full', 'lower', 'upper'), col = NULL, col.lim = NULL, is.corr = TRUE,
                     bg = 'white',   title = '', add = FALSE, diag = TRUE, outline = FALSE,
                     mar = c(0, 0, 0, 0),
                     
-                    addgrid.col = NULL, addCoef.col = NULL, addCoefasPercent = FALSE,
+                    addgrid.col = "grey", addCoef.col = NULL, addCoefasPercent = FALSE,
                     
                     order = c('original', 'AOE', 'FPC', 'hclust', 'alphabet'),
                     hclust.method = c('complete', 'ward', 'ward.D', 'ward.D2', 'single',
@@ -196,25 +196,6 @@ corrplot_mod = function(corr,
   asp_rescale_factor = min(1, win.asp) / max(1, win.asp)
   stopifnot(asp_rescale_factor >= 0 && asp_rescale_factor <= 1)
   
-  if (!is.matrix(corr) && !is.data.frame(corr)) {
-    stop('Need a matrix or data frame!')
-  }
-  
-  # select grid color automatically if not specified
-  if (is.null(addgrid.col)) {
-    addgrid.col = switch(method, color = NA, shade = NA, 'grey')
-  }
-  
-  if(!is.corr & !transKeepSign & method %in% c('circle', 'square', 'ellipse', 'shade', 'pie')) {
-    stop("method should not be in c('circle', 'square', 'ellipse', 'shade', 'pie') when transKeepSign = FALSE")
-  }
-  
-  # Issue #142
-  # checks for all values that are not missing
-  if (any(corr[!is.na(corr)] < col.lim[1]) || any(corr[!is.na(corr)] > col.lim[2])) {
-    stop('color limits should cover matrix')
-  }
-  
   
   if (is.null(col.lim)) {
     if (is.corr) {
@@ -227,47 +208,25 @@ corrplot_mod = function(corr,
       # we need to compute limits from all cells except the diagonal
       
       if(!diag) {
-        diag(corr) = NA
+        diag(m_efs) = NA
       }
       
-      col.lim = c(min(corr, na.rm = TRUE), max(corr, na.rm = TRUE))
+      col.lim = c(min(m_efs, na.rm = TRUE), max(m_efs, na.rm = TRUE))
     }
   }
   
-  # if the mat have both negative and positive values, it is a SpecialCorr
-  SpecialCorr = 0
-  
-  if(is.corr) {
-    # check the interval if expecting a correlation matrix
-    # otherwise, the values can be any number
-    if (min(corr, na.rm = TRUE) < -1 - .Machine$double.eps ^ 0.75 ||
-        max(corr, na.rm = TRUE) >  1 + .Machine$double.eps ^ 0.75) {
-      stop('The matrix is not in [-1, 1]!')
-    }
-    
-    
-    SpecialCorr = 1
-    
-    if(col.lim[1] < -1 | col.lim[2] > 1) {
-      stop('col.lim should be within the interval [-1, 1]')
-    }
-  }
-  
-  
-  intercept = 0
-  zoom = 1
   
   if (!is.corr) {
     
-    c_max = max(corr, na.rm = TRUE)
-    c_min = min(corr, na.rm = TRUE)
+    c_max = max(m_efs, na.rm = TRUE)
+    c_min = min(m_efs, na.rm = TRUE)
     
     if((col.lim[1] > c_min) | (col.lim[2] < c_max))
     {
       stop('Wrong color: matrix should be in col.lim interval!')
     }
     
-    if(diff(col.lim)/(c_max - c_min)> 2) {
+    if(diff(col.lim)/(c_max - c_min) > 2) {
       warning('col.lim interval too wide, please set a suitable value')
     }
     
@@ -298,46 +257,46 @@ corrplot_mod = function(corr,
       SpecialCorr = 1
     }
     
-    corr = (intercept + corr) * zoom
+    m_efs = (intercept + m_efs) * zoom
   }
   
   
   
-  
-  col.lim2 = (intercept + col.lim) * zoom
-  int = intercept * zoom
+  col.lim2 <- (intercept + col.lim) * zoom
+  int <- intercept * zoom
   
   
   
   if (is.null(col) & is.corr) {
-    col = COL2('RdBu', 200)
+    col <- COL2('RdBu', 200)
   }
   
   if (is.null(col) & !is.corr) {
     if(col.lim[1] * col.lim[2] < 0) {
-      col = COL2('RdBu', 200)
+      col <- COL2('RdBu', 200)
     } else {
-      col = COL1('YlOrBr', 200)
+      col <- COL1('YlOrBr', 200)
     }
     
   }
   
-  n = nrow(corr)
-  m = ncol(corr)
-  min.nm = min(n, m)
-  ord = 1:min.nm
+  n <- nrow(m_efs)
+  m <- ncol(m_efs)
+  min.nm <- min(n, m)
+  ord <- 1:min.nm
+  
   
   if (order != 'original') {
-    ord = corrMatOrder(corr, order = order, hclust.method = hclust.method)
-    corr = corr[ord, ord]
+    ord = corrMatOrder(m_efs, order = order, hclust.method = hclust.method)
+    m_efs = m_efs[ord, ord]
   }
   
   ## set up variable names
-  if (is.null(rownames(corr))) {
-    rownames(corr) = 1:n
+  if (is.null(rownames(m_efs))) {
+    rownames(m_efs) = 1:n
   }
-  if (is.null(colnames(corr))) {
-    colnames(corr) = 1:m
+  if (is.null(colnames(m_efs))) {
+    colnames(m_efs) = 1:m
   }
   
   # assigns Inf to cells in the matrix depending on the type paramter
@@ -353,6 +312,7 @@ corrplot_mod = function(corr,
     }
     return(mat)
   }
+  
   
   # retrieves coordinates of cells to be rendered
   getPos.Dat = function(mat) {
@@ -380,14 +340,14 @@ corrplot_mod = function(corr,
     return(Pos)
   }
   
-  testTemp = getPos.Dat(corr)
+  testTemp = getPos.Dat(m_efs)
   
-  Pos = getPos.Dat(corr)[[1]]
-  PosName = getPos.Dat(corr)[[3]]
+  Pos = getPos.Dat(m_efs)[[1]]
+  PosName = getPos.Dat(m_efs)[[3]]
   
   # decide whether NA labels are going to be rendered or whether we ignore them
-  if (any(is.na(corr)) && is.character(na.label)) {
-    PosNA = getPos.NAs(corr)
+  if (any(is.na(m_efs)) && is.character(na.label)) {
+    PosNA = getPos.NAs(m_efs)
   } else {
     # explicitly set to NULL to indicate that NA labels are not going to be
     # rendered
@@ -402,7 +362,6 @@ corrplot_mod = function(corr,
   
   nn = n2 - n1
   
-  # columns
   m2 = max(AllCoords[, 1])
   m1 = min(AllCoords[, 1])
   
@@ -416,14 +375,24 @@ corrplot_mod = function(corr,
   }
   
   newrownames = sapply(
-    rownames(corr)[(n + 1 - n2):(n + 1 - n1)], expand_expression)
+    rownames(m_efs)[(n + 1 - n2):(n + 1 - n1)], expand_expression)
   
   newcolnames = sapply(
-    colnames(corr)[m1:m2], expand_expression)
+    colnames(m_efs)[m1:m2], expand_expression)
   
-  DAT = getPos.Dat(corr)[[2]]
+  
+  
+  
+  
+  # !!!!!!!!!!!!!!THIS MIGHT BE IT!!!!!!!!!!!!!!!!
+  DAT = getPos.Dat(m_imp)[[2]]
   DAT_col = getPos.Dat(m_efs)[[2]]
   len.DAT = length(DAT)
+  
+  
+  
+  
+  
   
   rm(expand_expression) # making sure the function is only used here
   
@@ -477,6 +446,7 @@ corrplot_mod = function(corr,
   oldpar = par(mar = mar, bg = par()$bg)
   on.exit(par(oldpar), add = TRUE)
   
+  
   ## calculate label-text width approximately
   if (!add) {
     plot.new()
@@ -517,7 +487,7 @@ corrplot_mod = function(corr,
       xlabwidth = x.tmp
       ylabwidth = y.tmp
       
-      laboffset = laboffset.tmp
+      laboffset <- laboffset.tmp
       
       if (i == 50) {
         warning(c('Not been able to calculate text margin, ',
@@ -675,6 +645,11 @@ corrplot_mod = function(corr,
     draw_method_color(Pos, col.border, col.fill)
   }
   
+  draw_grid = function(coords, fg) {
+    symbols(coords, add = TRUE, inches = FALSE, fg = fg, bg = NA,
+            rectangles = matrix(1, nrow = nrow(coords), ncol = 2))
+  }
+  
   ## add grid
   draw_grid(AllCoords, addgrid.col)
   
@@ -753,7 +728,6 @@ corrplot_mod = function(corr,
     }
   }
   
-  
   ## add numbers
   if (!is.null(addCoef.col) && method != 'number') {
     text(Pos[, 1], Pos[, 2],  col = addCoef.col,
@@ -775,8 +749,8 @@ corrplot_mod = function(corr,
     }
     
     if(!is.null(rownames(p.mat)) | !is.null(rownames(p.mat))) {
-      if(!all(colnames(p.mat)==colnames(corr)) |
-         !all(rownames(p.mat)==rownames(corr))) {
+      if(!all(colnames(p.mat)==colnames(m_efs)) |
+         !all(rownames(p.mat)==rownames(m_efs))) {
         warning('p.mat and corr may be not paired, their rownames and colnames are not totally same!')
       }
     }
@@ -837,7 +811,6 @@ corrplot_mod = function(corr,
       }
     }
   }
-  
   
   ### color legend
   if (cl.pos != 'n') {
@@ -900,23 +873,20 @@ corrplot_mod = function(corr,
               inches = FALSE, squares = rep(1, length(pos.ylabel[, 1])))
       
       text(pos.ylabel[, 1] + 0.5, pos.ylabel[, 2], newcolnames[1:min(n, m)],
-           col = tl.col, cex = tl.cex, ...)
+           col = tl.col, cex = tl.cex)
       
     } else {
       
       if(tl.pos != 'l') {
         text(pos.xlabel[, 1], pos.xlabel[, 2], newcolnames, srt = tl.srt,
              adj = ifelse(tl.srt == 0, c(0.5, 0), c(0, 0)),
-             col = tl.col, cex = tl.cex, offset = tl.offset, ...)
+             col = tl.col, cex = tl.cex, offset = tl.offset)
       }
       
       text(pos.ylabel[, 1], pos.ylabel[, 2], newrownames,
-           col = tl.col, cex = tl.cex, pos = 2, offset = tl.offset, ...)
+           col = tl.col, cex = tl.cex, pos = 2, offset = tl.offset)
     }
   }
-  
-  title(title, ...)
-  
   
   
   ## add grid, in case of the grid is ate when 'diag=FALSE'
@@ -926,7 +896,7 @@ corrplot_mod = function(corr,
   
   ##  draws rectangles, call function corrRect.hclust
   if (!is.null(addrect) && order == 'hclust' && type == 'full') {
-    corrRect.hclust(corr, k = addrect, method = hclust.method,
+    corrRect.hclust(m_efs, k = addrect, method = hclust.method,
                     col = rect.col, lwd = rect.lwd)
   }
   
@@ -940,7 +910,7 @@ corrplot_mod = function(corr,
   rownames(corrPos) = NULL
   
   
-  res = list(corr = corr, corrPos = corrPos, arg = list(type = type))
+  res = list(corr = m_efs, corrPos = corrPos, arg = list(type = type))
   
   invisible(res) # reordered correlation matrix, and Position
 }
