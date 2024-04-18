@@ -4,6 +4,9 @@ library(landscapemetrics)
 # library(maps)
 library(sf)
 library(terra)
+library(purrr)
+library(stringr)
+library(ecospat)
 
 
 # Native range size -------------------------------------------------------
@@ -544,7 +547,7 @@ foreach(spp_index = 1:length(spp),
                                 input_nat <- data_prep_nat
                                 rm(data_prep_nat)
 
-                                data_prep_nat <- subset(data_prep_nat, present == 1)
+                                input_nat <- subset(input_nat, present == 1)
 
                                 # data frame to store results:
                                 nbc_spec_df <- data.frame(species = sub("_", " ", spp[spp_index]),
@@ -597,12 +600,12 @@ colnames(df_native_niche) <- c("species", "niche_breadth_zcor", "niche_centroid1
 spp_breadth <- list.files("data/trait_analysis/niche_breadth_centroid/", pattern = "niche_breadth_centroid_twice_") %>%
   str_remove(".RData") %>%
   str_split(pattern = "_") %>%
-  map(~ .x[[5]]) %>%
+  map(~ .x[[6]]) %>%
   simplify()
 
 for (spp in spp_breadth) {
   
-  load(paste0("data/trait_analysis/niche_breadth_centroid/niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
+  load(paste0("data/trait_analysis/niche_breadth_centroid/native_niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
   df_native_niche <- rbind(df_native_niche, nbc_spec_df)
 } # end of loop over spp_suitable_AC
 

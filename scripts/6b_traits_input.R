@@ -66,25 +66,25 @@ year_first_intro_Seebens <- year_first_intro_Seebens %>%
                values_to = "years_since_intro") 
 
 # niche breadth -----------------------------------------------------------
-
-df_niche_breadth_centroid <- data.frame(matrix(nrow = 0, ncol = 6))
-colnames(df_niche_breadth_centroid) <- c("species", "niche_breadth_zcor", 
-                                         "niche_centroid1_global", "niche_centroid2_global", 
-                                         "niche_centroid1_native", "niche_centroid2_native")
-
-
-spp_breadth <- list.files("data/trait_analysis/niche_breadth_centroid/", pattern = "niche_breadth_centroid_twice_") %>%
-  str_remove(".RData") %>%
-  str_split(pattern = "_") %>%
-  map(~ .x[[5]]) %>%
-  simplify()
-
-for (spp in spp_breadth) {
-  
-  load(paste0("data/trait_analysis/niche_breadth_centroid/niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
-  
-  df_niche_breadth_centroid <- rbind(df_niche_breadth_centroid, nbc_spec_df)
-} # end of loop over spp_suitable_AC
+# 
+# df_niche_breadth_centroid <- data.frame(matrix(nrow = 0, ncol = 6))
+# colnames(df_niche_breadth_centroid) <- c("species", "niche_breadth_zcor", 
+#                                          "niche_centroid1_global", "niche_centroid2_global", 
+#                                          "niche_centroid1_native", "niche_centroid2_native")
+# 
+# 
+# spp_breadth <- list.files("data/trait_analysis/niche_breadth_centroid/", pattern = "niche_breadth_centroid_twice_") %>%
+#   str_remove(".RData") %>%
+#   str_split(pattern = "_") %>%
+#   map(~ .x[[5]]) %>%
+#   simplify()
+# 
+# for (spp in spp_breadth) {
+#   
+#   load(paste0("data/trait_analysis/niche_breadth_centroid/niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
+#   
+#   df_niche_breadth_centroid <- rbind(df_niche_breadth_centroid, nbc_spec_df)
+# } # end of loop over spp_suitable_AC
 
 
 
