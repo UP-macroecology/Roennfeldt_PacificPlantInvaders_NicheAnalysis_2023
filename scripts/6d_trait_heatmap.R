@@ -21,6 +21,11 @@ regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
 covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max_elev_range", "range_size_nat",
                 "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
 
+
+
+setting <- "mod_seed"
+# setting <- "original"
+
 traits_res_e <- tibble()
 traits_res_s <- tibble()
 traits_res_u <- tibble()
@@ -67,15 +72,11 @@ for (reg in regions) {
 # testing -----------------------------------------------------------------
 
 
-setting <- "mod_seed"
-# setting <- "original"
-
 
 if (setting == "mod_seed") {
   traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.962
-  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -3.420
-  traits_res_s[traits_res_s$region == "sam" & traits_res_s$term == "mean_seedmass","estimate"] <- -2.221
-  traits_res_s[traits_res_s$region == "eur" & traits_res_s$term == "mean_seedmass","estimate"] <- 4.046
+  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -2.639
+  traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 1.118
 }
 
 
@@ -195,7 +196,7 @@ max_unf <- max(traits_res_u$estimate, na.rm = TRUE)
 txt_col <- "black"
 na_col <- "white"
 
-Cairo(file = "plots/trait_analysis/regional_expansion_seedmod.png",  width = 640, height = 480, type="png", pointsize=12, 
+Cairo(file = paste0("plots/trait_analysis/regional_expansion_",setting,".png"),  width = 640, height = 480, type ="png", pointsize=12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
 corrplot_mod(m_imp = e_imp_mtx,
@@ -209,7 +210,7 @@ corrplot_mod(m_imp = e_imp_mtx,
 
 dev.off()
 
-Cairo(file = "plots/trait_analysis/regional_stability_seedmod.png",  width = 640, height = 480, type="png", pointsize=12, 
+Cairo(file = paste0("plots/trait_analysis/regional_stability_",setting,".png"),  width = 640, height = 480, type ="png", pointsize=12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
 
@@ -224,7 +225,7 @@ corrplot_mod(m_imp = s_imp_mtx,
 
 dev.off()
 
-Cairo(file = "plots/trait_analysis/regional_unfilling_seedmod.png",  width = 640, height = 480, type = "png", pointsize = 12, 
+Cairo(file = paste0("plots/trait_analysis/regional_unfilling_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
 corrplot_mod(m_imp = u_imp_mtx, 
