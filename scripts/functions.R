@@ -148,6 +148,9 @@ corrplot_mod = function(m_imp,
                     bg = 'white',   title = '', add = FALSE, diag = TRUE, outline = FALSE,
                     mar = c(0, 0, 0, 0),
                     
+                    col_names = colnames(m_efs),
+                    row_names = rownames(m_efs),
+                    
                     addgrid.col = "grey", addCoef.col = NULL, addCoefasPercent = FALSE,
                     
                     order = c('original', 'AOE', 'FPC', 'hclust', 'alphabet'),
@@ -156,7 +159,7 @@ corrplot_mod = function(m_imp,
                     addrect = NULL, rect.col = 'black', rect.lwd = 2,
                     
                     tl.pos = NULL, tl.cex = 1,
-                    tl.col = 'red', tl.offset = 0.4, tl.srt = 90,
+                    tl.col = 'red', tl.offset = 0.5, tl.srt = 45,
                     
                     cl.pos = NULL, cl.length = NULL, cl.cex = 0.8,
                     cl.ratio = 0.15, cl.align.text = 'c', cl.offset = 0.5,
@@ -221,10 +224,10 @@ corrplot_mod = function(m_imp,
     c_max = max(m_efs, na.rm = TRUE)
     c_min = min(m_efs, na.rm = TRUE)
     
-    if((col.lim[1] > c_min) | (col.lim[2] < c_max))
-    {
-      stop('Wrong color: matrix should be in col.lim interval!')
-    }
+    # if((col.lim[1] > c_min) | (col.lim[2] < c_max))
+    # {
+    #   stop('Wrong color: matrix should be in col.lim interval!')
+    # }
     
     if(diff(col.lim)/(c_max - c_min) > 2) {
       warning('col.lim interval too wide, please set a suitable value')
@@ -370,17 +373,25 @@ corrplot_mod = function(m_imp,
   mm = max(1, m2 - m1)
   
   # Issue #20: support plotmath expressions in rownames and colnames
+  # expand_expression = function(s) {
+  #   ifelse(grepl('^[:=$]', s), parse(text = substring(s, 2)), s)
+  # }
+  # 
+  # newrownames = sapply(
+  #   rownames(m_efs)[(n + 1 - n2):(n + 1 - n1)], expand_expression)
+  # 
+  # newcolnames = sapply(
+  #   colnames(m_efs)[m1:m2], expand_expression)
+  
   expand_expression = function(s) {
     ifelse(grepl('^[:=$]', s), parse(text = substring(s, 2)), s)
   }
-  
+
   newrownames = sapply(
-    rownames(m_efs)[(n + 1 - n2):(n + 1 - n1)], expand_expression)
-  
+    row_names[(n + 1 - n2):(n + 1 - n1)], expand_expression)
+
   newcolnames = sapply(
-    colnames(m_efs)[m1:m2], expand_expression)
-  
-  
+    col_names[m1:m2], expand_expression)
   
   
   

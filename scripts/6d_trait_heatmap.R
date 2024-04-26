@@ -23,8 +23,9 @@ covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max
 
 
 
-setting <- "mod_seed"
+# setting <- "mod_seed"
 # setting <- "original"
+# setting <- "mod_seed_scale"
 
 traits_res_e <- tibble()
 traits_res_s <- tibble()
@@ -79,6 +80,11 @@ if (setting == "mod_seed") {
   traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 1.118
 }
 
+if (setting == "mod_seed_scale") {
+  traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.97
+  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -4.97
+  traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 3.22
+}
 
 
 covariates <- unique(traits_res_e$term)
@@ -130,69 +136,14 @@ rownames(u_imp_mtx) <- covariates
 rownames(s_efs_mtx) <- covariates
 rownames(s_imp_mtx) <- covariates
 
-min_exp <- min(traits_res_e$estimate, na.rm = TRUE)
-max_exp <- max(traits_res_e$estimate, na.rm = TRUE)
-min_stb <- min(traits_res_s$estimate, na.rm = TRUE)
-max_stb <- max(traits_res_s$estimate, na.rm = TRUE)
-min_unf <- min(traits_res_u$estimate, na.rm = TRUE)
-max_unf <- max(traits_res_u$estimate, na.rm = TRUE)
+min_exp <- round(min(traits_res_e$estimate, na.rm = TRUE), 2)
+max_exp <- round(max(traits_res_e$estimate, na.rm = TRUE), 2)
+min_stb <- round(min(traits_res_s$estimate, na.rm = TRUE), 2)
+max_stb <- round(max(traits_res_s$estimate, na.rm = TRUE), 2)
+min_unf <- round(min(traits_res_u$estimate, na.rm = TRUE), 2)
+max_unf <- round(max(traits_res_u$estimate, na.rm = TRUE), 2)
 
-# windows()
-# 
-
-# 
-# corrplot(e_efs_mtx, 
-#          col.lim = c(min_exp, max_exp), 
-#          is.corr = FALSE,
-#          tl.col = txt_col,
-#          na.label = "square",
-#          na.label.col = na_col,
-#          outline = TRUE)
-# 
-# corrplot_mod(m_imp = e_imp_mtx, 
-#              m_efs = e_efs_mtx,
-#              col.lim = c(min_exp, max_exp), 
-#              is.corr = FALSE,
-#              tl.col = txt_col,
-#              na.label = "square",
-#              na.label.col = na_col,
-#              outline = TRUE)
-# 
-# 
-# corrplot(s_efs_mtx, 
-#          col.lim = c(min_stb, max_stb), 
-#          is.corr = FALSE,
-#          tl.col = txt_col,
-#          na.label = "square",
-#          na.label.col = na_col,
-#          outline = TRUE)
-# 
-# corrplot_mod(m_imp = s_imp_mtx,
-#              m_efs = s_efs_mtx, 
-#              col.lim = c(min_stb, max_stb), 
-#              is.corr = FALSE,
-#              tl.col = txt_col,
-#              na.label = "square",
-#              na.label.col = na_col,
-#              outline = TRUE)
-# 
-# corrplot(u_efs_mtx, 
-#          col.lim = c(min_unf, max_unf), 
-#          is.corr = FALSE,
-#          tl.col = txt_col,
-#          na.label = "square",
-#          na.label.col = na_col,
-#          outline = TRUE)
-# 
-# corrplot_mod(m_imp = u_imp_mtx, 
-#              m_efs = u_efs_mtx,
-#              col.lim = c(min_unf, max_unf), 
-#              is.corr = FALSE,
-#              tl.col = txt_col,
-#              na.label = "square",
-#              na.label.col = na_col,
-#              outline = TRUE)
-
+col_lim <- c(-4.97, 3.23)
 txt_col <- "black"
 na_col <- "white"
 
@@ -200,56 +151,103 @@ col_names <- c("Africa", "temp. Asia", "trop. Asia", "Australasia", "Europe", "N
 row_names <- c("Plant height", "Seed mass", "Growth form", "Life span", "Elevational range", "Native range size", "Native niche breadth",
                "Native niche centroid 1", "Native niche centroid 2", "Residence time", "Distance range centroids")
 
-Cairo(file = paste0("plots/trait_analysis/regional_expansion_",setting,".png"),  width = 640, height = 480, type ="png", pointsize=12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
-
-corrplot_mod(m_imp = e_imp_mtx,
-             m_efs = e_efs_mtx,
-             col.lim = c(min_exp, max_exp),
-             row_names = row_names,
-             col_names = col_names,
-             is.corr = FALSE,
-             tl.col = txt_col,
-             na.label = "square",
-             na.label.col = na_col,
-             outline = TRUE)
-
-dev.off()
-
-Cairo(file = paste0("plots/trait_analysis/regional_stability_",setting,".png"),  width = 640, height = 480, type ="png", pointsize=12, 
+Cairo(file = paste0("plots/trait_analysis/regional_expansion_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
 
-corrplot_mod(m_imp = s_imp_mtx,
-             m_efs = s_efs_mtx, 
-             col.lim = c(min_stb, max_stb), 
-             row_names = row_names,
-             col_names = col_names,
-             is.corr = FALSE,
-             tl.col = txt_col,
-             na.label = "square",
-             na.label.col = na_col,
-             outline = TRUE)
+if (setting == "mod_seed_scale") {
+  
+  corrplot_mod(m_imp = e_imp_mtx,
+               m_efs = e_efs_mtx,
+               col.lim = col_lim,
+               row_names = row_names,
+               col_names = col_names,
+               is.corr = FALSE,
+               tl.col = txt_col,
+               na.label = "square",
+               na.label.col = na_col,
+               outline = TRUE)
+  
+} else {
+  corrplot_mod(m_imp = e_imp_mtx,
+               m_efs = e_efs_mtx,
+               col.lim = c(min_exp, max_exp),
+               row_names = row_names,
+               col_names = col_names,
+               is.corr = FALSE,
+               tl.col = txt_col,
+               na.label = "square",
+               na.label.col = na_col,
+               outline = TRUE)
+}
+
 
 dev.off()
+
+Cairo(file = paste0("plots/trait_analysis/regional_stability_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
+      bg = "white", canvas = "white", units = "px", dpi = "auto")
+
+
+if (setting == "mod_seed_scale") { 
+  
+  corrplot_mod(m_imp = s_imp_mtx,
+               m_efs = s_efs_mtx, 
+               col.lim = col_lim, 
+               row_names = row_names,
+               col_names = col_names,
+               is.corr = FALSE,
+               tl.col = txt_col,
+               na.label = "square",
+               na.label.col = na_col,
+               outline = TRUE)
+} else {
+
+  corrplot_mod(m_imp = s_imp_mtx,
+               m_efs = s_efs_mtx, 
+               col.lim = c(min_stb, max_stb), 
+               row_names = row_names,
+               col_names = col_names,
+               is.corr = FALSE,
+               tl.col = txt_col,
+               na.label = "square",
+               na.label.col = na_col,
+               outline = TRUE) 
+  }
+
+dev.off()
+
+
 
 Cairo(file = paste0("plots/trait_analysis/regional_unfilling_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
-corrplot_mod(m_imp = u_imp_mtx, 
-             m_efs = u_efs_mtx,
-             col.lim = c(min_unf, max_unf), 
-             row_names = row_names,
-             col_names = col_names,
-             is.corr = FALSE,
-             tl.col = txt_col,
-             na.label = "square",
-             na.label.col = na_col,
-             outline = TRUE)
+
+if (setting == "mod_seed_scale") { 
+  
+  corrplot_mod(m_imp = u_imp_mtx, 
+               m_efs = u_efs_mtx,
+               col.lim = col_lim, 
+               row_names = row_names,
+               col_names = col_names,
+               is.corr = FALSE,
+               tl.col = txt_col,
+               na.label = "square",
+               na.label.col = na_col,
+               outline = TRUE)
+  } else {
+  corrplot_mod(m_imp = u_imp_mtx, 
+               m_efs = u_efs_mtx,
+               col.lim = c(min_unf, max_unf), 
+               row_names = row_names,
+               col_names = col_names,
+               is.corr = FALSE,
+               tl.col = txt_col,
+               na.label = "square",
+               na.label.col = na_col,
+               outline = TRUE)
+    }
 
 dev.off()
-
-
 
 
 # correct for seedmass ----------------------------------------------------
