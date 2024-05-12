@@ -19,7 +19,6 @@ load("data/trait_analysis/input_TA.RData")
 
 # regional analysis -------------------------------------------------------
 
-
 regions <- unique(input_TA$region)
 
 input_TA_all_regions <- input_TA
@@ -55,8 +54,8 @@ for (reg in regions) {
   
   
   # full models
-  lm_stability <- phylolm(stability ~ mean_height + mean_seedmass + growth_form + lifecycle + max_elev_range + lat_nat + lon_nat + range_size_nat 
-                          + niche_breadth_nat + niche_centroid_a_nat + niche_centroid_b_nat + years_since_intro + eucl_dist, 
+  lm_stability <- phylolm(stability ~ mean_height + mean_seedmass + growth_form + lifecycle  + range_size_nat + dispersal
+                          + niche_breadth_nat + niche_centroid_a_nat + niche_centroid_b_nat + years_since_intro + lat_dist, 
                           data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
@@ -65,12 +64,13 @@ for (reg in regions) {
   
   
   # ++ unfilling ++
-  
+
   null_unfilling <- phylolm(unfilling ~ 1, data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
+  
   # full models
-  lm_unfilling <- phylolm(unfilling ~ mean_height + mean_seedmass + growth_form + lifecycle + max_elev_range + lat_nat + lon_nat + range_size_nat 
-                          + niche_breadth_nat + niche_centroid_a_nat + niche_centroid_b_nat + years_since_intro + eucl_dist,
+  lm_unfilling <- phylolm(unfilling ~ mean_height + mean_seedmass + growth_form + lifecycle  + range_size_nat  + dispersal
+                          + niche_breadth_nat + niche_centroid_a_nat + niche_centroid_b_nat + years_since_intro + lat_dist, 
                           data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
@@ -83,8 +83,8 @@ for (reg in regions) {
   null_expansion <- phylolm(expansion ~ 1, data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # full models
-  lm_expansion <- phylolm(expansion ~ mean_height + mean_seedmass + growth_form + lifecycle + max_elev_range + lat_nat + lon_nat + range_size_nat 
-                          + niche_breadth_nat + niche_centroid_a_nat + niche_centroid_b_nat + years_since_intro + eucl_dist,
+  lm_expansion <- phylolm(expansion ~ mean_height + mean_seedmass + growth_form + lifecycle  + range_size_nat + dispersal
+                          + niche_breadth_nat + niche_centroid_a_nat + niche_centroid_b_nat + years_since_intro + lat_dist,
                           data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
@@ -128,8 +128,8 @@ for (reg in regions) {
   nrep <- 99
   
   
-  covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max_elev_range", "lon_nat", "lat_nat", "range_size_nat",
-                  "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
+  covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "range_size_nat", "dispersal",
+                  "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "lat_dist")
   
   # names of models
   MOD <- c("step_lm_stability", "step_lm_unfilling", "step_lm_expansion")
@@ -141,58 +141,56 @@ for (reg in regions) {
     respvar <- strsplit(formula(modl), " ")[[1]][1]
     explvar <- names(modl$coefficients)[2:length(modl$coefficients)]
     
-    # make sure each covariate only occurs ones and wihtout a 2 or 3 at the end
-    explvar <- explvar %>%
-      str_replace("2", "") %>%
-      str_replace("3", "") %>%
-      str_replace("other", "")
-    
-    explvar <- unique(explvar)
-    
-    # NOTE: if you include quadratic terms, then some more fiddling might be needed here.
-    
-    # Calculate the R2 with a null model for which we fix the lambda value
-    if (modl$optpar > 0.000001) {
-      # pgls0 <- ETP(paste("pgls(", respvar, "~ 1, data=all_data, lambda=modl$optpar)"))
-      pgls0 <- ETP(paste("phylolm(",respvar, "~ 1, data = input_TA, phy = pac_tree[[1]], model ='lambda')"))
-      # pgls1 <- ETP(paste("pgls(", formula(modl), ", data=all_data, lambda=modl$optpar)"))
-      pgls1 <- ETP(paste("phylolm(",formula(modl), ", data = input_TA, phy = pac_tree[[1]], model = 'lambda')"))
-      r2 <- R2(pgls0, pgls1)
-      # Calculate the variable importance with variable randomization and fixed lambda
-      rR2 <- rR2a <- data.frame(matrix(NA, nrep, length(explvar), T, list(1:nrep, explvar)))
-      for (j in explvar) {
-        # tempdat <- pgls1$data
-        tempdat <- input_TA
-        for (k in 1:nrep) {	
-          # tempdat$data[,j] <- sample(tempdat$data[,j])
-          tempdat[,j] <- sample(tempdat[,j])
-          # mt <- ETP(paste("pgls(", formula(modl), ", data=tempdat, lambda=modl$optpar)"))
-          mt <- ETP(paste("phylolm(",formula(modl), ", data=tempdat, phy=pac_tree[[1]], model='lambda')"))
-          rR2[k,j] <- R2(pgls0, mt)[1] ; rR2a[k,j] <- R2(pgls0, mt)[2]
-          cat(k)
+    if (!(is.na(explvar[1]) &  explvar[2] == "(Intercept)")) {
+      
+      # NOTE: if you include quadratic terms, then some more fiddling might be needed here.
+      
+      # Calculate the R2 with a null model for which we fix the lambda value
+      if (modl$optpar > 0.000001) {
+        # pgls0 <- ETP(paste("pgls(", respvar, "~ 1, data=all_data, lambda=modl$optpar)"))
+        pgls0 <- ETP(paste("phylolm(",respvar, "~ 1, data = input_TA, phy = pac_tree[[1]], model ='lambda')"))
+        # pgls1 <- ETP(paste("pgls(", formula(modl), ", data=all_data, lambda=modl$optpar)"))
+        pgls1 <- ETP(paste("phylolm(",formula(modl), ", data = input_TA, phy = pac_tree[[1]], model = 'lambda')"))
+        r2 <- R2(pgls0, pgls1)
+        # Calculate the variable importance with variable randomization and fixed lambda
+        rR2 <- rR2a <- data.frame(matrix(NA, nrep, length(explvar), T, list(1:nrep, explvar)))
+        for (j in explvar) {
+          # tempdat <- pgls1$data
+          tempdat <- input_TA
+          for (k in 1:nrep) {	
+            # tempdat$data[,j] <- sample(tempdat$data[,j])
+            tempdat[,j] <- sample(tempdat[,j])
+            # mt <- ETP(paste("pgls(", formula(modl), ", data=tempdat, lambda=modl$optpar)"))
+            mt <- ETP(paste("phylolm(",formula(modl), ", data=tempdat, phy=pac_tree[[1]], model='lambda')"))
+            rR2[k,j] <- R2(pgls0, mt)[1] ; rR2a[k,j] <- R2(pgls0, mt)[2]
+            cat(k)
+          }
+          print(j)
         }
-        print(j)
-      }
-    } else {
-      pgls0 <- ETP(paste("glm(", respvar, "~ 1, data=input_TA)"))
-      pgls1 <- ETP(paste("glm(", formula(modl), ", data=input_TA)"))
-      r2 <- R2glm(pgls1)
-      # Calculate the variable importance with variable randomization and fixed lambda
-      rR2 <- rR2a <- data.frame(matrix(NA, nrep, length(explvar), T, list(1:nrep, explvar)))
-      for (j in explvar) {
-        tempdat <- pgls1$data
-        for (k in 1:nrep) {	
-          tempdat[,j] <- sample(tempdat[,j])
-          mt <- ETP(paste("glm(", formula(modl), ", data=tempdat)"))
-          rR2[k,j] <- R2glm(mt)[1] ; rR2a[k,j] <- R2glm(mt)[2]
-          cat(k)
+      } else {
+        pgls0 <- ETP(paste("glm(", respvar, "~ 1, data=input_TA)"))
+        pgls1 <- ETP(paste("glm(", formula(modl), ", data=input_TA)"))
+        r2 <- R2glm(pgls1)
+        # Calculate the variable importance with variable randomization and fixed lambda
+        rR2 <- rR2a <- data.frame(matrix(NA, nrep, length(explvar), T, list(1:nrep, explvar)))
+        for (j in explvar) {
+          tempdat <- pgls1$data
+          for (k in 1:nrep) {	
+            tempdat[,j] <- sample(tempdat[,j])
+            mt <- ETP(paste("glm(", formula(modl), ", data=tempdat)"))
+            rR2[k,j] <- R2glm(mt)[1] ; rR2a[k,j] <- R2glm(mt)[2]
+            cat(k)
+          }
+          print(j)
         }
-        print(j)
-      }
-    }	
-    
-    output[[i]] <- list(obs = r2, randR2 = rR2, randR2adj = rR2a)
+      }	
+      
+      output[[i]] <- list(obs = r2, randR2 = rR2, randR2adj = rR2a)
+      
+    } # end of if condition regarding explvar
+
     print(i)
+    
   }
   
   # Calculate variable importance (based on mean and SD of simulated R2s)
@@ -247,32 +245,29 @@ for (reg in regions) {
     
     explvar <- names(modl$coefficients)[2:length(modl$coefficients)]
     
-    # # make sure each covariate only occurs ones and wihtout a 2 or 3 at the end
-    # explvar <- explvar %>%
-    #   str_replace("2", "") %>%
-    #   str_replace("3", "")%>%
-    #   str_replace("other", "")
-    # 
-    # explvar <- unique(explvar)
-    
-    # store model coefficients
-    results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 3] <- round(as.numeric(modl$coefficients),3)
-    
-    # store R2 of model
-    results_TraitAnal_df[nrow(results_TraitAnal_df)-1,1+i*4-3] <- R2(ETP(MOD_null[i]),modl)[[1]]
-    
-    # store lambda of model
-    results_TraitAnal_df[nrow(results_TraitAnal_df),1+i*4-3] <- round(modl$optpar,3)
-    
-    # store std errors
-    results_TraitAnal_df[c(1,which(covariates %in% explvar)+1),1+i*4-2] <- summary(modl)$coefficients[,2]
-    
-    # store p-values
-    results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 1] <- round(as.numeric(summary(modl)$coefficients[,4]),3)
-    
-    # store variable importance
-    varimp <- round(step.varImp.allmetrics[[MOD[i]]]$Mr2,3)
-    results_TraitAnal_df[which(covariates %in% explvar) + 1,1 + i*4] <- ifelse(varimp < 0,0,varimp)
+    if (!(is.na(explvar[1]) &  explvar[2] == "(Intercept)")) { 
+      
+      # store model coefficients
+      results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 3] <- round(as.numeric(modl$coefficients),3)
+      
+      # store R2 of model
+      results_TraitAnal_df[nrow(results_TraitAnal_df)-1,1+i*4-3] <- R2(ETP(MOD_null[i]),modl)[[1]]
+      
+      # store lambda of model
+      results_TraitAnal_df[nrow(results_TraitAnal_df),1+i*4-3] <- round(modl$optpar,3)
+      
+      # store std errors
+      results_TraitAnal_df[c(1,which(covariates %in% explvar)+1),1+i*4-2] <- summary(modl)$coefficients[,2]
+      
+      # store p-values
+      results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 1] <- round(as.numeric(summary(modl)$coefficients[,4]),3)
+      
+      # store variable importance
+      varimp <- round(step.varImp.allmetrics[[MOD[i]]]$Mr2,3)
+      results_TraitAnal_df[which(covariates %in% explvar) + 1,1 + i*4] <- ifelse(varimp < 0,0,varimp)
+      
+      } # end of if condition regarding explvar
+
   }
   
   write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/regional_trait_analysis_results/results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)

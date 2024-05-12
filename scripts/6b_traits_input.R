@@ -8,6 +8,7 @@ library(tidyr) # to use unite()
 rm(list = ls())
 
 path_transfer <- "T:/Holle_Roennfeldt/"
+# path_transfer <- "Y:/AG26/Transfer/Holle_Roennfeldt/"
 
 logit <- function(x) {x = ifelse(x < 0.0001,0.0001,ifelse(x > 0.9999,.9999,x));log(x/(1 - x))}
 
@@ -17,15 +18,16 @@ load("results/ecospat/master_results_AC.RData") # results niche comparison
 
 
 load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_GIFT.RData")) # GIFT trait data
-load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_TRY.RData")) # TRY data
+# load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_TRY.RData")) # TRY data
 
 # geographic traits
-load("data/trait_analysis/df_fragmentation_metrics.RData")
+# load("data/trait_analysis/df_fragmentation_metrics.RData")
 load("data/trait_analysis/native_niche_breadth_centroid.RData")
 load("data/trait_analysis/native_range_size.RData")
-load("data/trait_analysis/introduced_range_size.RData")
+# load("data/trait_analysis/introduced_range_size.RData")
 load("data/trait_analysis/year_first_intro_Seebens.RData")
-load("data/trait_analysis/eucl_dist.RData")
+# load("data/trait_analysis/eucl_dist.RData")
+load("data/trait_analysis/lat_dist.RData")
 
 # response data -----------------------------------------------------------
 
@@ -36,25 +38,24 @@ df_results <- master_results_AC %>%
   mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
   mutate(expansion = rel_expansion / total_esu) %>%
   mutate(stability = rel_stability / total_esu) %>%
-  mutate(unfilling = rel_unfilling / total_esu) %>%
-  na.omit()
+  mutate(unfilling = rel_unfilling / total_esu) 
 
 
 
 # fragmentation -----------------------------------------------------------
 
-df_fragmentation[df_fragmentation == "EUROPE"] <- "eur"
-df_fragmentation[df_fragmentation == "AFRICA"] <- "afr"
-df_fragmentation[df_fragmentation == "ASIA-TEMPERATE"] <- "ate"
-df_fragmentation[df_fragmentation == "ASIA-TROPICAL"] <- "atr"
-df_fragmentation[df_fragmentation == "AUSTRALASIA"] <- "aus"
-df_fragmentation[df_fragmentation == "NORTHERN AMERICA"] <- "nam"
-df_fragmentation[df_fragmentation == "SOUTHERN AMERICA"] <- "sam"
-df_fragmentation[df_fragmentation == "PACIFIC"] <- "pac"
-
-# spread df to wide format
-df_frag_wide <- spread(df_fragmentation, metric_name, metric_value) %>%
-  dplyr::select(!c("CORE", "CLUMPY"))
+# df_fragmentation[df_fragmentation == "EUROPE"] <- "eur"
+# df_fragmentation[df_fragmentation == "AFRICA"] <- "afr"
+# df_fragmentation[df_fragmentation == "ASIA-TEMPERATE"] <- "ate"
+# df_fragmentation[df_fragmentation == "ASIA-TROPICAL"] <- "atr"
+# df_fragmentation[df_fragmentation == "AUSTRALASIA"] <- "aus"
+# df_fragmentation[df_fragmentation == "NORTHERN AMERICA"] <- "nam"
+# df_fragmentation[df_fragmentation == "SOUTHERN AMERICA"] <- "sam"
+# df_fragmentation[df_fragmentation == "PACIFIC"] <- "pac"
+# 
+# # spread df to wide format
+# df_frag_wide <- spread(df_fragmentation, metric_name, metric_value) %>%
+#   dplyr::select(!c("CORE", "CLUMPY"))
 
 
 # time since introduction -------------------------------------------------
@@ -92,33 +93,74 @@ year_first_intro_Seebens <- year_first_intro_Seebens %>%
 
 spec_traits <- species_pacific_traits_GIFT %>%
   rename("species" = "species_orig") %>% 
-  dplyr::select(species, mean_height_GIFT, mean_seedmass_GIFT, growth_form_GIFT, lifecycle_GIFT, max_elev_range_GIFT) %>% 
+  dplyr::select(species, mean_height_GIFT, mean_seedmass_GIFT, growth_form_GIFT, lifecycle_GIFT, dispersal_1_GIFT, dispersal_2_GIFT) %>% 
   rename_with(stringr::str_replace,
               pattern = "_GIFT", replacement = "",
               matches("_GIFT")) %>%
-  filter(species %in% spp_suitable_AC) %>% 
-  na.omit() # only keep species with trait information for all traits
+  filter(species %in% spp_suitable_AC)
 
+
+# merge dispersal information ---------------------------------------------
+
+spec_traits <- spec_traits %>% 
+  mutate(dispersal = case_when(
+    # there are 16 unique combinations (plus NA+NA)
+    
+    dispersal_1 == "hydrochorous" & is.na(dispersal_2) ~ "hydrochorous",
+    
+    dispersal_1 == "unspecialized" & dispersal_2 == "unspecialized" ~ "unspecialized",
+    
+    dispersal_1 == "zoochorous" & is.na(dispersal_2) ~ "zoochorous",
+    
+    dispersal_1 == "autochorous" & dispersal_2 == "autochorous" ~ "autochorous",
+    
+    dispersal_1 == "anemochorous" & dispersal_2 == "anemochorous" ~ "anemochorous",
+    
+    dispersal_1 == "unspecialized" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
+    
+    dispersal_1 == "zoochorous" & dispersal_2 == "epizoochorous" ~ "zoochorous",
+    
+    dispersal_1 == "unspecialized" & is.na(dispersal_2) ~ "unspecialized",
+    
+    is.na(dispersal_1)  & dispersal_2 == "anthropochorous" ~ "anthropochorous",
+    
+    dispersal_1 == "anemochorous" & is.na(dispersal_2) ~ "anemochorous",
+    
+    dispersal_1 == "zoochorous" & dispersal_2 == "endozoochorous" ~ "zoochorous",
+    
+    dispersal_1 == "zoochorous" & dispersal_2 == "zoochorous" ~ "zoochorous",
+    
+    dispersal_1 == "hydrochorous" & dispersal_2 == "hydrochorous" ~ "hydrochorous",
+    
+    dispersal_1 == "autochorous" & is.na(dispersal_2) ~ "autochorous",
+    
+    dispersal_1 == "zoochorous" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
+    
+    is.na(dispersal_1)  & dispersal_2 == "anemochorous" ~ "anthropochorous"
+  )) %>% 
+  select(!c("dispersal_1", "dispersal_2"))# %>% 
+  #na.omit()
 
 # merge data --------------------------------------------------------------
 
 # prepare the input data for the trait analysis (TA)
 input_TA <- df_results %>% left_join(spec_traits, by = "species") %>%
   unite(species_region, c("species", "region"), remove = FALSE, sep = " ") %>%
-  left_join(df_frag_wide, by = "region") %>% # add fragmentation metric (requires region name)
+ # left_join(df_frag_wide, by = "region") %>% # add fragmentation metric (requires region name)
   left_join(dplyr::select(native_range_df, species, range_both), by = "species") %>% # native range size
   rename("range_size_nat" = "range_both") %>% 
-  left_join(dplyr::select(intro_range_df, species, region, range_both), by = c("species", "region")) %>% # intro. range size
-  rename("range_size_intr" = "range_both") %>% 
+  # left_join(dplyr::select(intro_range_df, species, region, range_both), by = c("species", "region")) %>% # intro. range size
+  # rename("range_size_intr" = "range_both") %>% 
   left_join(select(df_native_niche, species, niche_breadth_zcor, niche_centroid1_global, niche_centroid2_global), by = "species") %>%  # native niche breadth and centroid
   rename("niche_breadth_nat" = "niche_breadth_zcor",
          "niche_centroid_a_nat" = "niche_centroid1_global",
          "niche_centroid_b_nat" = "niche_centroid2_global") %>% 
   left_join(year_first_intro_Seebens, by = c("species", "region")) %>% # years since first introduction
-  left_join(eucl_dist, by = c("species", "region")) %>% # nat & intr range centroid + euclidean distance
-  dplyr::select(!AI) %>%  
+  left_join(df_lat_distance, by = c("species", "region")) %>% # nat & intr range centroid + euclidean distance
+  dplyr::filter(dispersal %in% c("zoochorous", "anthropochorous", "anemochorous", "autochorous")) %>% 
   na.omit()
 
+save(input_TA, file = "shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
 
 # standardise data --------------------------------------------------------
 
@@ -132,37 +174,64 @@ input_TA[input_TA == "annual"] <- 1
 input_TA[input_TA == "biennial"] <- 2
 input_TA[input_TA == "perennial"] <- 3
 
+# dispersal mode
+input_TA[input_TA == "autochorous"] <- 1
+input_TA[input_TA == "anemochorous"] <- 2
+input_TA[input_TA == "zoochorous"] <- 3
+input_TA[input_TA == "anthropochorous"] <- 4
 
 # make sure all trait columns are numeric
-input_TA <- input_TA %>%
+# then standardise
+input_TA <- input_TA %>% 
   mutate(across(!c(species_region, species, region), as.numeric)) %>%
+  mutate(mean_height = scale(mean_height)) %>% 
+  mutate(mean_seedmass = scale(mean_seedmass)) %>% 
+  mutate(growth_form = scale(growth_form)) %>% 
+  mutate(lifecycle = scale(lifecycle)) %>% 
+  mutate(dispersal = scale(dispersal)) %>% 
+  mutate(range_size_nat = scale(range_size_nat)) %>% 
+  mutate(years_since_intro = scale(years_since_intro)) %>% 
+  mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
+  mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
+  mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
+  # mutate(max_elev_range = scale(max_elev_range)) %>% 
+  mutate(lat_dist = lat_dist/180) %>% 
+  mutate(unfilling = logit(unfilling)) %>% 
+  mutate(expansion = logit(expansion)) %>% 
+  mutate(stability = logit(stability)) %>% 
+  mutate(rel_unfilling = logit(rel_unfilling)) %>% 
+  mutate(rel_expansion = logit(rel_expansion)) %>% 
+  mutate(rel_stability = logit(rel_stability)) %>% 
+  mutate(rel_abandonment = logit(rel_abandonment)) %>% 
+  mutate(rel_pioneering = logit(rel_pioneering)) %>% 
   na.omit()
 
-
-# Standardise traits
-input_TA$mean_height <- scale(as.numeric(input_TA$mean_height))
-input_TA$mean_seedmass <- scale(as.numeric(input_TA$mean_seedmass))
-input_TA$max_elev_range <- scale(as.numeric(input_TA$max_elev_range))
-input_TA$CAI <- scale(as.numeric(input_TA$CAI))
-input_TA$range_size_nat <- scale(as.numeric(input_TA$range_size_nat))
-input_TA$range_size_intr <- scale(as.numeric(input_TA$range_size_intr))
-input_TA$years_since_intro <- scale(as.numeric(input_TA$years_since_intro))
-input_TA$lon_intr <- input_TA$lon_intr/180
-input_TA$lat_intr <- input_TA$lat_intr/90
-input_TA$lon_nat <- input_TA$lon_nat/180
-input_TA$lat_nat <- input_TA$lat_nat/90
-input_TA$eucl_dist <- scale(as.numeric(input_TA$eucl_dist))
-input_TA$niche_breadth_nat <- scale(as.numeric(input_TA$niche_breadth_nat))
-input_TA$niche_centroid_a_nat <- scale(as.numeric(input_TA$niche_centroid_a_nat))
-input_TA$niche_centroid_b_nat <- scale(as.numeric(input_TA$niche_centroid_b_nat))
-
-
-
-
-# Logit-transform response variables
-input_TA$unfilling <- logit(input_TA$unfilling)
-input_TA$stability <- logit(input_TA$stability)
-input_TA$expansion <- logit(input_TA$expansion)
+# 
+# 
+# # Standardise traits
+# input_TA$mean_height <- scale(as.numeric(input_TA$mean_height))
+# input_TA$mean_seedmass <- scale(as.numeric(input_TA$mean_seedmass))
+# input_TA$growth_form <- scale(as.numeric(input_TA$growth_form))
+# input_TA$lifecycle <- scale(as.numeric(input_TA$lifecycle))
+# # input_TA$dispersal <- scale(as.numeric(input_TA$dispersal))
+# # input_TA$max_elev_range <- scale(as.numeric(input_TA$max_elev_range))
+# # input_TA$CAI <- scale(as.numeric(input_TA$CAI))
+# input_TA$range_size_nat <- scale(as.numeric(input_TA$range_size_nat))
+# # input_TA$range_size_intr <- scale(as.numeric(input_TA$range_size_intr))
+# input_TA$years_since_intro <- scale(as.numeric(input_TA$years_since_intro))
+# # input_TA$lon_intr <- input_TA$lon_intr/180
+# # input_TA$lat_intr <- input_TA$lat_intr/90
+# # input_TA$lon_nat <- input_TA$lon_nat/180
+# # input_TA$lat_nat <- input_TA$lat_nat/90
+# input_TA$lat_dist <- scale(as.numeric(input_TA$lat_dist))
+# input_TA$niche_breadth_nat <- scale(as.numeric(input_TA$niche_breadth_nat))
+# input_TA$niche_centroid_a_nat <- scale(as.numeric(input_TA$niche_centroid_a_nat))
+# input_TA$niche_centroid_b_nat <- scale(as.numeric(input_TA$niche_centroid_b_nat))
+# 
+# # Logit-transform response variables
+# input_TA$unfilling <- logit(input_TA$unfilling)
+# input_TA$stability <- logit(input_TA$stability)
+# input_TA$expansion <- logit(input_TA$expansion)
 
 spp_traits <- unique(input_TA$species)
 

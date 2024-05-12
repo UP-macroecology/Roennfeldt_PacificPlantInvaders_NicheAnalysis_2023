@@ -440,6 +440,48 @@ save(eucl_dist, file = "data/trait_analysis/eucl_dist.RData")
 rm(list = ls())
 
 
+
+# Latitudinal distance ----------------------------------------------------
+
+# load data
+load("data/trait_analysis/intro_centroid.RData")
+load("data/trait_analysis/native_centroid.RData")
+
+df_lat_distance <- data.frame(species = as.factor(NULL),
+                              region = as.factor(NULL),
+                              lat_nat = as.numeric(NULL),
+                              lat_intr = as.numeric(NULL),
+                              lat_dist = as.numeric(NULL))
+
+
+specs <- unique(intro_centroid_df$species)
+
+for (spec in specs) {
+  
+  
+  lat_nat <- native_centroid_df[native_centroid_df$species == spec , "lat_centroid"]
+  df_intr <- subset(intro_centroid_df, species == spec)
+  
+  regions <- unique(df_intr$region) 
+  
+  for (region in regions) {
+    
+    lat_intr <- df_intr[df_intr$region == region,"lat_centroid"]
+    
+    df_lat_distance <- rbind(df_lat_distance,
+      data.frame(species = as.factor(spec),
+                                  region = as.factor(region),
+                 lat_nat = lat_nat,
+                 lat_intr = lat_intr,
+                                  lat_dist = abs( lat_intr - lat_nat)))
+  } # end of for loop over regions
+    
+} # end of for loop over specs
+
+save(df_lat_distance, file = "data/trait_analysis/lat_dist.RData")
+
+rm(list = ls())
+
 # Global niche ------------------------------------------------------------
 
 # everything reated to the niche breath and centroid runs on the HPC, because 
