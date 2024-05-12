@@ -151,6 +151,8 @@ corrplot_mod = function(m_imp,
                     col_names = colnames(m_efs),
                     row_names = rownames(m_efs),
                     
+                    r2names = NULL,
+                    
                     addgrid.col = "grey", addCoef.col = NULL, addCoefasPercent = FALSE,
                     
                     order = c('original', 'AOE', 'FPC', 'hclust', 'alphabet'),
@@ -860,6 +862,7 @@ corrplot_mod = function(m_imp,
   if (tl.pos != 'n') {
     pos.xlabel = cbind(m1:m2, n2 + 0.5 + laboffset)
     pos.ylabel = cbind(m1 - 0.5, n2:n1)
+    pos.r2.label <- cbind(m1:m2 - 0.3, 0.2)
     
     if (tl.pos == 'td') {
       if (type != 'upper') {
@@ -896,8 +899,18 @@ corrplot_mod = function(m_imp,
       
       text(pos.ylabel[, 1], pos.ylabel[, 2], newrownames,
            col = tl.col, cex = tl.cex, pos = 2, offset = tl.offset)
+      
+      if(!is.null(r2names)) {
+        # r2 values
+        text(pos.r2.label[, 1], pos.r2.label[, 2], r2names, srt = 0,
+             adj = ifelse(tl.srt == 0, c(0.5, 0), c(0, 0)),
+             col = tl.col, cex = 0.9, offset = tl.offset)
+      }
+      
     }
   }
+  
+  
   
   
   ## add grid, in case of the grid is ate when 'diag=FALSE'
