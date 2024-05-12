@@ -1,9 +1,11 @@
+library(dplyr)
 library(stringr) # for str_trim
+
 
 rm(list = ls())
 
 # path_output <- "/import/ecoc9z/data-zurell/roennfeldt/C1/ouput/"
-path_data <- "Y:/roennfeldt/C1/data/ecospat/"
+path_data <- "Y:/roennfeldt/projects/PhD_C1/data/ecospat/"
 
 
 # functions ---------------------------------------------------------------
@@ -604,3 +606,71 @@ for (reg in regs) {
 # save results
 save(perc_df, file = "results/ecospat/percentages_niche_conservatism.RData")
 save(perc_df_AC, file = "results/ecospat/percentages_niche_conservatism_AC.RData")
+
+
+
+# shiny overview ---------------------------------------------------------
+rm(list = ls())
+
+load("data/spp_suitable_AC.RData")
+load("results/ecospat/master_results_AC.RData")
+load("shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
+
+spp_pac <- read.table("data/PaciFLora.txt", header = TRUE) %>% 
+  select(c(Species, Family)) %>% 
+  rename("species" = "Species",
+         "family" = "Family") %>% 
+  dplyr::filter(species %in% spp_suitable_AC) %>% 
+  distinct(species, family)
+
+
+input_TA <- input_TA %>% 
+  select(species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal) %>% 
+  distinct()
+
+overview_comparison <- master_results_AC %>% 
+  select(species, region, similarity, expansion, stability, unfilling,
+         rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering) %>% 
+  rename("orig_expansion" = "expansion",
+         "orig_stability" = "stability",
+         "orig_unfilling" = "unfilling") %>% 
+  mutate(region = case_when(region == "afr" ~ "Africa",
+                            region == "ate" ~ "temp. Africa",
+                            region == "atr" ~ "trop. Asia",
+                            region == "aus" ~ "Australasia",
+                            region == "eur" ~ "Europe",
+                            region == "pac" ~ "Pacific Islands",
+                            region == "nam" ~ "N. America",
+                            region == "sam" ~ "S. America")) %>% 
+  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
+  mutate(expansion = rel_expansion / total_esu) %>%
+  mutate(stability = rel_stability / total_esu) %>%
+  mutate(unfilling = rel_unfilling / total_esu) %>%
+  select(!total_esu) %>% 
+  left_join(select(spp_pac, species, family), by = "species") %>% 
+  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal), by = "species")
+
+
+
+save(overview_comparison, file = "shiny/NicheDyn_exploration/data/shiny_overview_comparison.RData")
+
+
+overview_comparison <- overview_comparison %>% 
+  select(!c(orig_expansion, orig_stability, orig_unfilling)) %>% 
+  mutate(across(c(rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
+                  expansion, stability, unfilling), function(x) round(x * 100, 2))) 
+
+write.csv(overview_comparison, file = "shiny/NicheDyn_exploration/data/overview_comparison.csv", row.names = FALSE, quote = FALSE)
+
+
+# subset occurence data for AC species 
+# reason: reduce object size for shiny app
+
+load("data/occ_status_resolved_lonlat.RData")
+
+occ_status_AC <- occ_status_resolved %>% 
+  dplyr::filter(species %in% spp_suitable_AC) %>% 
+  dplyr::select(species, lon, lat, criterion_1) %>% 
+  dplyr::filter(criterion_1 %in% c("native", "introduced"))
+
+save(occ_status_AC, file = "shiny/NicheDyn_exploration/data/occ_status_AC.RData")
