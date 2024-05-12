@@ -18,14 +18,14 @@ regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
 #               "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
 
 # without lon/lat
-covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "max_elev_range", "range_size_nat",
-                "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
+covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "range_size_nat", "dispersal",
+                "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "lat_dist")
 
 
 
 # setting <- "mod_seed"
 # setting <- "original"
-# setting <- "mod_seed_scale"
+setting <- "mod_seed_scale"
 
 traits_res_e <- tibble()
 traits_res_s <- tibble()
@@ -67,23 +67,20 @@ for (reg in regions) {
 } # end of for loop
 
 
-
-
-
-# testing -----------------------------------------------------------------
-
-
-
-if (setting == "mod_seed") {
-  traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.962
-  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -2.639
-  traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 1.118
-}
+# if (setting == "mod_seed") {
+#   traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.962
+#   traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -2.639
+#   traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 1.118
+# }
 
 if (setting == "mod_seed_scale") {
-  traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.97
-  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -4.97
-  traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 3.22
+  traits_res_u[traits_res_u$region == "atr" & traits_res_u$term == "lat_dist","estimate"] <- -5.672
+  traits_res_e[traits_res_e$region == "aus" & traits_res_e$term == "lat_dist","estimate"] <- -5.672
+  traits_res_e[traits_res_e$region == "eur" & traits_res_e$term == "lat_dist","estimate"] <- 5.305
+  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "lat_dist","estimate"] <- 5.305
+  traits_res_e[traits_res_e$region == "nam" & traits_res_e$term == "lat_dist","estimate"] <- 5.305
+  traits_res_s[traits_res_s$region == "atr" & traits_res_s$term == "lat_dist","estimate"] <- 5.305
+  traits_res_u[traits_res_u$region == "sam" & traits_res_u$term == "lat_dist","mean_seedmass"] <- 5.305
 }
 
 
@@ -143,13 +140,48 @@ max_stb <- round(max(traits_res_s$estimate, na.rm = TRUE), 2)
 min_unf <- round(min(traits_res_u$estimate, na.rm = TRUE), 2)
 max_unf <- round(max(traits_res_u$estimate, na.rm = TRUE), 2)
 
-col_lim <- c(-4.97, 3.23)
+
+
+# R² data  ----------------------------------------------------------------
+
+regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
+
+r2_exp <- NULL
+r2_sta <- NULL
+r2_unf <- NULL
+
+for (reg in regions) {
+  
+  df_res <- read.csv(paste0("results/trait_analysis/regional_trait_analysis_results/results_TraitAnal_df_ESU_",reg,".csv"))
+  
+  r2_exp <- c(r2_exp, round(df_res[df_res$Trait == "R2", "expansion_coef"], 2))
+  r2_sta <- c(r2_sta, round(df_res[df_res$Trait == "R2", "stability_coef"], 2))
+  r2_unf <- c(r2_unf, round(df_res[df_res$Trait == "R2", "unfilling_coef"], 2))
+  
+} # end of for loop over regions
+
+r2_exp <- r2_exp %>% unlist()
+r2_sta <- r2_sta %>% unlist()
+r2_unf <- r2_unf %>% unlist()
+
+
+col_lim <- c(-5.672, 5.305) #col_lim <- c(-4.97, 3.23)
 txt_col <- "black"
 na_col <- "white"
+col <- rev(COL2('RdBu', 200))
 
-col_names <- c("Africa", "temp. Asia", "trop. Asia", "Australasia", "Europe", "N. America", "Pacific Islands", "S. America")
-row_names <- c("Plant height", "Seed mass", "Growth form", "Life span", "Elevational range", "Native range size", "Native niche breadth",
-               "Native niche centroid 1", "Native niche centroid 2", "Residence time", "Distance range centroids")
+col_names <- c("Africa (n = 67)", 
+               "temp. Asia (n = 49)", 
+               "trop. Asia (n = 39)", 
+               "Australasia (n = 64)", 
+               "Europe (n = 26)", 
+               "N. America (n = 57)", 
+               "Pacific Islands (n = 73)",
+               "S. America (n = 23)")
+
+
+row_names <- c("Plant height", "Seed mass", "Growth form", "Life span", "Native range size","Dispersal", "Native niche breadth",
+               "Native niche centroid 1", "Native niche centroid 2", "Residence time", "Distance lat. centroids")
 
 Cairo(file = paste0("plots/trait_analysis/regional_expansion_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
       bg = "white", canvas = "white", units = "px", dpi = "auto")
@@ -159,11 +191,15 @@ if (setting == "mod_seed_scale") {
   
   corrplot_mod(m_imp = e_imp_mtx,
                m_efs = e_efs_mtx,
+               r2names = r2_exp,
+               mar = c(2,2,2,2),
                col.lim = col_lim,
+               col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
                tl.col = txt_col,
+               cl.offset = -1,
                na.label = "square",
                na.label.col = na_col,
                outline = TRUE)
@@ -172,6 +208,7 @@ if (setting == "mod_seed_scale") {
   corrplot_mod(m_imp = e_imp_mtx,
                m_efs = e_efs_mtx,
                col.lim = c(min_exp, max_exp),
+               col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
@@ -192,7 +229,11 @@ if (setting == "mod_seed_scale") {
   
   corrplot_mod(m_imp = s_imp_mtx,
                m_efs = s_efs_mtx, 
+               r2names = r2_sta,
+               mar = c(2,2,2,2),
+               cl.pos = "n",
                col.lim = col_lim, 
+               col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
@@ -204,7 +245,8 @@ if (setting == "mod_seed_scale") {
 
   corrplot_mod(m_imp = s_imp_mtx,
                m_efs = s_efs_mtx, 
-               col.lim = c(min_stb, max_stb), 
+               col.lim = c(min_stb, max_stb),
+               col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
@@ -226,7 +268,11 @@ if (setting == "mod_seed_scale") {
   
   corrplot_mod(m_imp = u_imp_mtx, 
                m_efs = u_efs_mtx,
+               r2names = r2_unf,
+               mar = c(2,2,2,2),
+               cl.pos = "n",
                col.lim = col_lim, 
+               col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
@@ -238,6 +284,7 @@ if (setting == "mod_seed_scale") {
   corrplot_mod(m_imp = u_imp_mtx, 
                m_efs = u_efs_mtx,
                col.lim = c(min_unf, max_unf), 
+               col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
