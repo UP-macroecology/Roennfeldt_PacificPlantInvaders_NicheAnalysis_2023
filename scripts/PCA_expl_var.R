@@ -31,7 +31,7 @@ for (i in 1:length(files)) {
     map(~ .x[[5]]) %>% 
     simplify()
   
-  reg <- file %>% 
+    reg <- file %>% 
     str_remove(".RData") %>% 
     str_split(pattern = "_") %>% 
     map(~ .x[[4]]) %>% 
@@ -59,5 +59,5 @@ sd_perc_1 <- sd(perc_expl_df$perc_1)
 mean_perc_2 <- mean(perc_expl_df$perc_2) 
 sd_perc_2 <- sd(perc_expl_df$perc_2)
 
-mean_total <- mean(perc_expl_df$perc_total)
-sd_total <- sd(perc_expl_df$perc_total)
+(mean_total <- mean(perc_expl_df$perc_total))
+(sd_total <- sd(perc_expl_df$perc_total))
