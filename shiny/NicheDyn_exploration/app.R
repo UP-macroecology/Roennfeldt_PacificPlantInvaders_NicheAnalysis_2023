@@ -69,8 +69,10 @@ ui <- navbarPage("PPI Niche Comparison", id ="nav",
                             sidebarPanel(width = 3,
                                          
                                          selectInput("species",
-                                                     label = "Species",
+                                                     label = "Select a species:",
                                                      choices = as.list(spp_suitable_AC)),
+                                         
+                                         htmlOutput("text_spp")
                                          
                                          
                             ), # end of sidebarPanel
@@ -87,9 +89,11 @@ ui <- navbarPage("PPI Niche Comparison", id ="nav",
                  tabPanel("Trait Analysis",
                           
                           fluidPage(
+                            
+                            
 
                             # actionButton("click", "Multivariate Results")
-                            imageOutput("TA_figure")
+                            imageOutput("TA_figure", width = "100%")
 
                           ) # end of fluidPage
                           ) # end of tabPanel Trait Analydis
@@ -112,6 +116,20 @@ server <- function(input, output) {
     
   ) # end of renderPlot
   
+  output$text_spp <- renderText({
+    paste("<b> Species: </b>", input$species, "<br/> 
+          <b> Family: </b>", overview_comparison[overview_comparison$species == input$species, "family"][1], "<br/>
+          <br/>
+          <b> Traits: </b> <br/>
+          Mean height (m):", overview_comparison[overview_comparison$species == input$species, "mean_height"][1],"<br/>
+          Mean seedmass (g):", overview_comparison[overview_comparison$species == input$species, "mean_seedmass"][1],"<br/>
+          Growth form:", overview_comparison[overview_comparison$species == input$species, "growth_form"][1],"<br/>
+          Life cycle:", overview_comparison[overview_comparison$species == input$species, "lifecycle"][1],"<br/>
+          Dispersal:", overview_comparison[overview_comparison$species == input$species, "dispersal"][1],"<br/>")
+    
+  }) # end of renderText with HTML
+  
+  # output$text_spp <- renderText(input$species) # end of renderPrint
 
 # TAB2:=======================================================================
   
@@ -120,8 +138,8 @@ server <- function(input, output) {
       # src = file.path("plots", paste0(input$id, ".jpg")),
       src = file.path("plots", "TA_all.jpg"),
       contentType = "image/jpeg",
-      width = 900,
-      height = 500
+      width = 1600,
+      height = 1000
     )}, deleteFile = FALSE)
   
 } # end of server function
