@@ -72,15 +72,27 @@ ui <- navbarPage("PPI Niche Comparison", id ="nav",
                                                      label = "Select a species:",
                                                      choices = as.list(spp_suitable_AC)),
                                          
-                                         htmlOutput("text_spp")
+                                         htmlOutput("text_spp"),
+                                         
+                                         radioButtons("niche_selection", "Which dynamics do you want to see?",
+                                                      c("All five niche dynamics", "ESU", "original ecospat output")),
+                                         
+                                         
+                                        #  actionButton("go", "Go!")
                                          
                                          
                             ), # end of sidebarPanel
                             
                             mainPanel(
                               column(10,
-                                     plotOutput("map_status", 
-                                                   width = "100%", height = "90vh")
+                                     tableOutput("niche_dynamics"),
+                                     
+                                     plotOutput("map_status")
+                                     
+                                     # plotOutput("map_status", 
+                                     #            width = "100%", height = "90vh")
+                                     
+                                  
                               ) #vh = viewport height, css-unit; allows to set height relative to window size)
                             ) # end of mainPanel
                           ) # end of sidebarLayout
@@ -106,8 +118,11 @@ ui <- navbarPage("PPI Niche Comparison", id ="nav",
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-
+  
+  # observeEvent(input$go, {
+    
+    
+  
 # TAB1:=======================================================================
 
   output$map_status <- renderPlot(
@@ -125,9 +140,48 @@ server <- function(input, output) {
           Mean seedmass (g):", overview_comparison[overview_comparison$species == input$species, "mean_seedmass"][1],"<br/>
           Growth form:", overview_comparison[overview_comparison$species == input$species, "growth_form"][1],"<br/>
           Life cycle:", overview_comparison[overview_comparison$species == input$species, "lifecycle"][1],"<br/>
-          Dispersal:", overview_comparison[overview_comparison$species == input$species, "dispersal"][1],"<br/>")
+          Dispersal:", overview_comparison[overview_comparison$species == input$species, "dispersal"][1],"<br/>
+          <br/>")
     
   }) # end of renderText with HTML
+  
+  output$niche_dynamics <- renderTable(
+    
+    if(input$niche_selection == "All five niche dynamcis") {
+      
+      overview_comparison %>% 
+        filter(species == input$species) %>% 
+        select(region, similarity, rel_abandonment, rel_unfilling, rel_stability, rel_expansion, rel_pioneering) %>% 
+        rename("Region" = "region",
+               "Niche similarity" = "similarity",
+               "Abandonment" = "rel_abandonment",
+               "Unfilling" = "rel_unfilling",
+               "Stability" = "rel_stability",
+               "Expansion" = "rel_expansion",
+               "Pioneering" = "rel_pioneering") 
+      
+    } else {
+      if ((input$niche_selection == "ESU")) {
+        overview_comparison %>% 
+          filter(species == input$species) %>% 
+          select(region, similarity, unfilling, stability, expansion) %>% 
+          rename("Region" = "region",
+                 "Niche similarity" = "similarity",
+                 "Unfilling" = "unfilling",
+                 "Stability" = "stability",
+                 "Expansion" = "expansion") 
+      } else {
+        overview_comparison %>% 
+          filter(species == input$species) %>% 
+          select(region, similarity, orig_unfilling, orig_stability, orig_expansion) %>% 
+          rename("Region" = "region",
+                 "Niche similarity" = "similarity",
+                 "Unfilling" = "orig_unfilling",
+                 "Stability" = "orig_stability",
+                 "Expansion" = "orig_expansion") 
+      }
+    }
+  )
   
   # output$text_spp <- renderText(input$species) # end of renderPrint
 
@@ -141,6 +195,7 @@ server <- function(input, output) {
       width = 1600,
       height = 1000
     )}, deleteFile = FALSE)
+ #  }) # end of observeEvent
   
 } # end of server function
 

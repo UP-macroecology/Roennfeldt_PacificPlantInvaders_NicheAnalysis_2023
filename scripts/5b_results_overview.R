@@ -648,19 +648,41 @@ overview_comparison <- master_results_AC %>%
   mutate(unfilling = rel_unfilling / total_esu) %>%
   select(!total_esu) %>% 
   left_join(select(spp_pac, species, family), by = "species") %>% 
-  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal), by = "species")
+  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal), by = "species") %>% 
+  mutate(across(c(orig_expansion, orig_stability, orig_unfilling, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
+                  expansion, stability, unfilling), function(x) round(x * 100, 4)))
 
 
 
 save(overview_comparison, file = "shiny/NicheDyn_exploration/data/shiny_overview_comparison.RData")
 
 
-overview_comparison <- overview_comparison %>% 
+overview_comparison_csv <- master_results_AC %>% 
+  select(species, region, similarity, expansion, stability, unfilling,
+         rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering) %>% 
+  rename("orig_expansion" = "expansion",
+         "orig_stability" = "stability",
+         "orig_unfilling" = "unfilling") %>% 
+  mutate(region = case_when(region == "afr" ~ "Africa",
+                            region == "ate" ~ "temp. Africa",
+                            region == "atr" ~ "trop. Asia",
+                            region == "aus" ~ "Australasia",
+                            region == "eur" ~ "Europe",
+                            region == "pac" ~ "Pacific Islands",
+                            region == "nam" ~ "N. America",
+                            region == "sam" ~ "S. America")) %>% 
+  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
+  mutate(expansion = rel_expansion / total_esu) %>%
+  mutate(stability = rel_stability / total_esu) %>%
+  mutate(unfilling = rel_unfilling / total_esu) %>%
+  select(!total_esu) %>% 
+  left_join(select(spp_pac, species, family), by = "species") %>% 
+  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal), by = "species")  %>% 
   select(!c(orig_expansion, orig_stability, orig_unfilling)) %>% 
   mutate(across(c(rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
                   expansion, stability, unfilling), function(x) round(x * 100, 2))) 
 
-write.csv(overview_comparison, file = "shiny/NicheDyn_exploration/data/overview_comparison.csv", row.names = FALSE, quote = FALSE)
+write.csv(overview_comparison_csv, file = "shiny/NicheDyn_exploration/data/overview_comparison.csv", row.names = FALSE, quote = FALSE)
 
 
 # subset occurence data for AC species 
