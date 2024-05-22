@@ -93,7 +93,7 @@ year_first_intro_Seebens <- year_first_intro_Seebens %>%
 
 spec_traits <- species_pacific_traits_GIFT %>%
   rename("species" = "species_orig") %>% 
-  dplyr::select(species, mean_height_GIFT, mean_seedmass_GIFT, growth_form_GIFT, lifecycle_GIFT, dispersal_1_GIFT, dispersal_2_GIFT) %>% 
+  dplyr::select(species, mean_height_GIFT, mean_seedmass_GIFT, growth_form_GIFT, lifecycle_GIFT) %>% 
   rename_with(stringr::str_replace,
               pattern = "_GIFT", replacement = "",
               matches("_GIFT")) %>%
@@ -102,43 +102,43 @@ spec_traits <- species_pacific_traits_GIFT %>%
 
 # merge dispersal information ---------------------------------------------
 
-spec_traits <- spec_traits %>% 
-  mutate(dispersal = case_when(
-    # there are 16 unique combinations (plus NA+NA)
-    
-    dispersal_1 == "hydrochorous" & is.na(dispersal_2) ~ "hydrochorous",
-    
-    dispersal_1 == "unspecialized" & dispersal_2 == "unspecialized" ~ "unspecialized",
-    
-    dispersal_1 == "zoochorous" & is.na(dispersal_2) ~ "zoochorous",
-    
-    dispersal_1 == "autochorous" & dispersal_2 == "autochorous" ~ "autochorous",
-    
-    dispersal_1 == "anemochorous" & dispersal_2 == "anemochorous" ~ "anemochorous",
-    
-    dispersal_1 == "unspecialized" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
-    
-    dispersal_1 == "zoochorous" & dispersal_2 == "epizoochorous" ~ "zoochorous",
-    
-    dispersal_1 == "unspecialized" & is.na(dispersal_2) ~ "unspecialized",
-    
-    is.na(dispersal_1)  & dispersal_2 == "anthropochorous" ~ "anthropochorous",
-    
-    dispersal_1 == "anemochorous" & is.na(dispersal_2) ~ "anemochorous",
-    
-    dispersal_1 == "zoochorous" & dispersal_2 == "endozoochorous" ~ "zoochorous",
-    
-    dispersal_1 == "zoochorous" & dispersal_2 == "zoochorous" ~ "zoochorous",
-    
-    dispersal_1 == "hydrochorous" & dispersal_2 == "hydrochorous" ~ "hydrochorous",
-    
-    dispersal_1 == "autochorous" & is.na(dispersal_2) ~ "autochorous",
-    
-    dispersal_1 == "zoochorous" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
-    
-    is.na(dispersal_1)  & dispersal_2 == "anemochorous" ~ "anthropochorous"
-  )) %>% 
-  select(!c("dispersal_1", "dispersal_2"))# %>% 
+# spec_traits <- spec_traits %>% 
+#   mutate(dispersal = case_when(
+#     # there are 16 unique combinations (plus NA+NA)
+#     
+#     dispersal_1 == "hydrochorous" & is.na(dispersal_2) ~ "hydrochorous",
+#     
+#     dispersal_1 == "unspecialized" & dispersal_2 == "unspecialized" ~ "unspecialized",
+#     
+#     dispersal_1 == "zoochorous" & is.na(dispersal_2) ~ "zoochorous",
+#     
+#     dispersal_1 == "autochorous" & dispersal_2 == "autochorous" ~ "autochorous",
+#     
+#     dispersal_1 == "anemochorous" & dispersal_2 == "anemochorous" ~ "anemochorous",
+#     
+#     dispersal_1 == "unspecialized" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
+#     
+#     dispersal_1 == "zoochorous" & dispersal_2 == "epizoochorous" ~ "zoochorous",
+#     
+#     dispersal_1 == "unspecialized" & is.na(dispersal_2) ~ "unspecialized",
+#     
+#     is.na(dispersal_1)  & dispersal_2 == "anthropochorous" ~ "anthropochorous",
+#     
+#     dispersal_1 == "anemochorous" & is.na(dispersal_2) ~ "anemochorous",
+#     
+#     dispersal_1 == "zoochorous" & dispersal_2 == "endozoochorous" ~ "zoochorous",
+#     
+#     dispersal_1 == "zoochorous" & dispersal_2 == "zoochorous" ~ "zoochorous",
+#     
+#     dispersal_1 == "hydrochorous" & dispersal_2 == "hydrochorous" ~ "hydrochorous",
+#     
+#     dispersal_1 == "autochorous" & is.na(dispersal_2) ~ "autochorous",
+#     
+#     dispersal_1 == "zoochorous" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
+#     
+#     is.na(dispersal_1)  & dispersal_2 == "anemochorous" ~ "anthropochorous"
+#   )) %>% 
+#   select(!c("dispersal_1", "dispersal_2"))# %>% 
   #na.omit()
 
 # merge data --------------------------------------------------------------
@@ -157,7 +157,7 @@ input_TA <- df_results %>% left_join(spec_traits, by = "species") %>%
          "niche_centroid_b_nat" = "niche_centroid2_global") %>% 
   left_join(year_first_intro_Seebens, by = c("species", "region")) %>% # years since first introduction
   left_join(df_lat_distance, by = c("species", "region")) %>% # nat & intr range centroid + euclidean distance
-  dplyr::filter(dispersal %in% c("zoochorous", "anthropochorous", "anemochorous", "autochorous")) %>% 
+  # dplyr::filter(dispersal %in% c("zoochorous", "anthropochorous", "anemochorous", "autochorous")) %>% 
   na.omit()
 
 save(input_TA, file = "shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
@@ -175,10 +175,10 @@ input_TA[input_TA == "biennial"] <- 2
 input_TA[input_TA == "perennial"] <- 3
 
 # dispersal mode
-input_TA[input_TA == "autochorous"] <- 1
-input_TA[input_TA == "anemochorous"] <- 2
-input_TA[input_TA == "zoochorous"] <- 3
-input_TA[input_TA == "anthropochorous"] <- 4
+# input_TA[input_TA == "autochorous"] <- 1
+# input_TA[input_TA == "anemochorous"] <- 2
+# input_TA[input_TA == "zoochorous"] <- 3
+# input_TA[input_TA == "anthropochorous"] <- 4
 
 # make sure all trait columns are numeric
 # then standardise
@@ -188,13 +188,14 @@ input_TA <- input_TA %>%
   mutate(mean_seedmass = scale(mean_seedmass)) %>% 
   mutate(growth_form = scale(growth_form)) %>% 
   mutate(lifecycle = scale(lifecycle)) %>% 
-  mutate(dispersal = scale(dispersal)) %>% 
+ #  mutate(dispersal = scale(dispersal)) %>% 
   mutate(range_size_nat = scale(range_size_nat)) %>% 
   mutate(years_since_intro = scale(years_since_intro)) %>% 
   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
   # mutate(max_elev_range = scale(max_elev_range)) %>% 
+  # mutate(lat_dist = scale(lat_dist)) %>% 
   mutate(lat_dist = lat_dist/180) %>% 
   mutate(unfilling = logit(unfilling)) %>% 
   mutate(expansion = logit(expansion)) %>% 
@@ -206,33 +207,10 @@ input_TA <- input_TA %>%
   mutate(rel_pioneering = logit(rel_pioneering)) %>% 
   na.omit()
 
-# 
-# 
-# # Standardise traits
-# input_TA$mean_height <- scale(as.numeric(input_TA$mean_height))
-# input_TA$mean_seedmass <- scale(as.numeric(input_TA$mean_seedmass))
-# input_TA$growth_form <- scale(as.numeric(input_TA$growth_form))
-# input_TA$lifecycle <- scale(as.numeric(input_TA$lifecycle))
-# # input_TA$dispersal <- scale(as.numeric(input_TA$dispersal))
-# # input_TA$max_elev_range <- scale(as.numeric(input_TA$max_elev_range))
-# # input_TA$CAI <- scale(as.numeric(input_TA$CAI))
-# input_TA$range_size_nat <- scale(as.numeric(input_TA$range_size_nat))
-# # input_TA$range_size_intr <- scale(as.numeric(input_TA$range_size_intr))
-# input_TA$years_since_intro <- scale(as.numeric(input_TA$years_since_intro))
-# # input_TA$lon_intr <- input_TA$lon_intr/180
-# # input_TA$lat_intr <- input_TA$lat_intr/90
-# # input_TA$lon_nat <- input_TA$lon_nat/180
-# # input_TA$lat_nat <- input_TA$lat_nat/90
-# input_TA$lat_dist <- scale(as.numeric(input_TA$lat_dist))
-# input_TA$niche_breadth_nat <- scale(as.numeric(input_TA$niche_breadth_nat))
-# input_TA$niche_centroid_a_nat <- scale(as.numeric(input_TA$niche_centroid_a_nat))
-# input_TA$niche_centroid_b_nat <- scale(as.numeric(input_TA$niche_centroid_b_nat))
-# 
-# # Logit-transform response variables
-# input_TA$unfilling <- logit(input_TA$unfilling)
-# input_TA$stability <- logit(input_TA$stability)
-# input_TA$expansion <- logit(input_TA$expansion)
+
+
 
 spp_traits <- unique(input_TA$species)
 
-save(input_TA, file = "data/trait_analysis/input_TA.RData")
+save(input_TA, file = "data/trait_analysis/input_TA_scale.RData")
+save(input_TA, file = "data/trait_analysis/input_TA_degr.RData")

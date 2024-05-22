@@ -615,6 +615,8 @@ rm(list = ls())
 load("data/spp_suitable_AC.RData")
 load("results/ecospat/master_results_AC.RData")
 load("shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
+load("data/trait_analysis/year_first_intro_Seebens.RData")
+
 
 spp_pac <- read.table("data/PaciFLora.txt", header = TRUE) %>% 
   select(c(Species, Family)) %>% 
@@ -623,14 +625,20 @@ spp_pac <- read.table("data/PaciFLora.txt", header = TRUE) %>%
   dplyr::filter(species %in% spp_suitable_AC) %>% 
   distinct(species, family)
 
+year_first_intro_Seebens <- year_first_intro_Seebens %>%
+  dplyr::select(!pac_region) %>%
+  pivot_longer(cols = !species,
+               names_to = "region",
+               values_to = "years_since_intro")
 
 input_TA <- input_TA %>% 
-  select(species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal) %>% 
+  select(species, mean_height, mean_seedmass, growth_form, lifecycle) %>% 
   distinct()
 
 overview_comparison <- master_results_AC %>% 
   select(species, region, similarity, expansion, stability, unfilling,
          rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering) %>% 
+  left_join(year_first_intro_Seebens, by = c("species", "region")) %>%  # years since first introduction
   rename("orig_expansion" = "expansion",
          "orig_stability" = "stability",
          "orig_unfilling" = "unfilling") %>% 
@@ -648,9 +656,9 @@ overview_comparison <- master_results_AC %>%
   mutate(unfilling = rel_unfilling / total_esu) %>%
   select(!total_esu) %>% 
   left_join(select(spp_pac, species, family), by = "species") %>% 
-  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal), by = "species") %>% 
+  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle), by = "species") %>% 
   mutate(across(c(orig_expansion, orig_stability, orig_unfilling, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
-                  expansion, stability, unfilling), function(x) round(x * 100, 4)))
+                  expansion, stability, unfilling), function(x) round(x * 100, 4))) 
 
 
 
@@ -677,7 +685,7 @@ overview_comparison_csv <- master_results_AC %>%
   mutate(unfilling = rel_unfilling / total_esu) %>%
   select(!total_esu) %>% 
   left_join(select(spp_pac, species, family), by = "species") %>% 
-  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle, dispersal), by = "species")  %>% 
+  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle), by = "species")  %>% 
   select(!c(orig_expansion, orig_stability, orig_unfilling)) %>% 
   mutate(across(c(rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
                   expansion, stability, unfilling), function(x) round(x * 100, 2))) 

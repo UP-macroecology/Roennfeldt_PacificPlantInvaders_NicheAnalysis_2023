@@ -18,14 +18,9 @@ regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
 #               "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "eucl_dist")
 
 # without lon/lat
-covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "range_size_nat", "dispersal",
-                "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat", "years_since_intro", "lat_dist")
+covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", "years_since_intro", "lat_dist", "range_size_nat",
+                "niche_breadth_nat", "niche_centroid_a_nat", "niche_centroid_b_nat")
 
-
-
-# setting <- "mod_seed"
-# setting <- "original"
-setting <- "mod_seed_scale"
 
 traits_res_e <- tibble()
 traits_res_s <- tibble()
@@ -66,25 +61,19 @@ for (reg in regions) {
   
 } # end of for loop
 
+rm(traits_res_reg_e, traits_res_reg_s, traits_res_reg_u, traits_res)
 
-# if (setting == "mod_seed") {
-#   traits_res_u[traits_res_u$region == "eur" & traits_res_u$term == "mean_seedmass","estimate"] <- -4.962
-#   traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass","estimate"] <- -2.639
-#   traits_res_s[traits_res_s$region == "sam" & traits_res_e$term == "eucl_dist","estimate"] <- 1.118
-# }
-
-if (setting == "mod_seed_scale") {
-  traits_res_u[traits_res_u$region == "atr" & traits_res_u$term == "lat_dist","estimate"] <- -5.672
-  traits_res_e[traits_res_e$region == "aus" & traits_res_e$term == "lat_dist","estimate"] <- -5.672
-  traits_res_e[traits_res_e$region == "eur" & traits_res_e$term == "lat_dist","estimate"] <- 5.305
-  traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "lat_dist","estimate"] <- 5.305
-  traits_res_e[traits_res_e$region == "nam" & traits_res_e$term == "lat_dist","estimate"] <- 5.305
-  traits_res_s[traits_res_s$region == "atr" & traits_res_s$term == "lat_dist","estimate"] <- 5.305
-  traits_res_u[traits_res_u$region == "sam" & traits_res_u$term == "lat_dist","mean_seedmass"] <- 5.305
-}
+traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "mean_seedmass", "estimate"] <- -3.827
+traits_res_e[traits_res_e$region == "pac" & traits_res_e$term == "lat_dist", "estimate"] <- 5.179
+traits_res_e[traits_res_e$region == "eur" & traits_res_e$term == "lat_dist", "estimate"] <- 5.179
+traits_res_e[traits_res_e$region == "ate" & traits_res_e$term == "lat_dist", "estimate"] <- 5.179
 
 
-covariates <- unique(traits_res_e$term)
+
+
+
+
+# covariates <- unique(traits_res_e$term)
 
 e_efs_mtx <- traits_res_e %>% 
   select(region, estimate, term) %>% 
@@ -165,133 +154,105 @@ r2_sta <- r2_sta %>% unlist()
 r2_unf <- r2_unf %>% unlist()
 
 
-col_lim <- c(-5.672, 5.305) #col_lim <- c(-4.97, 3.23)
+col_lim <- c(-3.827, 5.179)
+
 txt_col <- "black"
 na_col <- "white"
 col <- rev(COL2('RdBu', 200))
 
-col_names <- c("Africa (n = 67)", 
-               "temp. Asia (n = 49)", 
-               "trop. Asia (n = 39)", 
-               "Australasia (n = 64)", 
-               "Europe (n = 26)", 
-               "N. America (n = 57)", 
-               "Pacific Islands (n = 73)",
-               "S. America (n = 23)")
+col_names <- c("Africa (n = 124)",
+               "temp. Asia (n = 95)",
+               "trop. Asia (n = 78)",
+               "Australasia (n = 124)",
+               "Europe (n = 56)",
+               "N. America (n = 110)",
+               "Pacific Islands (n = 143)",
+               "S. America (n = 41)")
 
 
-row_names <- c("Plant height", "Seed mass", "Growth form", "Life span", "Native range size","Dispersal", "Native niche breadth",
-               "Native niche centroid 1", "Native niche centroid 2", "Residence time", "Distance lat. centroids")
 
-Cairo(file = paste0("plots/trait_analysis/regional_expansion_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
+row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Residence time",
+               "Distance lat. centroids", "Native range size" , "Native niche breadth",
+               "Native niche centroid 1", "Native niche centroid 2")
+
+# Cairo(file = paste0("plots/trait_analysis/regional_expansion.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
+#       bg = "white", canvas = "white", units = "px", dpi = "auto")
+# 
 
 
-if (setting == "mod_seed_scale") {
   
   corrplot_mod(m_imp = e_imp_mtx,
                m_efs = e_efs_mtx,
                r2names = r2_exp,
-               mar = c(2,2,2,2),
+               mar = c(2,2,3,2),
+               cl.cex = 1.4,
                col.lim = col_lim,
                col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
                tl.col = txt_col,
+               tl.cex = 1.5,
+               tl.srt = 55,
                cl.offset = -1,
                na.label = "square",
                na.label.col = na_col,
                outline = TRUE)
   
-} else {
-  corrplot_mod(m_imp = e_imp_mtx,
-               m_efs = e_efs_mtx,
-               col.lim = c(min_exp, max_exp),
-               col = col,
-               row_names = row_names,
-               col_names = col_names,
-               is.corr = FALSE,
-               tl.col = txt_col,
-               na.label = "square",
-               na.label.col = na_col,
-               outline = TRUE)
-}
 
+# dev.off()
+# 
+# Cairo(file = paste0("plots/trait_analysis/regional_stability.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
+#       bg = "white", canvas = "white", units = "px", dpi = "auto")
+# 
+# 
 
-dev.off()
-
-Cairo(file = paste0("plots/trait_analysis/regional_stability_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
-
-
-if (setting == "mod_seed_scale") { 
   
   corrplot_mod(m_imp = s_imp_mtx,
                m_efs = s_efs_mtx, 
                r2names = r2_sta,
                mar = c(2,2,2,2),
                # cl.pos = "n",
+               cl.cex = 1.4,
+               # cl.offset = 1,
                col.lim = col_lim, 
                col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
                tl.col = txt_col,
+               tl.cex = 1.5,
+               tl.srt = 55,
                na.label = "square",
                na.label.col = na_col,
                outline = TRUE)
-} else {
-
-  corrplot_mod(m_imp = s_imp_mtx,
-               m_efs = s_efs_mtx, 
-               col.lim = c(min_stb, max_stb),
-               col = col,
-               row_names = row_names,
-               col_names = col_names,
-               is.corr = FALSE,
-               tl.col = txt_col,
-               na.label = "square",
-               na.label.col = na_col,
-               outline = TRUE) 
-  }
-
-dev.off()
 
 
+# dev.off()
+# 
+# 
+# 
+# Cairo(file = paste0("plots/trait_analysis/regional_unfilling.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
+#       bg = "white", canvas = "white", units = "px", dpi = "auto")
 
-Cairo(file = paste0("plots/trait_analysis/regional_unfilling_",setting,".png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
-
-
-if (setting == "mod_seed_scale") { 
   
   corrplot_mod(m_imp = u_imp_mtx, 
                m_efs = u_efs_mtx,
                r2names = r2_unf,
                mar = c(2,2,2,2),
                # cl.pos = "n",
+               cl.cex = 1.4,
                col.lim = col_lim, 
                col = col,
                row_names = row_names,
                col_names = col_names,
                is.corr = FALSE,
                tl.col = txt_col,
+               tl.cex = 1.5,
+               tl.srt = 55,
                na.label = "square",
                na.label.col = na_col,
                outline = TRUE)
-  } else {
-  corrplot_mod(m_imp = u_imp_mtx, 
-               m_efs = u_efs_mtx,
-               col.lim = c(min_unf, max_unf), 
-               col = col,
-               row_names = row_names,
-               col_names = col_names,
-               is.corr = FALSE,
-               tl.col = txt_col,
-               na.label = "square",
-               na.label.col = na_col,
-               outline = TRUE)
-    }
 
-dev.off()
+
+# dev.off()

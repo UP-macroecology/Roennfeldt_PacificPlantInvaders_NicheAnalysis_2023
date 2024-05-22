@@ -1,6 +1,7 @@
 library(ggplot2)
 # library(leaflet)
 library(shiny)
+library(dplyr)
 
 
 # functions ---------------------------------------------------------------
@@ -98,17 +99,17 @@ ui <- navbarPage("PPI Niche Comparison", id ="nav",
                           ) # end of sidebarLayout
                  ), # end of tabPanel Species Occurrences
                  
-                 tabPanel("Trait Analysis",
-                          
-                          fluidPage(
-                            
-                            
-
-                            # actionButton("click", "Multivariate Results")
-                            imageOutput("TA_figure", width = "100%")
-
-                          ) # end of fluidPage
-                          ) # end of tabPanel Trait Analydis
+                 # tabPanel("Trait Analysis",
+                 #          
+                 #          fluidPage(
+                 #            
+                 #            
+                 # 
+                 #            # actionButton("click", "Multivariate Results")
+                 #            imageOutput("TA_figure", width = "100%")
+                 # 
+                 #          ) # end of fluidPage
+                 #          ) # end of tabPanel Trait Analydis
                  
                  
 ) # end of navbarPage 
@@ -140,45 +141,47 @@ server <- function(input, output) {
           Mean seedmass (g):", overview_comparison[overview_comparison$species == input$species, "mean_seedmass"][1],"<br/>
           Growth form:", overview_comparison[overview_comparison$species == input$species, "growth_form"][1],"<br/>
           Life cycle:", overview_comparison[overview_comparison$species == input$species, "lifecycle"][1],"<br/>
-          Dispersal:", overview_comparison[overview_comparison$species == input$species, "dispersal"][1],"<br/>
           <br/>")
     
   }) # end of renderText with HTML
   
   output$niche_dynamics <- renderTable(
     
-    if(input$niche_selection == "All five niche dynamcis") {
+    if(input$niche_selection == "All five niche dynamics") {
       
       overview_comparison %>% 
-        filter(species == input$species) %>% 
-        select(region, similarity, rel_abandonment, rel_unfilling, rel_stability, rel_expansion, rel_pioneering) %>% 
+        dplyr::filter(species == input$species) %>% 
+        select(region, years_since_intro, similarity, rel_abandonment, rel_unfilling, rel_stability, rel_expansion, rel_pioneering) %>% 
         rename("Region" = "region",
+               "Years since introduction" = "years_since_intro",
                "Niche similarity" = "similarity",
-               "Abandonment" = "rel_abandonment",
-               "Unfilling" = "rel_unfilling",
-               "Stability" = "rel_stability",
-               "Expansion" = "rel_expansion",
-               "Pioneering" = "rel_pioneering") 
+               "Abandonment (%)" = "rel_abandonment",
+               "Unfilling (%)" = "rel_unfilling",
+               "Stability (%)" = "rel_stability",
+               "Expansion (%)" = "rel_expansion",
+               "Pioneering (%)" = "rel_pioneering") 
       
     } else {
       if ((input$niche_selection == "ESU")) {
         overview_comparison %>% 
-          filter(species == input$species) %>% 
-          select(region, similarity, unfilling, stability, expansion) %>% 
+          dplyr::filter(species == input$species) %>% 
+          select(region, years_since_intro, similarity, unfilling, stability, expansion) %>% 
           rename("Region" = "region",
+                 "Years since introduction" = "years_since_intro",
                  "Niche similarity" = "similarity",
-                 "Unfilling" = "unfilling",
-                 "Stability" = "stability",
-                 "Expansion" = "expansion") 
+                 "Unfilling (%)" = "unfilling",
+                 "Stability (%)" = "stability",
+                 "Expansion (%)" = "expansion") 
       } else {
         overview_comparison %>% 
-          filter(species == input$species) %>% 
-          select(region, similarity, orig_unfilling, orig_stability, orig_expansion) %>% 
+          dplyr::filter(species == input$species) %>% 
+          select(region, years_since_intro, similarity, orig_unfilling, orig_stability, orig_expansion) %>% 
           rename("Region" = "region",
+                 "Years since introduction" = "years_since_intro",
                  "Niche similarity" = "similarity",
-                 "Unfilling" = "orig_unfilling",
-                 "Stability" = "orig_stability",
-                 "Expansion" = "orig_expansion") 
+                 "Unfilling (%)" = "orig_unfilling",
+                 "Stability (%)" = "orig_stability",
+                 "Expansion (%)" = "orig_expansion") 
       }
     }
   )

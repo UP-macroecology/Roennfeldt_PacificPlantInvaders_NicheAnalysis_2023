@@ -774,7 +774,7 @@ corrplot_mod = function(m_imp,
       if (!is.character(pch))
         pch = '*'
       
-      place_points = function(sig.locs, point) {
+      fplace_points = function(sig.locs, point) {
         text(pos.pNew[, 1][sig.locs], pos.pNew[, 2][sig.locs],
              labels = point, col = pch.col, cex = pch.cex, lwd = 2)
       }
@@ -904,7 +904,7 @@ corrplot_mod = function(m_imp,
         # r2 values
         text(pos.r2.label[, 1], pos.r2.label[, 2], r2names, srt = 0,
              adj = ifelse(tl.srt == 0, c(0.5, 0), c(0, 0)),
-             col = tl.col, cex = 0.9, offset = tl.offset)
+             col = tl.col, cex = cl.cex, offset = tl.offset)
       }
       
     }
