@@ -18,15 +18,12 @@ load("results/ecospat/master_results_AC.RData") # results niche comparison
 
 
 load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_GIFT.RData")) # GIFT trait data
-# load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_TRY.RData")) # TRY data
+
 
 # geographic traits
-# load("data/trait_analysis/df_fragmentation_metrics.RData")
 load("data/trait_analysis/native_niche_breadth_centroid.RData")
 load("data/trait_analysis/native_range_size.RData")
-# load("data/trait_analysis/introduced_range_size.RData")
-load("data/trait_analysis/year_first_intro_Seebens.RData")
-# load("data/trait_analysis/eucl_dist.RData")
+load("data/trait_analysis/year_first_intro_Seebens_rev.RData")
 load("data/trait_analysis/lat_dist.RData")
 
 # response data -----------------------------------------------------------
@@ -34,7 +31,10 @@ load("data/trait_analysis/lat_dist.RData")
 # subset results overview for species in the final spp selection 
 df_results <- master_results_AC %>%
   filter(species %in% spp_suitable_AC) %>%
-  dplyr::select(species, region, overlap, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering) %>% # select which columns to keep
+  dplyr::select(species, region, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, expansion, unfilling, stability) %>% # select which columns to keep
+ rename("orig_expansion" = "expansion",
+        "orig_unfilling" = "unfilling",
+        "orig_stability" = "stability") %>% 
   mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
   mutate(expansion = rel_expansion / total_esu) %>%
   mutate(stability = rel_stability / total_esu) %>%
@@ -60,11 +60,17 @@ df_results <- master_results_AC %>%
 
 # time since introduction -------------------------------------------------
 
+year_first_intro_Seebens[year_first_intro_Seebens == "NI"] <- NA
+
 year_first_intro_Seebens <- year_first_intro_Seebens %>%
   dplyr::select(!pac_region) %>%
   pivot_longer(cols = !species,
                names_to = "region",
                values_to = "years_since_intro") 
+  
+
+year_first_intro_Seebens$years_since_intro <- as.numeric(year_first_intro_Seebens$years_since_intro)
+
 
 # niche breadth -----------------------------------------------------------
 # 
@@ -100,46 +106,6 @@ spec_traits <- species_pacific_traits_GIFT %>%
   filter(species %in% spp_suitable_AC)
 
 
-# merge dispersal information ---------------------------------------------
-
-# spec_traits <- spec_traits %>% 
-#   mutate(dispersal = case_when(
-#     # there are 16 unique combinations (plus NA+NA)
-#     
-#     dispersal_1 == "hydrochorous" & is.na(dispersal_2) ~ "hydrochorous",
-#     
-#     dispersal_1 == "unspecialized" & dispersal_2 == "unspecialized" ~ "unspecialized",
-#     
-#     dispersal_1 == "zoochorous" & is.na(dispersal_2) ~ "zoochorous",
-#     
-#     dispersal_1 == "autochorous" & dispersal_2 == "autochorous" ~ "autochorous",
-#     
-#     dispersal_1 == "anemochorous" & dispersal_2 == "anemochorous" ~ "anemochorous",
-#     
-#     dispersal_1 == "unspecialized" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
-#     
-#     dispersal_1 == "zoochorous" & dispersal_2 == "epizoochorous" ~ "zoochorous",
-#     
-#     dispersal_1 == "unspecialized" & is.na(dispersal_2) ~ "unspecialized",
-#     
-#     is.na(dispersal_1)  & dispersal_2 == "anthropochorous" ~ "anthropochorous",
-#     
-#     dispersal_1 == "anemochorous" & is.na(dispersal_2) ~ "anemochorous",
-#     
-#     dispersal_1 == "zoochorous" & dispersal_2 == "endozoochorous" ~ "zoochorous",
-#     
-#     dispersal_1 == "zoochorous" & dispersal_2 == "zoochorous" ~ "zoochorous",
-#     
-#     dispersal_1 == "hydrochorous" & dispersal_2 == "hydrochorous" ~ "hydrochorous",
-#     
-#     dispersal_1 == "autochorous" & is.na(dispersal_2) ~ "autochorous",
-#     
-#     dispersal_1 == "zoochorous" & dispersal_2 == "anthropochorous" ~ "anthropochorous",
-#     
-#     is.na(dispersal_1)  & dispersal_2 == "anemochorous" ~ "anthropochorous"
-#   )) %>% 
-#   select(!c("dispersal_1", "dispersal_2"))# %>% 
-  #na.omit()
 
 # merge data --------------------------------------------------------------
 
@@ -162,6 +128,14 @@ input_TA <- df_results %>% left_join(spec_traits, by = "species") %>%
 
 save(input_TA, file = "shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
 
+
+
+
+# limit intro years -------------------------------------------------------
+
+# 
+# input_TA <- input_TA %>% 
+#   filter(years_since_intro <= 1000)
 # standardise data --------------------------------------------------------
 
 # growth form
@@ -205,6 +179,9 @@ input_TA <- input_TA %>%
   mutate(rel_stability = logit(rel_stability)) %>% 
   mutate(rel_abandonment = logit(rel_abandonment)) %>% 
   mutate(rel_pioneering = logit(rel_pioneering)) %>% 
+  mutate(orig_expansion = logit(orig_expansion)) %>% 
+  mutate(orig_stability = logit(orig_stability)) %>% 
+  mutate(orig_unfilling = logit(orig_unfilling)) %>% 
   na.omit()
 
 
@@ -212,5 +189,5 @@ input_TA <- input_TA %>%
 
 spp_traits <- unique(input_TA$species)
 
-save(input_TA, file = "data/trait_analysis/input_TA_scale.RData")
-save(input_TA, file = "data/trait_analysis/input_TA_degr.RData")
+save(input_TA, file = "data/trait_analysis/input_TA.RData")
+
