@@ -11,14 +11,14 @@ rm(list = ls())
 # load data ---------------------------------------------------------------
 
 # input data 
-load("data/trait_analysis/input_TA.RData")
+load("data/trait_analysis/input_TA_scale.RData")
 
 #add row names - needed to match phylogenetic information
 #rownames(input_TA) <- gsub(' ','_', input_TA$species_region)
 
 
 
-  
+
 
 # regional analysis -------------------------------------------------------
 
@@ -67,7 +67,7 @@ for (reg in regions) {
   
   
   # ++ unfilling ++
-
+  
   null_unfilling <- phylolm(unfilling ~ 1, data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   
@@ -95,15 +95,15 @@ for (reg in regions) {
   
   
   
- 
-   # ++ rel abandonment ++
+  
+  # ++ rel abandonment ++
   
   null_abandonment <- phylolm(rel_abandonment ~ 1, data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # full models
   lm_abandonment <- phylolm(rel_abandonment ~ mean_height + mean_seedmass + growth_form + lifecycle + years_since_intro 
                             + niche_breadth_nat + range_size_nat + lat_dist + niche_centroid_a_nat + niche_centroid_b_nat, 
-                          data = input_TA, phy = pac_tree[[1]], model = "lambda")
+                            data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
   step_lm_abandonment <- phylostep(lm_abandonment$formula, data = input_TA, phy = pac_tree[[1]], model = "lambda")
@@ -116,7 +116,7 @@ for (reg in regions) {
   # full models
   lm_pioneering <- phylolm(rel_pioneering ~ mean_height + mean_seedmass + growth_form + lifecycle + years_since_intro 
                            + niche_breadth_nat + range_size_nat + lat_dist + niche_centroid_a_nat + niche_centroid_b_nat, 
-                            data = input_TA, phy = pac_tree[[1]], model = "lambda")
+                           data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
   step_lm_pioneering <- phylostep(lm_pioneering$formula, data = input_TA, phy = pac_tree[[1]], model = "lambda")
@@ -130,7 +130,7 @@ for (reg in regions) {
   # full models
   lm_orig_exp <- phylolm(orig_expansion ~ mean_height + mean_seedmass + growth_form + lifecycle + years_since_intro 
                          + niche_breadth_nat + range_size_nat + lat_dist + niche_centroid_a_nat + niche_centroid_b_nat, 
-                           data = input_TA, phy = pac_tree[[1]], model = "lambda")
+                         data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
   step_lm_orig_exp <- phylostep(lm_orig_exp$formula, data = input_TA, phy = pac_tree[[1]], model = "lambda")
@@ -156,7 +156,7 @@ for (reg in regions) {
   # full models
   lm_orig_stab <- phylolm(orig_stability ~ mean_height + mean_seedmass + growth_form + lifecycle + years_since_intro 
                           + niche_breadth_nat + range_size_nat + lat_dist + niche_centroid_a_nat + niche_centroid_b_nat, 
-                         data = input_TA, phy = pac_tree[[1]], model = "lambda")
+                          data = input_TA, phy = pac_tree[[1]], model = "lambda")
   
   # step model
   step_lm_orig_stab <- phylostep(lm_orig_stab$formula, data = input_TA, phy = pac_tree[[1]], model = "lambda")
@@ -171,7 +171,7 @@ for (reg in regions) {
        null_orig_exp, lm_orig_exp, step_lm_orig_exp,
        null_orig_unf, lm_orig_unf, step_lm_orig_unf,
        null_orig_stab, lm_orig_stab, step_lm_orig_stab,
-       file = paste0("results/trait_analysis/main_analysis/ESU_models_",reg,".RData"))
+       file = paste0("results/trait_analysis/main_analysis_scale/ESU_models_",reg,".RData"))
   
   # variable importance -----------------------------------------------------
   
@@ -263,7 +263,7 @@ for (reg in regions) {
       output[[i]] <- list(obs = r2, randR2 = rR2, randR2adj = rR2a)
       
     } # end of if condition regarding explvar
-
+    
     print(i)
     
   }
@@ -296,7 +296,7 @@ for (reg in regions) {
   }
   
   # the metric Mr2 is of main interest (mean R2)
-  save(step.varImp.allmetrics, file = paste0("results/trait_analysis/main_analysis/VarImp_phylo_trait_models_ESU_",reg,".RData"))
+  save(step.varImp.allmetrics, file = paste0("results/trait_analysis/main_analysis_scale/VarImp_phylo_trait_models_ESU_",reg,".RData"))
   
   for (i in MOD) {
     print(i)
@@ -341,11 +341,11 @@ for (reg in regions) {
       varimp <- round(step.varImp.allmetrics[[MOD[i]]]$Mr2,3)
       results_TraitAnal_df[which(covariates %in% explvar) + 1,1 + i*4] <- ifelse(varimp < 0,0,varimp)
       
-      } # end of if condition regarding explvar
-
+    } # end of if condition regarding explvar
+    
   }
   
-  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/main_analysis/results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
+  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/main_analysis_scale/results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
   
   
 } # end of for loop over regions

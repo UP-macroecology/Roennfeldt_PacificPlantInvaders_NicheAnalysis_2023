@@ -154,23 +154,58 @@ input_TA[input_TA == "perennial"] <- 3
 # input_TA[input_TA == "zoochorous"] <- 3
 # input_TA[input_TA == "anthropochorous"] <- 4
 
-# make sure all trait columns are numeric
-# then standardise
+# # make sure all trait columns are numeric
+# # then standardise
+# input_TA <- input_TA %>% 
+#   mutate(across(!c(species_region, species, region), as.numeric)) %>%
+#   mutate(mean_height = scale(mean_height)) %>% 
+#   mutate(mean_seedmass = scale(mean_seedmass)) %>% 
+#   mutate(growth_form = scale(growth_form)) %>% 
+#   mutate(lifecycle = scale(lifecycle)) %>% 
+#   mutate(range_size_nat = scale(range_size_nat)) %>% 
+#   mutate(years_since_intro = scale(years_since_intro)) %>% 
+#   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
+#   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
+#   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
+#   # mutate(max_elev_range = scale(max_elev_range)) %>% 
+#   # mutate(lat_dist = scale(lat_dist)) %>% 
+#   mutate(lat_dist = lat_dist/180) %>% 
+#   mutate(unfilling = logit(unfilling)) %>% 
+#   mutate(expansion = logit(expansion)) %>% 
+#   mutate(stability = logit(stability)) %>% 
+#   mutate(rel_unfilling = logit(rel_unfilling)) %>% 
+#   mutate(rel_expansion = logit(rel_expansion)) %>% 
+#   mutate(rel_stability = logit(rel_stability)) %>% 
+#   mutate(rel_abandonment = logit(rel_abandonment)) %>% 
+#   mutate(rel_pioneering = logit(rel_pioneering)) %>% 
+#   mutate(orig_expansion = logit(orig_expansion)) %>% 
+#   mutate(orig_stability = logit(orig_stability)) %>% 
+#   mutate(orig_unfilling = logit(orig_unfilling)) %>% 
+#   na.omit()
+# 
+# 
+# 
+# 
+# spp_traits <- unique(input_TA$species)
+# 
+# save(input_TA, file = "data/trait_analysis/input_TA.RData")
+# 
+
+
 input_TA <- input_TA %>% 
   mutate(across(!c(species_region, species, region), as.numeric)) %>%
   mutate(mean_height = scale(mean_height)) %>% 
   mutate(mean_seedmass = scale(mean_seedmass)) %>% 
   mutate(growth_form = scale(growth_form)) %>% 
   mutate(lifecycle = scale(lifecycle)) %>% 
- #  mutate(dispersal = scale(dispersal)) %>% 
   mutate(range_size_nat = scale(range_size_nat)) %>% 
   mutate(years_since_intro = scale(years_since_intro)) %>% 
   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
   # mutate(max_elev_range = scale(max_elev_range)) %>% 
-  # mutate(lat_dist = scale(lat_dist)) %>% 
-  mutate(lat_dist = lat_dist/180) %>% 
+  mutate(lat_dist = scale(lat_dist)) %>%
+  # mutate(lat_dist = lat_dist/180) %>% 
   mutate(unfilling = logit(unfilling)) %>% 
   mutate(expansion = logit(expansion)) %>% 
   mutate(stability = logit(stability)) %>% 
@@ -184,10 +219,4 @@ input_TA <- input_TA %>%
   mutate(orig_unfilling = logit(orig_unfilling)) %>% 
   na.omit()
 
-
-
-
-spp_traits <- unique(input_TA$species)
-
-save(input_TA, file = "data/trait_analysis/input_TA.RData")
-
+save(input_TA, file = "data/trait_analysis/input_TA_scale.RData")
