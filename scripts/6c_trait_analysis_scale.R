@@ -11,8 +11,8 @@ rm(list = ls())
 # load data ---------------------------------------------------------------
 
 # input data 
-load("data/trait_analysis/input_TA_scale.RData")
-
+# load("data/trait_analysis/input_TA_scale.RData")
+load("data/trait_analysis/input_TA_scale_log.RData")
 #add row names - needed to match phylogenetic information
 #rownames(input_TA) <- gsub(' ','_', input_TA$species_region)
 
@@ -171,7 +171,7 @@ for (reg in regions) {
        null_orig_exp, lm_orig_exp, step_lm_orig_exp,
        null_orig_unf, lm_orig_unf, step_lm_orig_unf,
        null_orig_stab, lm_orig_stab, step_lm_orig_stab,
-       file = paste0("results/trait_analysis/main_analysis_scale/ESU_models_",reg,".RData"))
+       file = paste0("results/trait_analysis/main_analysis_scale/log_ESU_models_",reg,".RData"))
   
   # variable importance -----------------------------------------------------
   
@@ -276,14 +276,14 @@ for (reg in regions) {
     r2 <- tt[[1]][1] - tt$randR2 
     r2a <- tt[[1]][2] - tt$randR2adj
     # Rescale the values (?)
-    if (ncol(r2)>1) {
-      r2 <- t(apply(r2, 1, function(x) {x=ifelse(x<0,10^-20,x); x/sum(x)} ))
-      r2a <- t(apply(r2a, 1, function(x) {x=ifelse(x<0,10^-20,x); x/sum(x)} ))
+    if (ncol(r2) > 1) {
+      r2 <- t(apply(r2, 1, function(x) {x = ifelse(x < 0,10^-20,x); x/sum(x)} ))
+      r2a <- t(apply(r2a, 1, function(x) {x = ifelse(x < 0,10^-20,x); x/sum(x)} ))
       # Get the means and sd
       Mr2 <- apply(r2, 2, mean) ; Mr2a <- apply(r2a, 2, mean)
       Sr2 <- apply(r2, 2, sd) ; Sr2a <- apply(r2a, 2, sd) } else {
         r2 = r2/sum(r2)
-        r2a=r2a/sum(r2a)
+        r2a = r2a/sum(r2a)
         Mr2 = mean(r2[,1])
         Mr2a = mean(r2a[,1])
         Sr2 = sd(r2[,1])
@@ -296,7 +296,7 @@ for (reg in regions) {
   }
   
   # the metric Mr2 is of main interest (mean R2)
-  save(step.varImp.allmetrics, file = paste0("results/trait_analysis/main_analysis_scale/VarImp_phylo_trait_models_ESU_",reg,".RData"))
+  save(step.varImp.allmetrics, file = paste0("results/trait_analysis/main_analysis_scale/log_VarImp_phylo_trait_models_ESU_",reg,".RData"))
   
   for (i in MOD) {
     print(i)
@@ -307,8 +307,8 @@ for (reg in regions) {
   # Store results -----------------------------------------------------------
   
   # Make data.frame to summarise results of trait models
-  results_TraitAnal_df <- data.frame(matrix(nrow=length(covariates)+3,ncol=length(MOD)*4+1))
-  names(results_TraitAnal_df) <- c("Trait",paste0(rep(sub("step.lm.","", MOD),each=4),c("_coef","_stderr","_p","_varimp")))
+  results_TraitAnal_df <- data.frame(matrix(nrow = length(covariates) + 3,ncol = length(MOD)*4 + 1))
+  names(results_TraitAnal_df) <- c("Trait",paste0(rep(sub("step.lm.","", MOD),each = 4),c("_coef","_stderr","_p","_varimp")))
   results_TraitAnal_df[,1] <-  c("Intercept",covariates, "R2", "lambda")
   
   # Make vector of null model names
@@ -326,13 +326,13 @@ for (reg in regions) {
       results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 3] <- round(as.numeric(modl$coefficients),3)
       
       # store R2 of model
-      results_TraitAnal_df[nrow(results_TraitAnal_df)-1,1+i*4-3] <- R2(ETP(MOD_null[i]),modl)[[1]]
+      results_TraitAnal_df[nrow(results_TraitAnal_df) - 1,1 + i*4 - 3] <- R2(ETP(MOD_null[i]),modl)[[1]]
       
       # store lambda of model
-      results_TraitAnal_df[nrow(results_TraitAnal_df),1+i*4-3] <- round(modl$optpar,3)
+      results_TraitAnal_df[nrow(results_TraitAnal_df),1 + i*4 - 3] <- round(modl$optpar,3)
       
       # store std errors
-      results_TraitAnal_df[c(1,which(covariates %in% explvar)+1),1+i*4-2] <- summary(modl)$coefficients[,2]
+      results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 2] <- summary(modl)$coefficients[,2]
       
       # store p-values
       results_TraitAnal_df[c(1,which(covariates %in% explvar) + 1),1 + i*4 - 1] <- round(as.numeric(summary(modl)$coefficients[,4]),3)
@@ -345,7 +345,7 @@ for (reg in regions) {
     
   }
   
-  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/main_analysis_scale/results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
+  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/main_analysis_scale/log_results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
   
   
 } # end of for loop over regions

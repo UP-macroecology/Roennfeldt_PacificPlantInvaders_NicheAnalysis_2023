@@ -1,7 +1,7 @@
 library(dplyr)
 library(stringr)
 library(tidyr) # to use unite()
-
+library(ggplot2)
 
 # preamble ----------------------------------------------------------------
 
@@ -23,7 +23,7 @@ load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_GIFT.RDa
 # geographic traits
 load("data/trait_analysis/native_niche_breadth_centroid.RData")
 load("data/trait_analysis/native_range_size.RData")
-load("data/trait_analysis/year_first_intro_Seebens_rev.RData")
+load("data/trait_analysis/year_first_intro_Seebens.RData")
 load("data/trait_analysis/lat_dist.RData")
 
 # response data -----------------------------------------------------------
@@ -192,14 +192,39 @@ input_TA[input_TA == "perennial"] <- 3
 # 
 
 
+
+
+
+# plot before scale -------------------------------------------------------
+
+
+# input_TA <- input_TA %>%
+#   mutate(across(!c(species_region, species, region), as.numeric))
+# 
+# 
+# ggplot(input_TA, aes(x = mean_height, y = stability)) +
+#   geom_point()
+# 
+# ggplot(input_TA, aes(x = log(mean_seedmass + 0.00001), y = stability)) +
+#   geom_point()
+# 
+# ggplot(input_TA, aes(x = log(years_since_intro), y = stability)) +
+#   geom_point()
+# 
+# ggplot(input_TA, aes(x = lat_dist, y = stability)) +
+#   geom_point()
+
+
+
+
 input_TA <- input_TA %>% 
   mutate(across(!c(species_region, species, region), as.numeric)) %>%
   mutate(mean_height = scale(mean_height)) %>% 
-  mutate(mean_seedmass = scale(mean_seedmass)) %>% 
+  mutate(mean_seedmass = scale(log(mean_seedmass + 0.00001))) %>% 
   mutate(growth_form = scale(growth_form)) %>% 
   mutate(lifecycle = scale(lifecycle)) %>% 
   mutate(range_size_nat = scale(range_size_nat)) %>% 
-  mutate(years_since_intro = scale(years_since_intro)) %>% 
+  mutate(years_since_intro = scale(log(years_since_intro))) %>% 
   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
@@ -219,4 +244,5 @@ input_TA <- input_TA %>%
   mutate(orig_unfilling = logit(orig_unfilling)) %>% 
   na.omit()
 
-save(input_TA, file = "data/trait_analysis/input_TA_scale.RData")
+#save(input_TA, file = "data/trait_analysis/input_TA_scale.RData")
+save(input_TA, file = "data/trait_analysis/input_TA_scale_log.RData")

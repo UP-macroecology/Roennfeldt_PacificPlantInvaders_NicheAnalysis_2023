@@ -1,24 +1,21 @@
 # Author: Anna Rönnfeldt
 # Date: 2023/11/16
-# Purpose: get an overview over the current results for the niche comparison
+# Last update: 
+
 
 # preamble ----------------------------------------------------------------
 library(dplyr)
 library(ggplot2)
+library(maps)
+# library(prettymapr)
 library(tidyr) # for %>% gather()
+# library(tidyterra)
+library(terra)
+library(viridis)
 
 rm(list = ls())
 
-
 # load data ---------------------------------------------------------------
-
-
-# load("results/ecospat/master_results.RData")
-# load("results/ecospat/rel_niche_dynamics_results.RData")
-# load("results/ecospat/niche_dynamics_results.RData")
-# load("results/ecospat/niche_overlap_results.RData")
-# load("results/ecospat/niche_ses_results.RData")
-
 
 load("results/ecospat/master_results_AC.RData")
 load("results/ecospat/rel_niche_dynamics_results_AC.RData")
@@ -48,7 +45,7 @@ results_dynamics_AC <- results_dynamics_AC %>%
 col_regular <- c("lightsalmon3","lightgoldenrod1","lightblue2","darkseagreen3",  "thistle4")
 col_poster <- c("#C76967","#FFE875","#A3DDEF","#87CF87",  "#927290")
 
-label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204",  "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")
+label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204",  "S. America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")
 
 
 # 1. overlap --------------------------------------------------------------
@@ -72,7 +69,7 @@ ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
 
 # relative dynamics - per region
 p1 <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
-  geom_boxplot(fatten = 1.5) +
+  geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
   labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
@@ -82,10 +79,22 @@ p1 <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metri
                     values = col_regular) +
   theme_bw(base_size = 20) +
   theme(panel.grid.major = element_blank(),
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA),
-        legend.position = "top")
+        plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"),
+        # panel.background = element_rect(fill = "transparent"),
+        # plot.background = element_rect(fill = "transparent", color = NA),
+        legend.position = "top",
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(0,-10,-10,-10),
+        axis.text = element_text(size = 9, color = "black"),
+        axis.title = element_text(size = 11))
+
+ggsave("plots/results/all_dynamics.png", p1, 
+       width = 16,
+       height = 10,
+       units = "cm")
+
 
 png("plots/niche_dynamics/regional_dynamics_all.png",width = 1450, height = 947)
 print(p1)
@@ -256,26 +265,7 @@ nrow(atr)
 table(atr$similarity)
 
 
-
-# 4. ses ---------------------------------------------------------------------
-
-ses_conservatism <- subset(results_ses_AC, sim_setting == "conservatism")
-
-
-ggplot(results_ses_AC, aes(x = region, y = value, fill = sim_setting)) +
-  geom_boxplot() +
-  labs(x = "Non-native region", y = "SES") +
-  scale_x_discrete(name = "\nNon-native region",
-                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = label_regional) +
-  theme_bw(base_size = 20) +
-  theme(panel.grid.major = element_blank(),
-        legend.box.spacing = unit(3, "pt"),
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
-
-
-
-# 5. Niche conservatism ---------------------------------------------------
+# 4. Niche conservatism ---------------------------------------------------
 
 df_con <- data.frame(similarity = c("Conservatism", "Neither", "Switching"),
                freq = c(719, 874, 0))
@@ -316,9 +306,9 @@ stand_ESU <- master_results_AC %>%
   mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion")))
 
 
-t <- subset(stand_ESU, region == "pac")
+#t <- subset(stand_ESU, region == "pac")
 
-summary(t)
+#summary(t)
 # t <- master_results_AC %>% filter(species %in% c("Agave sisalana", "Spathodea campanulata"))
 # 
 # t2 <- t
@@ -326,13 +316,16 @@ summary(t)
 # plot ESU niche dynamcis
 
 col_ESU <- c("lightgoldenrod1","lightblue2","darkseagreen3")
+
+
+col_ESU_bright <- c("#FFE875","#A3DDEF","#87CF87")
 # col_poster <- c("#FFE875","#A3DDEF","#87CF87")
 
 # relative dynamics - Prague poster -> BLACK
 (p <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
-    geom_boxplot(fatten = 1.5) +
+    geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
     labs(x = "Non-native region", y = "Niche dynamics (%)") +
-    scale_x_discrete(name = "\nNon-native region",
+    scale_x_discrete(name = "Non-native region",
                      limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
                      labels = label_regional) +
     scale_fill_manual(name = "Niche dynamics", 
@@ -340,33 +333,75 @@ col_ESU <- c("lightgoldenrod1","lightblue2","darkseagreen3")
                       values = col_ESU) +
     theme_bw(base_size = 20) +
     theme(panel.grid.major = element_blank(),
-          plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
-          panel.background = element_rect(fill = "transparent"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.position = "top"))
+          plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"),
+          # panel.background = element_rect(fill = "transparent"),
+          # plot.background = element_rect(fill = "transparent", color = NA),
+          legend.position = "top",
+          legend.text = element_text(size = 10),
+          legend.title = element_text(size = 11),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(0,-10,-10,-10),
+          axis.text = element_text(size = 9, color = "black"),
+          axis.title = element_text(size = 11)))
           # axis.text = element_text(colour = "#1B3C59")))
 
 
-p2 <- ggplot(stand_ESU, aes(x = metric, y = percentage, fill = metric)) +
-  geom_boxplot(fatten = 1.5) +
-  labs(x = NULL, y = "Niche dynamics (%)\n") +
-  theme_bw(base_size = 20) +
-  scale_fill_manual(name = "Niche dynamics", 
-                    values = col_ESU) +
-  scale_x_discrete(limits = c("unfilling", "stability", "expansion"),
-                   labels = c("Unfilling", "Stability", "Expansion")) +
-  theme(panel.grid.major = element_blank(),
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA),
-        legend.position = "none")
 
 
-png("plots/niche_dynamics/regional_dynamics_ESU.png",width = 1450, height = 947)
-print(p)
-dev.off()
 
-png("plots/niche_dynamics/dynamics_ESU.png",width = 1050, height = 947)
-print(p2)
-dev.off()
 
+ggsave("plots/results/ESU_dynamics.png", p, 
+       width = 16,
+       height = 11,
+       units = "cm")
+# 
+# png("plots/niche_dynamics/regional_dynamics_ESU.png",width = 1450, height = 947)
+# print(p)
+# dev.off()
+# 
+# png("plots/niche_dynamics/dynamics_ESU.png",width = 1050, height = 947)
+# print(p2)
+# dev.off()
+
+
+
+# map ---------------------------------------------------------------------
+
+
+
+load("data/valen/island_lon_lat.RData")
+pac <- vect("data/spatial_data/map_shapefiles/pacific_map.shp")
+afr <- vect("data/spatial_data/map_shapefiles/africa_map.shp")
+ate <- vect("data/spatial_data/map_shapefiles/asia_temperate_map.shp")
+atr <- vect("data/spatial_data/map_shapefiles/asia_tropical_map.shp")
+aus <- vect("data/spatial_data/map_shapefiles/australia_map.shp")
+eur <- vect("data/spatial_data/map_shapefiles/europe_map.shp")
+nam <- vect("data/spatial_data/map_shapefiles/northern_america_map.shp")
+sam <- vect("data/spatial_data/map_shapefiles/southern_america_map.shp")
+
+
+# save plot for the pacific centred world map
+map_pacific <- map("world2", fill = TRUE, col = "lightgrey")
+map_pacific_data <- map_data(map_pacific)
+
+ggplot(island_lon_lat, aes(x = new_lon, y = lat)) +
+  geom_polygon(data = map_pacific_data, 
+               aes(x = long, y = lat, group = group)) +
+  geom_point(size = 5, alpha = 0.8) + 
+  geom_spatvector(data = sam, aes(x = lon, y = lat)) 
+
+ggplot(island_lon_lat, aes(x = new_lon, y = lat))
+
+windows()
+maps::map("world2", fill = TRUE, col = "grey100", ylim = c(-65,85), xlim = c(10,350))
+addnortharrow(pos = "bottomleft", scale = 1, padin = c(0.4, 0.2))
+map.axes()
+plot(pac, col = "#E090A5", add = TRUE)
+plot(afr, col = "plum4", add = TRUE)
+plot(ate, col = "#CFDEE7", add = TRUE)
+plot(atr, col = "#BFB48F", add = TRUE)
+plot(aus, col = "#2D728F", add = TRUE)
+plot(eur, col = "#FED766", add = TRUE)
+plot(nam, col = "#904E55", add = TRUE)
+plot(sam, col = "#83BCA9", add = TRUE)
+graphics::points(island_lon_lat[,c("new_lon", "lat")],  pch = 23, bg = "#E090A5", lwd = 2, cex = 3) 

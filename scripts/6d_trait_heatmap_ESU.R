@@ -34,7 +34,7 @@ for (reg in regions) {
   print(reg)
   
   # load in results 
-  traits_res <- read.csv(paste0("results/trait_analysis/main_analysis_seed_mass/results_TraitAnal_df_ESU_",reg,".csv"))
+  traits_res <- read.csv(paste0("results/trait_analysis/main_analysis/results_TraitAnal_df_ESU_",reg,".csv"))
   
   traits_res_reg_e <- traits_res %>%
     as_tibble() %>% 
@@ -138,7 +138,7 @@ r2_unf <- NULL
 
 for (reg in regions) {
   
-  df_res <- read.csv(paste0("results/trait_analysis/main_analysis_seed_mass/results_TraitAnal_df_ESU_",reg,".csv"))
+  df_res <- read.csv(paste0("results/trait_analysis/main_analysis/results_TraitAnal_df_ESU_",reg,".csv"))
   
   r2_exp <- c(r2_exp, round(df_res[df_res$Trait == "R2", "expansion_coef"], 2))
   r2_sta <- c(r2_sta, round(df_res[df_res$Trait == "R2", "stability_coef"], 2))
