@@ -153,7 +153,7 @@ corrplot_mod = function(m_imp,
                     
                     r2names = NULL,
                     
-                    addgrid.col = "grey", addCoef.col = NULL, addCoefasPercent = FALSE,
+                    addgrid.col = "black", addCoef.col = NULL, addCoefasPercent = FALSE,
                     
                     order = c('original', 'AOE', 'FPC', 'hclust', 'alphabet'),
                     hclust.method = c('complete', 'ward', 'ward.D', 'ward.D2', 'single',
@@ -162,7 +162,7 @@ corrplot_mod = function(m_imp,
                     
                     tl.pos = NULL, tl.cex = 1,
                     tl.col = 'red', tl.offset = 0.5, tl.srt = 45,
-                    
+                    r.print = NULL,
                     cl.pos = NULL, cl.length = NULL, cl.cex = 0.8,
                     cl.ratio = 0.15, cl.align.text = 'c', cl.offset = 0.5,
                     
@@ -468,6 +468,10 @@ corrplot_mod = function(m_imp,
     xlabwidth = max(strwidth(newrownames, cex = tl.cex))
     ylabwidth = max(strwidth(newcolnames, cex = tl.cex))
     laboffset = strwidth('W', cex = tl.cex) * tl.offset
+    
+    if (!is.null(r.print)) {
+      xlabwidth = 0
+    } # end of if condition over r.print
     
     # Issue #10
     for (i in 1:50) {
@@ -897,8 +901,11 @@ corrplot_mod = function(m_imp,
              col = tl.col, cex = tl.cex, offset = tl.offset)
       }
       
-      text(pos.ylabel[, 1], pos.ylabel[, 2], newrownames,
-           col = tl.col, cex = tl.cex, pos = 2, offset = tl.offset)
+      if(is.null(r.print)) {
+        text(pos.ylabel[, 1], pos.ylabel[, 2], newrownames,
+             col = tl.col, cex = tl.cex, pos = 2, offset = tl.offset)
+      }
+
       
       if(!is.null(r2names)) {
         # r2 values
