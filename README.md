@@ -54,9 +54,11 @@ Before using the data as input for the trait analysis, the following steps had t
 ### 7 - Trait analysis
 
 1. Merging input data with corresponding phylogenetic data
+  
 2. Run trait analysis for each niche mtreic and region respectively.
 * fit full models using the niche metric as response and all ten traits as predictors
 * stepwise selection to identify parsimoniuous models based on AIC values
+  
 3. Determine variable importance
 * the importance of each variable was determined by randomly permuatting it (n = 99) to simulate the vaiable's absence from the model. The difference between explained deviance of the model with and the model without the permutation then shows the variable importance
 
