@@ -87,6 +87,8 @@ rm(traits_res_reg_e, traits_res_reg_s, traits_res_reg_u, traits_res_reg_a, trait
 r2_exp <- NULL
 r2_sta <- NULL
 r2_unf <- NULL
+r2_aba <- NULL
+r2_pio <- NULL
 
 for (reg in regions) {
   
@@ -95,13 +97,16 @@ for (reg in regions) {
   r2_exp <- c(r2_exp, round(df_res[df_res$Trait == "R2", "expansion_coef"], 2))
   r2_sta <- c(r2_sta, round(df_res[df_res$Trait == "R2", "stability_coef"], 2))
   r2_unf <- c(r2_unf, round(df_res[df_res$Trait == "R2", "unfilling_coef"], 2))
+  r2_aba <- c(r2_aba, round(df_res[df_res$Trait == "R2", "abandonment_coef"], 2))
+  r2_pio <- c(r2_pio, round(df_res[df_res$Trait == "R2", "pioneering_coef"], 2))
   
 } # end of for loop over regions
 
 r2_exp <- r2_exp %>% unlist()
 r2_sta <- r2_sta %>% unlist()
 r2_unf <- r2_unf %>% unlist()
-
+r2_aba <- r2_aba %>% unlist()
+r2_pio <- r2_pio %>% unlist()
 
 
 # prepare plot input ------------------------------------------------------
