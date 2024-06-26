@@ -44,6 +44,7 @@ To Do: inlcude Valén's code to show how data on functional traits and the time 
 * Native niche breadth: Shannon-Index of the occurrence density in the two-dimensional climatic ncihe space, using the global ncihe as background environment to make comparisons between species possible
 * Distance between the range centrods of native and non-native ranges
 
+#### Compiling input data for the trait analysis:
 Data on the functional traits, biogeographic characteristics and the time since introduction were then matched with the corresponding niche metrics for the species' regional introductions.
 Before using the data as input for the trait analysis, the following steps had to be taken:
 * categorical data (growth type etc.) had to be transformed to numeric values
