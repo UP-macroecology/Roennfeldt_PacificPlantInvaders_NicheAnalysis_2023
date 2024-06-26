@@ -10,7 +10,7 @@ scripts/chapter_2*
 scripts/misc*
 scripts/explore_results*
 scripts/status_scripts*
-scripts/explore_niche_comparison*
+
 *.xlsx
 ecospat/
 other_studies/
