@@ -59,3 +59,15 @@ m_unfilling_orig$deviance/m_unfilling_orig$df.residual
 summary(m_expansion_orig)
 summary(m_stability_orig)
 summary(m_unfilling_orig)
+
+
+
+regions <- as.character(unique(master_results$region))
+
+reg <- "sam"
+
+df <- subset(master_results, region == reg)
+
+mean(df$stand_unfilling, na.rm = TRUE)
+mean(df$stand_stability, na.rm = TRUE)
+mean(df$stand_expansion, na.rm = TRUE)
