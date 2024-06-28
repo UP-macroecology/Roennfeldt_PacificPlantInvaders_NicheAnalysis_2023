@@ -34,7 +34,38 @@ The niche comparison runs through the following analysis steps:
 
 The results obtained for the individual niche pairs are then compiled in a separate script. There, required post-processing steps take place, e.g., the calculation of the **relative niche dynamics** from the original *ecospat* output.
 
-### 6 - Trait analysis
+### 6 - Trait data
+
+To Do: inlcude Valén's code to show how data on functional traits and the time since introduction were compiled
+
+#### Biogeographic characteristics:
+* Native range size: sum of the area of the WCvP leve 3 polygons and/or the GIFT polygons with which occurrence points were matched during the status assignment
+* Native niche centroid:  Centroid along the first two PCA axes relative to the global niche
+* Native niche breadth: Shannon-Index of the occurrence density in the two-dimensional climatic ncihe space, using the global ncihe as background environment to make comparisons between species possible
+* Distance between the range centrods of native and non-native ranges
+
+#### Compiling input data for the trait analysis:
+Data on the functional traits, biogeographic characteristics and the time since introduction were then matched with the corresponding niche metrics for the species' regional introductions.
+Before using the data as input for the trait analysis, the following steps had to be taken:
+* categorical data (growth type etc.) had to be transformed to numeric values
+* mean seedmass and years since introduction had to log transformed because they were right skewed
+* data for all traits had to be scaled
+* the niche metrics were logit transformed to deal with values too close to 0 or 1
+
+### 7 - Trait analysis
+
+1. Merging input data with corresponding phylogenetic data
+  
+2. Run trait analysis for each niche mtreic and region respectively.
+* fit full models using the niche metric as response and all ten traits as predictors
+* stepwise selection to identify parsimoniuous models based on AIC values
+  
+3. Determine variable importance
+* the importance of each variable was determined by randomly permuatting it (n = 99) to simulate the vaiable's absence from the model. The difference between explained deviance of the model with and the model without the permutation then shows the variable importance
+
+The results of the trait analysis are plottet in a separate script. The figures are based on the corrplot function from the corrplot package, but with slight modifications to enable us to show the variable importance as circle size and the effect size with the colours. 
+
+### 8 - Statistical analysis and additional figures
 
 ~ pending ~
 
