@@ -413,6 +413,21 @@ graphics::points(island_lon_lat[,c("new_lon", "lat")],  pch = 23, bg = "#E090A5"
 
 rm(list = ls())
 
+
+
+
+
+perc_group <- function(x) {
+  
+  if(x == 0) {g <- 0}
+  if(x > 0  & x <= 25) {g <- 1}
+  if(x > 25 & x <= 50) {g <- 2}
+  if(x > 50 & x <= 75) {g <- 3}
+  if(x > 75 & x <= 100) {g <- 4}
+  
+  return(g)
+}
+
 load("results/ecospat/master_results_AC.RData")
 
 df_con <- master_results_AC %>% 
@@ -420,62 +435,106 @@ df_con <- master_results_AC %>%
   tally() %>% 
   pivot_wider(names_from=similarity, values_from=n) %>% 
   mutate(across(everything(), .fns=~replace_na(., 0))) %>% 
-  mutate(tendency = NA)
+  mutate(perc_conservatism = NA) %>% 
+  mutate(perc_neither = NA) %>% 
+  mutate(perc_con_group = NA) %>% 
+  mutate(perc_nei_group = NA) 
 
 
-n_con_mode <- 0
-n_con_once <- 0
-n_con_excl <- 0
-
-n_neither_mode <- 0
-n_neither_once <- 0
-n_neither_excl <- 0
-
-n_switch_mode <- 0
-n_switch_once <- 0
-n_switch_excl <- 0
-
-n_equal <- 0
+rm(master_results_AC)
 
 for (r in 1:nrow(df_con)) {
   
   c <- as.numeric(df_con[r,"conservatism"])
   n <- as.numeric(df_con[r,"neither"])
   
-  # mode values
-  if(c > n & n != 0) {
-    n_con_mode <- n_con_mode + 1
-    df_con[r,"tendency"] <- "n_con_mode"}
+  # total number of introduction events
+  t <- c + n
   
-  if(n > c & c != 0) {
-    n_neither_mode <- n_neither_mode + 1
-    df_con[r,"tendency"] <- "n_neither_mode"}
   
-  # observed only once
-  if(c == 1 & c != n) {
-    n_con_once <- n_con_once + 1
-    df_con[r,"tendency"] <- "n_con_once"}
+  perc_con <- round(100/t*c, 2)
+  perc_nei <- round(100/t*n, 2)
   
-  if(n == 1 & n != c) {
-    n_neither_once <- n_neither_once + 1
-    df_con[r,"tendency"] <- "n_neither_once"}
   
-  # exclusive observation
-  if(c == 0) {
-    n_neither_excl <- n_neither_excl + 1
-    df_con[r,"tendency"] <- "n_neither_excl"}
+  g_con <- perc_group(perc_con)
+  g_nei <- perc_group(perc_nei)
   
-  if(n == 0) {
-    n_con_excl <- n_con_excl + 1
-    df_con[r,"tendency"] <- "n_con_excl"
-  }
   
-  # equal cases
-  if(c == n) {
-    n_equal <- n_equal + 1
-    df_con[r,"tendency"] <- "n_equal"}
+  # calculate and add percentage values to df
+  df_con[r,"perc_conservatism"] <- perc_con
+  df_con[r,"perc_neither"] <- perc_nei
+  df_con[r,"perc_con_group"] <- g_con
+  df_con[r,"perc_nei_group"] <- g_nei
   
-}  # end of for loop
+} # end of for loop over df_con
+
+# 
+# 
+# 
+# 
+# load("results/ecospat/master_results_AC.RData")
+# 
+# df_con <- master_results_AC %>% 
+#   group_by(species, similarity) %>% 
+#   tally() %>% 
+#   pivot_wider(names_from=similarity, values_from=n) %>% 
+#   mutate(across(everything(), .fns=~replace_na(., 0))) %>% 
+#   mutate(tendency = NA)
+# 
+# 
+# n_con_mode <- 0
+# n_con_once <- 0
+# n_con_excl <- 0
+# 
+# n_neither_mode <- 0
+# n_neither_once <- 0
+# n_neither_excl <- 0
+# 
+# n_switch_mode <- 0
+# n_switch_once <- 0
+# n_switch_excl <- 0
+# 
+# n_equal <- 0
+# 
+# for (r in 1:nrow(df_con)) {
+#   
+#   c <- as.numeric(df_con[r,"conservatism"])
+#   n <- as.numeric(df_con[r,"neither"])
+#   
+#   # mode values
+#   if(c > n & n != 0) {
+#     n_con_mode <- n_con_mode + 1
+#     df_con[r,"tendency"] <- "n_con_mode"}
+#   
+#   if(n > c & c != 0) {
+#     n_neither_mode <- n_neither_mode + 1
+#     df_con[r,"tendency"] <- "n_neither_mode"}
+#   
+#   # observed only once
+#   if(c == 1 & c != n) {
+#     n_con_once <- n_con_once + 1
+#     df_con[r,"tendency"] <- "n_con_once"}
+#   
+#   if(n == 1 & n != c) {
+#     n_neither_once <- n_neither_once + 1
+#     df_con[r,"tendency"] <- "n_neither_once"}
+#   
+#   # exclusive observation
+#   if(c == 0) {
+#     n_neither_excl <- n_neither_excl + 1
+#     df_con[r,"tendency"] <- "n_neither_excl"}
+#   
+#   if(n == 0) {
+#     n_con_excl <- n_con_excl + 1
+#     df_con[r,"tendency"] <- "n_con_excl"
+#   }
+#   
+#   # equal cases
+#   if(c == n) {
+#     n_equal <- n_equal + 1
+#     df_con[r,"tendency"] <- "n_equal"}
+#   
+# }  # end of for loop
 
 # df_con_count <- data.frame(Observation = rep(c("Conservatism", "Neither", "Switching"), each = 4),
 #                            Tendency = rep(c("Exclusively", "Mode", "Once", "Equal"), times = 3),
