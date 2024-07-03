@@ -413,10 +413,6 @@ graphics::points(island_lon_lat[,c("new_lon", "lat")],  pch = 23, bg = "#E090A5"
 
 rm(list = ls())
 
-
-
-
-
 perc_group <- function(x) {
   
   if(x == 0) {g <- 0}
@@ -438,7 +434,8 @@ df_con <- master_results_AC %>%
   mutate(perc_conservatism = NA) %>% 
   mutate(perc_neither = NA) %>% 
   mutate(perc_con_group = NA) %>% 
-  mutate(perc_nei_group = NA) 
+  mutate(perc_nei_group = NA) %>% 
+  mutate(perc_swi_group = 5)
 
 
 rm(master_results_AC)
@@ -468,122 +465,83 @@ for (r in 1:nrow(df_con)) {
   
 } # end of for loop over df_con
 
-# 
-# 
-# 
-# 
-# load("results/ecospat/master_results_AC.RData")
-# 
-# df_con <- master_results_AC %>% 
-#   group_by(species, similarity) %>% 
-#   tally() %>% 
-#   pivot_wider(names_from=similarity, values_from=n) %>% 
-#   mutate(across(everything(), .fns=~replace_na(., 0))) %>% 
-#   mutate(tendency = NA)
-# 
-# 
-# n_con_mode <- 0
-# n_con_once <- 0
-# n_con_excl <- 0
-# 
-# n_neither_mode <- 0
-# n_neither_once <- 0
-# n_neither_excl <- 0
-# 
-# n_switch_mode <- 0
-# n_switch_once <- 0
-# n_switch_excl <- 0
-# 
-# n_equal <- 0
-# 
-# for (r in 1:nrow(df_con)) {
-#   
-#   c <- as.numeric(df_con[r,"conservatism"])
-#   n <- as.numeric(df_con[r,"neither"])
-#   
-#   # mode values
-#   if(c > n & n != 0) {
-#     n_con_mode <- n_con_mode + 1
-#     df_con[r,"tendency"] <- "n_con_mode"}
-#   
-#   if(n > c & c != 0) {
-#     n_neither_mode <- n_neither_mode + 1
-#     df_con[r,"tendency"] <- "n_neither_mode"}
-#   
-#   # observed only once
-#   if(c == 1 & c != n) {
-#     n_con_once <- n_con_once + 1
-#     df_con[r,"tendency"] <- "n_con_once"}
-#   
-#   if(n == 1 & n != c) {
-#     n_neither_once <- n_neither_once + 1
-#     df_con[r,"tendency"] <- "n_neither_once"}
-#   
-#   # exclusive observation
-#   if(c == 0) {
-#     n_neither_excl <- n_neither_excl + 1
-#     df_con[r,"tendency"] <- "n_neither_excl"}
-#   
-#   if(n == 0) {
-#     n_con_excl <- n_con_excl + 1
-#     df_con[r,"tendency"] <- "n_con_excl"
-#   }
-#   
-#   # equal cases
-#   if(c == n) {
-#     n_equal <- n_equal + 1
-#     df_con[r,"tendency"] <- "n_equal"}
-#   
-# }  # end of for loop
 
-# df_con_count <- data.frame(Observation = rep(c("Conservatism", "Neither", "Switching"), each = 4),
-#                            Tendency = rep(c("Exclusively", "Mode", "Once", "Equal"), times = 3),
-#                            Species = c(n_con_excl, n_con_mode, n_con_once, n_equal,
-#                                        n_neither_excl, n_neither_mode, n_neither_once, n_equal,
-#                                        n_switch_excl, n_switch_once, n_switch_mode, 0),
-#                            stringsAsFactors = TRUE)
-# 
-# 
-# df_con_count$Tendency <- factor(df_con_count$Tendency, levels=c("Once", "Mode", "Exclusively", "Equal"))
+rm(list = setdiff(ls(), "df_con"))
 
-df_con_count <- data.frame(Observation = rep(c("Conservatism", "Neither", "Switching"), each = 3),
-                           Tendency = rep(c("Exclusively","Mode", "Once"), times = 3),
-                           Species = c(n_con_excl, n_con_mode, n_con_once,
-                                       n_neither_excl, n_neither_mode, n_neither_once,
-                                       n_switch_excl, n_switch_once, n_switch_mode),
-                           stringsAsFactors = TRUE)
 
-df_con_count$Tendency <- factor(df_con_count$Tendency, levels = c("Once", "Mode", "Exclusively"))
+df_plot <- df_con %>% 
+  select(species, perc_con_group, perc_nei_group, perc_swi_group) %>% 
+  rename("conservatism" = "perc_con_group",
+         "non_significant"= "perc_nei_group",
+         "switching" = "perc_swi_group") %>% 
+  pivot_longer(cols = c(conservatism, non_significant, switching), names_to = "observation", values_to = "perc_group") %>% 
+  dplyr::filter(!perc_group == 0) %>% 
+  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5))) %>% 
+  mutate(perc_group = replace(perc_group, perc_group == 5, NA)) %>% 
+  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4)))
 
-(p <- ggplot(df_con_count, aes(x = Observation, y = Species, fill = Tendency)) +
-    geom_bar(position = "stack", stat = "identity", width = 0.8, colour = "black",  linewidth = 0.4) +
-    scale_fill_manual(name = NULL, 
-                      labels = c("Once", "Modal", "All"),
-                      values = c("#6F5449", "#EAB464", "#919AA1")) +
+
+
+
+# legend_labels <- c("0 < X <= 25", "25 < X <= 50", "50 < X <= 75", "75 < X <= 100")
+
+legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), expression("50 < x" <= "75"), expression("75 < x" <= "100"))
+
+
+(p <- ggplot(df_plot, aes(observation, group = perc_group)) +
+    geom_bar(aes(fill = perc_group), position = "dodge") +
     xlab(NULL) +
-    ylab("Number of species\n") +
+    ylab("Number of species") +
+    scale_fill_viridis_d(option = "G", begin = 0.9, end = 0.2, alpha = 1, na.value = "transparent",
+                         labels = legend_labels ) +
+    scale_y_continuous(n.breaks = 8, limits = c(0,116), expand = c(0.01, 0)) +
+    scale_x_discrete(labels = c("Conservatism", "n.s.", "Switching")) +
     theme_bw() +
-    theme(panel.grid = element_blank(),
-          axis.text = element_text(size = 12, color = "black"),
-          axis.title = element_text(size = 14),
-          legend.text = element_text(size = 12),
-          legend.position = "top",
-          legend.key.size = unit(0.8,"line")))
+    theme(legend.title = element_blank(),
+          legend.position = "right",
+          legend.spacing.x = unit(0.1, 'cm'),
+          legend.key.size = unit(0.5,"line"),
+          legend.text = element_text(size = 8),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(0.5,-0.5,-10,-10),
+          axis.text = element_text(size = 8, color = "black"),
+          panel.grid.major = element_blank()))
 
-ggsave("plots/results/Similarity_modal.png", p, 
+
+ggsave("plots/results/Similarity_percentage.png", p,
        bg = "transparent",
-       width = 11,
-       height = 10,
+       width = 8,
+       height = 6,
        units = "cm")
 
-# ggsave("plots/results/Similarity_modal.pdf", p, 
-#        bg = "transparent",
-#        width = 11,
-#        height = 10,
-#        units = "cm")
+(p_E <- ggplot(df_plot, aes(observation, group = perc_group)) +
+    geom_bar(aes(fill = perc_group), position = "dodge") +
+    xlab(NULL) +
+    ylab("Number of species") +
+    scale_fill_viridis_d(option = "E", begin = 0.9, end = 0.2, alpha = 0.9, na.value = "transparent",
+                         labels = legend_labels ) +
+    scale_y_continuous(n.breaks = 8, limits = c(0,116), expand = c(0.01, 0)) +
+    scale_x_discrete(labels = c("Conservatism", "n.s.", "Switching")) +
+    theme_bw() +
+    theme(legend.title = element_blank(),
+          legend.position = "right",
+          legend.spacing.x = unit(0.1, 'cm'),
+          legend.key.size = unit(0.5,"line"),
+          legend.text = element_text(size = 8),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(0.5,-0.5,-10,-10),
+          axis.text = element_text(size = 8, color = "black"),
+          panel.grid.major = element_blank()))
+
+
+ggsave("plots/results/Similarity_percentage_beige.png", p_E,
+       bg = "transparent",
+       width = 8,
+       height = 6,
+       units = "cm")
 
 # original:
-c("#6F5449", "#EAB464", "#919AA1")
+# c("#6F5449", "#EAB464", "#919AA1")
 
 
 
