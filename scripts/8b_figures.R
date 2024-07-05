@@ -419,7 +419,8 @@ perc_group <- function(x) {
   if(x > 0  & x <= 25) {g <- 1}
   if(x > 25 & x <= 50) {g <- 2}
   if(x > 50 & x <= 75) {g <- 3}
-  if(x > 75 & x <= 100) {g <- 4}
+  if(x > 75 & x < 100) {g <- 4}
+  if(x == 100) {g <- 5}
   
   return(g)
 }
@@ -435,7 +436,7 @@ df_con <- master_results_AC %>%
   mutate(perc_neither = NA) %>% 
   mutate(perc_con_group = NA) %>% 
   mutate(perc_nei_group = NA) %>% 
-  mutate(perc_swi_group = 5)
+  mutate(perc_swi_group = 6)
 
 
 rm(master_results_AC)
@@ -476,17 +477,16 @@ df_plot <- df_con %>%
          "switching" = "perc_swi_group") %>% 
   pivot_longer(cols = c(conservatism, non_significant, switching), names_to = "observation", values_to = "perc_group") %>% 
   dplyr::filter(!perc_group == 0) %>% 
-  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5))) %>% 
-  mutate(perc_group = replace(perc_group, perc_group == 5, NA)) %>% 
-  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4)))
+  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5,6))) %>% 
+  mutate(perc_group = replace(perc_group, perc_group == 6, NA)) %>% 
+  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5)))
 
 
 
 
 # legend_labels <- c("0 < X <= 25", "25 < X <= 50", "50 < X <= 75", "75 < X <= 100")
 
-legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), expression("50 < x" <= "75"), expression("75 < x" <= "100"))
-
+legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), expression("50 < x" <= "75"), expression("75 < x" < "100"), expression("x = 100"))
 
 (p <- ggplot(df_plot, aes(observation, group = perc_group)) +
     geom_bar(aes(fill = perc_group), position = "dodge") +
@@ -508,7 +508,7 @@ legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), ex
           panel.grid.major = element_blank()))
 
 
-ggsave("plots/results/Similarity_percentage.png", p,
+ggsave("plots/results/Similarity_percentage_100.png", p,
        bg = "transparent",
        width = 8,
        height = 6,
@@ -534,7 +534,7 @@ ggsave("plots/results/Similarity_percentage.png", p,
           panel.grid.major = element_blank()))
 
 
-ggsave("plots/results/Similarity_percentage_beige.png", p_E,
+ggsave("plots/results/Similarity_percentage_beige_100.png", p_E,
        bg = "transparent",
        width = 8,
        height = 6,
