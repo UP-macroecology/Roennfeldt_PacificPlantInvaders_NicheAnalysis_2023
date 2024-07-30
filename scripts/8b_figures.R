@@ -68,13 +68,13 @@ ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
 
 
 # relative dynamics - per region
-p1 <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
+(p1 <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
   geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
-  labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
+  labs(x = "Non-native region", y = "Niche changes (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
                    labels = label_regional) +
-  scale_fill_manual(name = "Niche dynamics", 
+  scale_fill_manual(name = "Niche changes", 
                     labels = c("Abandonment", "Unfilling", "Stability", "Expansion", "Pioneering"),
                     values = col_regular) +
   theme_bw(base_size = 20) +
@@ -83,14 +83,16 @@ p1 <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metri
         # panel.background = element_rect(fill = "transparent"),
         # plot.background = element_rect(fill = "transparent", color = NA),
         legend.position = "top",
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        legend.title = element_text(size = 9),
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(0,-10,-10,-10),
+        legend.key.size = unit(0.4, "cm"),
+        legend.key.spacing = unit(0.25, "cm"),
         axis.text = element_text(size = 9, color = "black"),
-        axis.title = element_text(size = 11))
+        axis.title = element_text(size = 11)))
 
-ggsave("plots/results/all_dynamics.png", p1, 
+ggsave("plots/results/all_dynamics.jpg", p1, 
        width = 16,
        height = 10,
        units = "cm")
@@ -316,19 +318,17 @@ stand_ESU <- master_results_AC %>%
 # plot ESU niche dynamcis
 
 col_ESU <- c("lightgoldenrod1","lightblue2","darkseagreen3")
-
-
-col_ESU_bright <- c("#FFE875","#A3DDEF","#87CF87")
+col_ESU_poster <- c("#FFE875","#A3DDEF","#87CF87")
 # col_poster <- c("#FFE875","#A3DDEF","#87CF87")
 
 # relative dynamics - Prague poster -> BLACK
 (p <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
     geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
-    labs(x = "Non-native region", y = "Niche dynamics (%)") +
+    labs(x = "Non-native region", y = "Niche changes (%)") +
     scale_x_discrete(name = "Non-native region",
                      limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
                      labels = label_regional) +
-    scale_fill_manual(name = "Niche dynamics", 
+    scale_fill_manual(name = "Niche changes", 
                       labels = c("Unfilling", "Stability", "Expansion"),
                       values = col_ESU) +
     theme_bw(base_size = 20) +
@@ -347,10 +347,38 @@ col_ESU_bright <- c("#FFE875","#A3DDEF","#87CF87")
 
 
 
+(p_poster <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
+    geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
+    labs(x = "Non-native region", y = "Niche changes (%)") +
+    scale_x_discrete(name = "Non-native region",
+                     limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
+                     labels = label_regional) +
+    scale_fill_manual(name = "Niche changes", 
+                      labels = c("Unfilling", "Stability", "Expansion"),
+                      values = col_ESU) +
+    theme_bw(base_size = 20) +
+    theme(panel.grid.major = element_blank(),
+          plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"),
+          panel.background = element_rect(fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.position = "top",
+          legend.text = element_text(size = 10),
+          legend.title = element_text(size = 11),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(0,-10,-10,-10),
+          legend.background = element_rect(fill = "transparent"),
+          axis.text = element_text(size = 9, color = "black"),
+          axis.title = element_text(size = 11)))
+# axis.text = element_text(colour = "#1B3C59")))
 
 
 
-ggsave("plots/results/ESU_dynamics.png", p, 
+ggsave("plots/results/ESU_dynamics.jpg", p, 
+       width = 16,
+       height = 11,
+       units = "cm")
+
+ggsave("plots/results/ESU_dynamics_poster.png", p_poster, 
        width = 16,
        height = 11,
        units = "cm")
@@ -419,8 +447,8 @@ perc_group <- function(x) {
   if(x > 0  & x <= 25) {g <- 1}
   if(x > 25 & x <= 50) {g <- 2}
   if(x > 50 & x <= 75) {g <- 3}
-  if(x > 75 & x < 100) {g <- 4}
-  if(x == 100) {g <- 5}
+  if(x > 75 & x <= 100) {g <- 4}
+  # if(x == 100) {g <- 5}
   
   return(g)
 }
@@ -436,7 +464,7 @@ df_con <- master_results_AC %>%
   mutate(perc_neither = NA) %>% 
   mutate(perc_con_group = NA) %>% 
   mutate(perc_nei_group = NA) %>% 
-  mutate(perc_swi_group = 6)
+  mutate(perc_swi_group = 5)
 
 
 rm(master_results_AC)
@@ -477,38 +505,67 @@ df_plot <- df_con %>%
          "switching" = "perc_swi_group") %>% 
   pivot_longer(cols = c(conservatism, non_significant, switching), names_to = "observation", values_to = "perc_group") %>% 
   dplyr::filter(!perc_group == 0) %>% 
-  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5,6))) %>% 
-  mutate(perc_group = replace(perc_group, perc_group == 6, NA)) %>% 
-  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5)))
+  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4,5))) %>% 
+  mutate(perc_group = replace(perc_group, perc_group == 5, NA)) %>% 
+  mutate(perc_group = factor(perc_group, levels = c(1,2,3,4)))
 
 
 
 
 # legend_labels <- c("0 < X <= 25", "25 < X <= 50", "50 < X <= 75", "75 < X <= 100")
 
-legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), expression("50 < x" <= "75"), expression("75 < x" < "100"), expression("x = 100"))
+# legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), expression("50 < x" <= "75"), expression("75 < x" < "100"), expression("x = 100"))
+legend_labels <- c(expression("" <= "25%"), expression("" <= "50%"), expression("" <= "75%"), expression("" <= "100%"))
+
+
+col_gradient <- c("#E0C9AA", "#D4B387", "#725546", "#594236")
 
 (p <- ggplot(df_plot, aes(observation, group = perc_group)) +
     geom_bar(aes(fill = perc_group), position = "dodge") +
     xlab(NULL) +
     ylab("Number of species") +
-    scale_fill_viridis_d(option = "G", begin = 0.9, end = 0.2, alpha = 1, na.value = "transparent",
-                         labels = legend_labels ) +
+    scale_fill_manual(name = "Consistency across\nregions:", 
+                      labels = legend_labels,
+                      values = col_gradient,
+                      na.value = "transparent") +
+    # scale_fill_viridis_d(option = "G", begin = 0.9, end = 0.2, alpha = 1, na.value = "transparent",
+    #                      labels = legend_labels, name = "Consistency across\nregions:") +
     scale_y_continuous(n.breaks = 8, limits = c(0,116), expand = c(0.01, 0)) +
-    scale_x_discrete(labels = c("Conservatism", "n.s.", "Switching")) +
+    scale_x_discrete(labels = c("Niche\n conservatism", "n.s.", "Niche\n switching")) +
+    # guides(fill = guide_legend(title = "Consistency across regions"), theme(legend.text = element_text(size = 8))) +
     theme_bw() +
-    theme(legend.title = element_blank(),
+    theme(legend.title = element_text(size = 8),
           legend.position = "right",
           legend.spacing.x = unit(0.1, 'cm'),
           legend.key.size = unit(0.5,"line"),
           legend.text = element_text(size = 8),
-          legend.margin=margin(0,0,0,0),
-          legend.box.margin=margin(0.5,-0.5,-10,-10),
+          legend.margin = margin(0,0,0,5),
+          legend.box.margin = margin(0.5,-0.5,-10,-10),
           axis.text = element_text(size = 8, color = "black"),
           panel.grid.major = element_blank()))
 
+# (p <- ggplot(df_plot, aes(observation, group = perc_group)) +
+#     geom_bar(aes(fill = perc_group), position = "dodge") +
+#     xlab(NULL) +
+#     ylab("Number of species") +
+#     scale_fill_viridis_d(option = "G", begin = 0.9, end = 0.2, alpha = 1, na.value = "transparent",
+#                          labels = legend_labels, name = "Consistency across\nregions:") +
+#     scale_y_continuous(n.breaks = 8, limits = c(0,116), expand = c(0.01, 0)) +
+#     scale_x_discrete(labels = c("Niche\n conservatism", "n.s.", "Niche\n switching")) +
+#     # guides(fill = guide_legend(title = "Consistency across regions"), theme(legend.text = element_text(size = 8))) +
+#     theme_bw() +
+#     theme(legend.title = element_text(size = 8, face = "bold"),
+#       legend.position = "right",
+#           legend.spacing.x = unit(0.1, 'cm'),
+#           legend.key.size = unit(0.5,"line"),
+#           legend.text = element_text(size = 8),
+#           # legend.margin = margin(0,0,0,0),
+#           # legend.box.margin = margin(0.5,-0.5,-10,-10),
+#           axis.text = element_text(size = 8, color = "black"),
+#           panel.grid.major = element_blank()))
 
-ggsave("plots/results/Similarity_percentage_100.png", p,
+
+ggsave("plots/results/Similarity_percentage_100.jpg", p,
        bg = "transparent",
        width = 8,
        height = 6,
@@ -518,18 +575,19 @@ ggsave("plots/results/Similarity_percentage_100.png", p,
     geom_bar(aes(fill = perc_group), position = "dodge") +
     xlab(NULL) +
     ylab("Number of species") +
-    scale_fill_viridis_d(option = "E", begin = 0.9, end = 0.2, alpha = 0.9, na.value = "transparent",
-                         labels = legend_labels ) +
+    scale_fill_viridis_d(option = "E", begin = 0.9, end = 0.2, alpha = 1, na.value = "transparent",
+                         labels = legend_labels, name = "Consistency across\nregions:") +
     scale_y_continuous(n.breaks = 8, limits = c(0,116), expand = c(0.01, 0)) +
-    scale_x_discrete(labels = c("Conservatism", "n.s.", "Switching")) +
+    scale_x_discrete(labels = c("Niche\n conservatism", "n.s.", "Niche\n switching")) +
+    # guides(fill = guide_legend(title = "Consistency across regions"), theme(legend.text = element_text(size = 8))) +
     theme_bw() +
-    theme(legend.title = element_blank(),
+    theme(legend.title = element_text(size = 8, face = "bold"),
           legend.position = "right",
           legend.spacing.x = unit(0.1, 'cm'),
           legend.key.size = unit(0.5,"line"),
           legend.text = element_text(size = 8),
-          legend.margin=margin(0,0,0,0),
-          legend.box.margin=margin(0.5,-0.5,-10,-10),
+          legend.margin = margin(0,0,0,0),
+          legend.box.margin = margin(0.5,-0.5,-10,-10),
           axis.text = element_text(size = 8, color = "black"),
           panel.grid.major = element_blank()))
 
