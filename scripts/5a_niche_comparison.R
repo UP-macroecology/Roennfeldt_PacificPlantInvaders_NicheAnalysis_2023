@@ -126,7 +126,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         # to test for niche shifts: overlap (lower), expansion (higher), similarity (lower), unfilling (higher)
         
         # niche conservatism
-        # intersect between native and introduced range (intersection = 0)
+        # intersect between native and introduced range (intersection = 0), meaning analogue conditions
         sim_test_conservatism <- ecospat.niche.similarity.test.mod(grid_clim_nat, grid_clim_intr,
                                                                rep = 1200,
                                                                intersection = 0, # 0 means the analysis is only done for the intersection of native and introduced niche
@@ -137,7 +137,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
                                                                rand.type = 2)
         
         # niche shifts
-        # intersect between native and introduced range (intersection = 0)
+        # intersect between native and introduced range (intersection = 0), meaning analogue conditions
         sim_test_shift <- ecospat.niche.similarity.test.mod(grid_clim_nat, grid_clim_intr,
                                                         rep = 1200,
                                                         intersection = 0, 
