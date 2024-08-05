@@ -188,7 +188,9 @@ rownames(p_imp_mtx) <- covariates
 col_lim <- c(-1, 1)
 
 txt_col <- "black"
-na_col <- "white"
+na_col <- "transparent"
+bg_col <- "transparent"
+grid_col <- "#737373"
 col <- rev(COL2('RdBu', 200))
 
 col_names <- c("Africa (n = 124)",
@@ -207,18 +209,19 @@ row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Resid
 
 
 
-#layout(matrix(c(1,2,3), ncol = 3))
+w <- 12
+h <- 16
+dpi <- 300
+file_type <- "png"
 
-# CairoPDF(file = paste0("plots/trait_analysis/unfilling_main.png"), width = 9, height = 8,
-#          family = "Arial")
-
-Cairo(file = paste0("plots/trait_analysis/unfilling_main.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
+Cairo(file = paste0("plots/trait_analysis/unfilling_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+      bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
 
 # unfilling
 corrplot_mod(m_imp = u_imp_mtx,
              m_efs = u_efs_mtx,
-             addgrid.col = "grey",
+             addgrid.col = grid_col,
+             bg = bg_col,
              mar = c(0,0,0,0),
              col.lim = col_lim,
              col = col,
@@ -233,13 +236,14 @@ corrplot_mod(m_imp = u_imp_mtx,
 
 dev.off()
 
-Cairo(file = paste0("plots/trait_analysis/unfilling_stability.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
+Cairo(file = paste0("plots/trait_analysis/stability_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+      bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
 
 # stability
 corrplot_mod(m_imp = s_imp_mtx,
              m_efs = s_efs_mtx,
-             addgrid.col = "grey",
+             addgrid.col = grid_col,
+             bg = bg_col,
              col.lim = col_lim,
              col = col,
              row_names = row_names,
@@ -253,12 +257,13 @@ corrplot_mod(m_imp = s_imp_mtx,
 
 dev.off()
 
-Cairo(file = paste0("plots/trait_analysis/expansion_main.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
+Cairo(file = paste0("plots/trait_analysis/expansion_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+      bg = bg_col, canvas = bg_col, units = "cm", dpi = dpi)
 # expansion
 corrplot_mod(m_imp = e_imp_mtx,
              m_efs = e_efs_mtx,
-             addgrid.col = "grey",
+             addgrid.col = grid_col,
+             bg = bg_col,
              col.lim = col_lim,
              col = col,
              row_names = row_names,
@@ -275,15 +280,13 @@ dev.off()
 
 #layout.show(3)
 
-Cairo(file = paste0("plots/trait_analysis/abandonent_main.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
+Cairo(file = paste0("plots/trait_analysis/abandonent_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+      bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
 # abandonment
 corrplot_mod(m_imp = a_imp_mtx,
              m_efs = a_efs_mtx,
-             addgrid.col = "grey",
-             # r2names = r2_exp,
-             #mar = c(2,2,3,2),
-             # cl.cex = 1.4,
+             addgrid.col = grid_col,
+             bg = bg_col,
              col.lim = col_lim,
              col = col,
              row_names = row_names,
@@ -299,16 +302,14 @@ corrplot_mod(m_imp = a_imp_mtx,
 
 dev.off()
 
-Cairo(file = paste0("plots/trait_analysis/pioneering_main.png"),  width = 640, height = 480, type = "png", pointsize = 12, 
-      bg = "white", canvas = "white", units = "px", dpi = "auto")
+Cairo(file = paste0("plots/trait_analysis/pioneering_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+      bg = bg_col, canvas = bg_col, units = "px", dpi = "auto")
 
 # pioneering
 corrplot_mod(m_imp = p_imp_mtx,
              m_efs = p_efs_mtx,
-             addgrid.col = "grey",
-             #r2names = r2_pio,
-             #mar = c(2,2,3,2),
-             #cl.cex = 1.4,
+             addgrid.col = grid_col,
+             bg = bg_col,
              col.lim = col_lim,
              col = col,
              row_names = row_names,
