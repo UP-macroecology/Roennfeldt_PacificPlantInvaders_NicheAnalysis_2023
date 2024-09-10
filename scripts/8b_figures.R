@@ -31,7 +31,8 @@ load("results/ecospat/niche_overlap_results_AC.RData")
 # 
 rel_niche_dynamics_AC <- rel_niche_dynamics_AC %>%
   mutate(across(!c(species,percentage, total), as.factor)) %>%
-  mutate(metric = factor(metric, levels = c("abandonment", "unfilling", "stability", "expansion", "pioneering"))) 
+  mutate(metric = factor(metric, levels = c("abandonment", "unfilling", "stability", "expansion", "pioneering"))) %>% 
+  mutate(percentage = percentage *100)
 
 results_dynamics_AC <- results_dynamics_AC %>%
   filter(inter_method == "inter") %>%
@@ -88,7 +89,7 @@ ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(0,-10,-10,-10),
         legend.key.size = unit(0.4, "cm"),
-        legend.key.spacing = unit(0.25, "cm"),
+        # legend.key.spacing = unit(0.25, "cm"),
         axis.text = element_text(size = 9, color = "black"),
         axis.title = element_text(size = 11)))
 
@@ -305,8 +306,8 @@ stand_ESU <- master_results_AC %>%
   pivot_longer(!c(species, region), names_to = "metric", values_to = "percentage") %>%
   replace(is.na(.), 0) %>%
   mutate(across(!c(species,percentage), as.factor)) %>%
-  mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion")))
-
+  mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion"))) %>% 
+  mutate(percentage = percentage *100)
 
 #t <- subset(stand_ESU, region == "pac")
 
@@ -341,9 +342,10 @@ col_ESU_poster <- c("#FFE875","#A3DDEF","#87CF87")
           legend.title = element_text(size = 11),
           legend.margin=margin(0,0,0,0),
           legend.box.margin=margin(0,-10,-10,-10),
-          axis.text = element_text(size = , color = "black"),
+          axis.text = element_text(size = 9, color = "black"),
           axis.title = element_text(size = 11)))
           # axis.text = element_text(colour = "#1B3C59")))
+
 ggsave("plots/results/ESU_dynamics.jpg", p, 
        width = 16,
        height = 11,
@@ -611,3 +613,58 @@ df_reg$n_regions <- rowSums(df_reg[,2:9])
 summary(df_reg$n_regions)
 # SD
 sd(df_reg$n_regions)
+
+
+
+
+#  linerange similarity results -------------------------------------------
+
+
+library(dplyr)
+library(dotwhisker)
+library(ggplot2)
+
+rm(list = ls())
+
+load("results/ecospat/master_results_AC.RData")
+
+ID <- c(1:317)
+df_con <- master_results_AC %>% 
+  group_by(species, similarity) %>% 
+  tally() %>% 
+  pivot_wider(names_from=similarity, values_from=n) %>% 
+  mutate(across(everything(), .fns=~replace_na(., 0))) %>% 
+  # mutate(total = conservatism + neither) %>% 
+  mutate(conservatism = conservatism * (-1)) 
+
+df_con <- data.frame(species_ID = ID, df_con)
+
+df_plot <- df_con[1:20,] %>% 
+  arrange(-conservatism)
+
+#unique(df_plot$species_ID)
+
+#  to do:
+
+# species with neither = 0 and then ordered by conservatism
+# species with neither > 0, but mode conservatism, ordered by conservatism
+# species with conservatism == neither
+# species with conservatism >0, but mode neither, ordered by neither
+# species with conservatism = 0, ordered by neither
+
+
+df_plot %>% 
+  ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
+  geom_linerange(aes(xmin = conservatism, xmax = neither)) +
+  geom_vline(xintercept = 0, col = "black") +
+  geom_vline(xintercept = c(-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8), col = "lightgrey") +
+  scale_x_continuous(breaks = c(-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8)) +
+  # position = "top") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+# theme(panel.grid.major = element_blank(),
+#       panel.grid.minor = element_blank(),
+#       axis.ticks.y = element_blank(),
+#       axis.text.y = element_blank())
+
