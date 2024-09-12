@@ -1,5 +1,4 @@
 library(ggplot2)
-# library(leaflet)
 library(shiny)
 library(dplyr)
 
@@ -190,16 +189,16 @@ server <- function(input, output) {
 
 # TAB2:=======================================================================
   
-  output$TA_figure <- renderImage({
-    list(
-      # src = file.path("plots", paste0(input$id, ".jpg")),
-      src = file.path("plots", "TA_all.jpg"),
-      contentType = "image/jpeg",
-      width = 1600,
-      height = 1000
-    )}, deleteFile = FALSE)
- #  }) # end of observeEvent
-  
+#   output$TA_figure <- renderImage({
+#     list(
+#       # src = file.path("plots", paste0(input$id, ".jpg")),
+#       src = file.path("plots", "TA_all.jpg"),
+#       contentType = "image/jpeg",
+#       width = 1600,
+#       height = 1000
+#     )}, deleteFile = FALSE)
+#  #  }) # end of observeEvent
+#   
 } # end of server function
 
 
