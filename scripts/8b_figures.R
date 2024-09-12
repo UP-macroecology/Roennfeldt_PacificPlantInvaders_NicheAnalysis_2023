@@ -619,46 +619,78 @@ sd(df_reg$n_regions)
 
 #  linerange similarity results -------------------------------------------
 
-
-library(dplyr)
 library(dotwhisker)
 library(ggplot2)
+library(tidyr)
+
 
 rm(list = ls())
 
 load("results/ecospat/master_results_AC.RData")
 
 ID <- c(1:317)
+
 df_con <- master_results_AC %>% 
   group_by(species, similarity) %>% 
   tally() %>% 
   pivot_wider(names_from=similarity, values_from=n) %>% 
   mutate(across(everything(), .fns=~replace_na(., 0))) %>% 
-  # mutate(total = conservatism + neither) %>% 
-  mutate(conservatism = conservatism * (-1)) 
+  mutate(total = conservatism + neither) %>%
+  mutate(conservatism = conservatism * (-1)) %>% 
+  mutate(perc_con = round(100/total*abs(conservatism), 2)) %>% 
+  mutate(perc_con = round(100/total*neither, 2)) 
 
 df_con <- data.frame(species_ID = ID, df_con)
 
-df_plot <- df_con[1:20,] %>% 
-  arrange(-conservatism)
+# df_plot <- df_con[1:30,] %>% 
+#   arrange(-conservatism)
 
 #unique(df_plot$species_ID)
 
 #  to do:
 
 # species with neither = 0 and then ordered by conservatism
+set_1 <- df_con %>%
+  filter(neither == 0) %>% 
+  arrange(-conservatism)
+
 # species with neither > 0, but mode conservatism, ordered by conservatism
+set_2 <- df_con %>%
+  mutate(conservatism = conservatism * (-1)) %>% 
+  filter(neither > 0 & conservatism > neither) %>% 
+  mutate(conservatism = conservatism * (-1)) %>% 
+  arrange(-conservatism) 
+
 # species with conservatism == neither
+set_3 <- df_con %>%
+  mutate(conservatism = conservatism * (-1)) %>% 
+  filter(conservatism == neither) %>% 
+  mutate(conservatism = conservatism * (-1)) %>% 
+  arrange(-conservatism) 
+
 # species with conservatism >0, but mode neither, ordered by neither
+set_4 <- df_con %>%
+  mutate(conservatism = conservatism * (-1)) %>% 
+  filter(conservatism > 0 & conservatism < neither) %>% 
+  arrange(-neither) %>% 
+  mutate(conservatism = conservatism * (-1))
+
 # species with conservatism = 0, ordered by neither
+set_5 <- df_con %>%
+  mutate(conservatism = conservatism * (-1)) %>% 
+  filter(conservatism == 0) %>% 
+  arrange(-neither) %>% 
+  mutate(conservatism = conservatism * (-1))
 
 
-df_plot %>% 
+df_plot <- rbind(set_5, set_4, set_3, set_2, set_1)
+
+df_plot %>%
   ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
   geom_linerange(aes(xmin = conservatism, xmax = neither)) +
   geom_vline(xintercept = 0, col = "black") +
-  geom_vline(xintercept = c(-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8), col = "lightgrey") +
-  scale_x_continuous(breaks = c(-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8)) +
+  geom_vline(xintercept = c(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7), col = "lightgrey") +
+  scale_x_continuous(breaks = c(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7)) +
   # position = "top") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
