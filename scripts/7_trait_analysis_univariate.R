@@ -5,7 +5,7 @@ library(tidyr) # to use unite()
 rm(list = ls())
 
 
-path_transfer <- "T:/Holle_Roennfeldt/"
+# path_transfer <- "T:/Holle_Roennfeldt/"
 # path_transfer <- "Y:/AG26/Transfer/Holle_Roennfeldt/"
 
 logit <- function(x) {x = ifelse(x < 0.0001,0.0001,ifelse(x > 0.9999,.9999,x));log(x/(1 - x))}
@@ -37,7 +37,7 @@ load("data/spp_suitable_AC.RData") # species list
 load("results/ecospat/master_results_AC.RData") # results niche comparison
 
 
-load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_GIFT.RData")) # GIFT trait data
+load("data/trait_analysis/species_pacific_traits_GIFT.RData") # GIFT trait data
 
 # geographic traits
 load("data/trait_analysis/native_niche_breadth_centroid.RData")
@@ -60,11 +60,16 @@ df_results <- master_results_AC %>%
   mutate(unfilling = rel_unfilling / total_esu) 
 
 # time since introduction
+year_first_intro_Seebens[year_first_intro_Seebens == "NI"] <- NA
+
 year_first_intro_Seebens <- year_first_intro_Seebens %>%
   dplyr::select(!pac_region) %>%
   pivot_longer(cols = !species,
                names_to = "region",
                values_to = "years_since_intro") 
+
+
+year_first_intro_Seebens$years_since_intro <- as.numeric(year_first_intro_Seebens$years_since_intro)
 
 
 spec_traits <- species_pacific_traits_GIFT %>%
@@ -104,15 +109,15 @@ input_TA[input_TA == "perennial"] <- 3
 input_TA_uni <- input_TA %>% 
   mutate(across(!c(species_region, species, region), as.numeric)) %>%
   mutate(mean_height = scale(mean_height)) %>% 
-  mutate(mean_seedmass = scale(mean_seedmass)) %>% 
+  mutate(mean_seedmass = scale(log(mean_seedmass + 0.00001))) %>% 
   mutate(growth_form = scale(growth_form)) %>% 
   mutate(lifecycle = scale(lifecycle)) %>% 
   mutate(range_size_nat = scale(range_size_nat)) %>% 
-  mutate(years_since_intro = scale(years_since_intro)) %>% 
+  mutate(years_since_intro = scale(log(years_since_intro))) %>% 
   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
-  mutate(lat_dist = lat_dist/180) %>% 
+  mutate(lat_dist = scale(lat_dist)) %>%
   mutate(unfilling = logit(unfilling)) %>% 
   mutate(expansion = logit(expansion)) %>% 
   mutate(stability = logit(stability)) %>% 

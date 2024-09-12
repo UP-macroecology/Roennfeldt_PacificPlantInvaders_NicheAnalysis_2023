@@ -11,7 +11,7 @@ rm(list = ls())
 # load data ---------------------------------------------------------------
 
 # input data 
-load("data/trait_analysis/input_TA.RData")
+load("data/trait_analysis/input_TA_scale_log.RData")
 
 #add row names - needed to match phylogenetic information
 #rownames(input_TA) <- gsub(' ','_', input_TA$species_region)
