@@ -379,8 +379,6 @@ ggsave("plots/results/ESU_dynamics.jpg", p,
 # axis.text = element_text(cNULL# axis.text = element_text(colour = "#1B3C59")))
 
 
-
-
 ggsave("plots/results/ESU_dynamics_poster.png", p_poster, 
        bg = "transparent",
        width = 45,
@@ -618,7 +616,7 @@ sd(df_reg$n_regions)
 
 
 #  linerange similarity results -------------------------------------------
-
+library(dplyr)
 library(dotwhisker)
 library(ggplot2)
 library(tidyr)
@@ -637,8 +635,8 @@ df_con <- master_results_AC %>%
   mutate(across(everything(), .fns=~replace_na(., 0))) %>% 
   mutate(total = conservatism + neither) %>%
   mutate(conservatism = conservatism * (-1)) %>% 
-  mutate(perc_con = round(100/total*abs(conservatism), 2)) %>% 
-  mutate(perc_con = round(100/total*neither, 2)) 
+  mutate(perc_con = (round(100/total*abs(conservatism), 2))*(-1)) %>% 
+  mutate(perc_neither = round(100/total*neither, 2)) 
 
 df_con <- data.frame(species_ID = ID, df_con)
 
@@ -700,3 +698,98 @@ df_plot %>%
 #       axis.ticks.y = element_blank(),
 #       axis.text.y = element_blank())
 
+
+# percentage version ------------------------------------------------------
+
+# species with neither = 0 and then ordered by conservatism
+set_1 <- df_con %>%
+  filter(perc_neither == 0) %>% 
+  arrange(-perc_con) %>% 
+  mutate(set = as.factor(1))
+
+
+# species with neither > 0, but mode conservatism, ordered by conservatism
+set_2 <- df_con %>%
+  mutate(perc_con = perc_con * (-1)) %>% 
+  filter(perc_neither > 0 & perc_con > perc_neither) %>% 
+  mutate(perc_con = perc_con * (-1)) %>% 
+  arrange(-perc_con) %>% 
+  mutate(set = as.factor(2))
+
+# species with conservatism == neither
+set_3 <- df_con %>%
+  mutate(perc_con = perc_con * (-1)) %>% 
+  filter(perc_con == perc_neither) %>% 
+  mutate(perc_con = perc_con * (-1)) %>% 
+  arrange(-perc_con) %>% 
+  mutate(set = as.factor(3))
+
+# species with conservatism >0, but mode neither, ordered by neither
+set_4 <- df_con %>%
+  mutate(perc_con = perc_con * (-1)) %>% 
+  filter(perc_con > 0 & perc_con < perc_neither) %>% 
+  arrange(-perc_neither) %>% 
+  mutate(perc_con = perc_con * (-1)) %>% 
+  mutate(set = as.factor(4))
+
+# species with conservatism = 0, ordered by neither
+set_5 <- df_con %>%
+  mutate(perc_con = perc_con * (-1)) %>% 
+  filter(perc_con == 0) %>% 
+  arrange(-perc_neither) %>% 
+  mutate(perc_con = perc_con * (-1)) %>% 
+  mutate(set = as.factor(5))
+
+
+df_plot <- rbind(set_5, set_4, set_3, set_2, set_1)
+
+col_perc <- c("#80A8C9","#506F89","#101819","#809E51", "#C6C981")
+# col_perc <- c("#BFC270","#809E51","#101819","#506F89", "#80A8C9")
+
+
+df_plot %>%
+  ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
+  geom_linerange(aes(xmin = perc_con, xmax = perc_neither, colour = set)) +
+  scale_color_manual(values = col_perc) +
+  # scale_color_manual(values = col_perc) +
+  geom_segment(x = -100, y = 1, xend = 100, yend = 1, color = "black") + 
+  geom_segment(x = -100, y = 317, xend = 100, yend = 317, color = "black") + 
+  # geom_hline(yintercept = c(1, 317), col = "black") +
+  geom_vline(xintercept = c(-75,-50,-25,25,50,75), col = "darkgrey", linetype = 3) +
+  geom_vline(xintercept = 0, col = "black") +
+  # geom_vline(xintercept = c(-100,100), col = "black") +
+  scale_x_continuous(limits = c(-100,100),
+                     labels = c(100,75,50,25,25,50,75,100),
+                     # breaks = c(-87.5,-62.5,-37.5,-12.5,12.5,37.5,62.5,87.5),
+                     breaks = c(-100,-75,-50,-25,25,50,75,100),
+                     position = "top") +
+  ylab(NULL) +
+  # position = "top") +
+  theme_void() +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = "null")
+
+
+
+# 
+# 
+# 
+# df_plot %>%
+#   ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
+#   geom_linerange(aes(xmin = perc_con, xmax = perc_neither)) +
+#   geom_vline(xintercept = 0, col = "black") +
+#   geom_vline(xintercept = c(-70,-60,-50,-40,-30,-20,-10,10,20,30,40,50,60,70), col = "lightgrey") +
+#   scale_x_continuous(breaks = c(-70,-60,-50,-40,-30,-20,-10,10,20,30,40,50,60,70)) +
+#   # position = "top") +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank())
+# # theme(panel.grid.major = element_blank(),
+# #       panel.grid.minor = element_blank(),
+# #       axis.ticks.y = element_blank(),
+# #       axis.text.y = element_blank())
+# 
