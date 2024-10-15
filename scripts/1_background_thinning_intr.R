@@ -22,6 +22,8 @@ package_vec <- c(
 
 sapply(package_vec, install.load.package)
 
+rm(list = ls())
+
 # required paths
 # path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
 path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
