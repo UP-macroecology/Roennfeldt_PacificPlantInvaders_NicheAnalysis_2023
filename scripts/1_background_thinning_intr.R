@@ -1,3 +1,16 @@
+#' ---------------------------
+#
+# Purpose of script: thin presences points in the introduced ranges, sample pseudo-absences and thin them as well
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-09
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: /
+#
+#' ---------------------------
+
+
+
 install.load.package <- function(x) {
   if (!require(x, character.only = TRUE))
     install.packages(x, repos = 'http://cran.us.r-project.org')
@@ -82,12 +95,14 @@ occ_count_crit_1 <- occ_count_crit_1 %>%
   distinct(species, .keep_all = TRUE)
 
 suitable <- occ_count_crit_1[,-1]
-suitable[suitable < 20] <- 0
-suitable[suitable >= 20] <- 1
+suitable[suitable < 20] <- 0 # set cells with less than 20 occurrences to 0 (unsuitable)
+suitable[suitable >= 20] <- 1 # set cells with at least than 20 occurrences to 1 (suitable)
 suitable$species <- occ_count_crit_1$species
 suitable <- suitable %>% relocate(species)
-suitable$mainland_regions <- rowSums(suitable[,4:10])
+suitable$mainland_regions <- rowSums(suitable[,4:10]) # count how many mainland regions are suitable for each species
+# only keep species with enough occurrences in their native range, the Pacific Islands and at least one mainland region
 spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 0 | suitable$mainland_regions == 0),]
+
 
 spp <- spp_suitable$species
 
@@ -99,9 +114,6 @@ specs_done <- list.files(paste0(path_imp, "output/coords_final_intr/")) %>%
   unique()
 
 spp <- setdiff(spp, specs_done)
-
-# create vector with all the abbreviated region names
-# regions <- c("afr", "ate", "atr", "aus", "nam", "pac", "sam")
 
 
 # Start parallel computing
@@ -145,7 +157,6 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
       
       # place buffer around presence points (radius = 200)
       buf_200 <- buffer(presences, width = 200000)
-      
       
       # create mask
       mask_buf_200 <- crop(world_mask, ext(buf_200))

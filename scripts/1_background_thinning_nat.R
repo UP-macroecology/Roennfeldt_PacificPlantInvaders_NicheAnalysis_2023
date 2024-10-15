@@ -1,3 +1,14 @@
+#' ---------------------------
+#
+# Purpose of script: thin presences points in the native range, sample pseudo-absences and thin them as well
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-09
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: /
+#
+#' ---------------------------
+
 # preamble
 rm(list = ls())
 
