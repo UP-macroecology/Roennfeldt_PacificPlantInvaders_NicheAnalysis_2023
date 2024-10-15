@@ -1,3 +1,14 @@
+#' ---------------------------
+#
+# Purpose of script: merge species data (introduced) with environmetntal data
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-11
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: /
+#
+#' ---------------------------
+
 
 # packages ----------------------------------------------------------------
 install.load.package <- function(x) {
@@ -16,17 +27,15 @@ rm(list = ls())
 
 # required paths and data -------------------------------------------------
 
-path_imp  <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/") # TODO
+path_imp  <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/") 
 
 # final species selection
-# load(paste0(path_imp, "output/final_species_list_preliminary.RData")) #TODO
+# load(paste0(path_imp, "output/final_species_list_preliminary.RData")) 
 
-# when adding newly added species:
-load(paste0(path_imp, "input/spp_newly_selected.RData")) #TODO
+load(paste0(path_imp, "output/first_selection_species_list.RData")) # object: spp_final
 
-spp_final <- spp_new
+
 # merge occurrences and climate data --------------------------------------
-
 
 
 no_cores <- 2
