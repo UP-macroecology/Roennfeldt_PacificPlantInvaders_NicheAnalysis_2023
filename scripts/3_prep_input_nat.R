@@ -22,9 +22,6 @@ package_vec <- c(
 sapply(package_vec, install.load.package)
 
 
-rm(list = ls())
-
-
 # required paths and data -------------------------------------------------
 
 path_imp  <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/") 

@@ -13,8 +13,6 @@ library(dplyr)
 library(foreach)
 library(doParallel)
 
-rm(list = ls())
-
 # set paths
 
 path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") 

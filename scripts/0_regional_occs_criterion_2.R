@@ -6,7 +6,7 @@
 # Date Created: ~ 2023-08
 # Email: roennfeldt@uni-potsdam.de
 #
-# Notes:
+# Notes: /
 #
 #' ---------------------------
 
@@ -14,9 +14,6 @@ library(sf)
 library(dplyr)
 library(terra)
 library(foreach)
-
-rm(list = ls())
-
 
 load("data/status_assignment/occ_status_resolved.RData")
 load("data/occ_cleaned_slim.RData")

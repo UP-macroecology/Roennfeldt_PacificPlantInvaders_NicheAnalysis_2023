@@ -16,8 +16,6 @@ library(dplyr)
 library(terra)
 library(foreach)
 
-rm(list = ls())
-
 
 # load data ---------------------------------------------------------------
 

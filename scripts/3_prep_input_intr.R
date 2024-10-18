@@ -22,8 +22,6 @@ package_vec <- c(
 
 sapply(package_vec, install.load.package)
 
-rm(list = ls())
-
 
 # required paths and data -------------------------------------------------
 
