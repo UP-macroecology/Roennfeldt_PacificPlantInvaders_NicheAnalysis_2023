@@ -1,8 +1,17 @@
+#' ---------------------------
+#
+# Purpose of script: cimpiling all results as individual tables or master table
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-12
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: /
+#
+#' ---------------------------
+
 library(dplyr)
 library(stringr) # for str_trim
 
-
-rm(list = ls())
 
 # path_output <- "/import/ecoc9z/data-zurell/roennfeldt/C1/ouput/"
 path_data <- "Y:/roennfeldt/projects/PhD_C1/data/ecospat/"
@@ -24,8 +33,8 @@ similarity_res <- function(df, spec, reg, setting, metric){
 
 load("data/spp_suitable_after_thinning.RData")
 load("data/nr_occs_df_after_thinning.RData")
-
 load("data/spp_suitable_AC.RData")
+
 # overlap -----------------------------------------------------------------
 
 # empty df to store data in
@@ -147,78 +156,78 @@ results_similarity_AC <- subset(results_similarity, species %in% spp_suitable_AC
 save(results_similarity, file = "results/ecospat/niche_similarity_results.RData")
 save(results_similarity_AC, file = "results/ecospat/niche_similarity_results_AC.RData")
 
-# 2. SES based on similarity test results
-
-rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res", "nr_occs_df")))
-
-# empty df to store data in
-results_ses <- data.frame(matrix(ncol = 5, nrow = 0))
-colnames(results_ses) <- c("species", "region", "sim_setting", "sim_metric", "value")
-
-
-settings <- c("ses_conservatism", "ses_shift") 
-metrics <- c("rank.D","rank.I", "z.D", "z.I")
-
-counter <- 0
-for (spp in spp_suitable) {
-  
-  counter <- counter + 1
-  print(counter)
-  
-  for (setting in settings) {
-    
-    # all niche dynamics files saved in that folder for this species and setting
-    files_ses <- list.files(path = paste0(path_data, "niche_similarity/"), pattern = spp) 
-    
-    files_ses <- files_ses[grepl(paste0(setting), files_ses)]
-    
-    for (file in files_ses) {
-      # load niche dynamic results
-      load(paste0(path_data,"niche_similarity/",file)) # object name: sim_test_XX
-      
-      # remove ".RData from file name
-      file_short <- unlist(strsplit(file, split = "[.]"))[1]
-      
-      # get region name
-      region_name <- unlist(strsplit(file_short, split = "_"))[4]
-      
-      # get ses results for the different settings/metrics
-      
-      for (metric in metrics) {
-        
-        
-        if (setting == "ses_conservatism") {
-          sim_set <- "conservatism"
-          sim_value <- ses_conservatism[[paste0("ses.",metric)]]
-        } # end of if over setting == "conservatism"
-        
-        if (setting == "ses_shift") {
-          sim_set <- "shift"
-          sim_value <- ses_shift[[paste0("ses.",metric)]]
-        } # end of if over setting == "shift"
-        
-        
-        if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
-        # add to df
-        results_ses <- rbind(results_ses,
-                             data.frame(species = spp, 
-                                        region = region_name, 
-                                        sim_setting = sim_set,
-                                        sim_metric = metric, 
-                                        value = sim_value))} # end of if condition
-        
-      } # end loop over metrics
-      
-    } # end loop over files
-  } # end loop over settings
-} # end of loop over species
-
-# subset for AC species
-results_ses_AC <- subset(results_ses, species %in% spp_suitable_AC)
-
-# save results 
-save(results_ses, file = "results/ecospat/niche_ses_results.RData")
-save(results_ses_AC, file = "results/ecospat/niche_ses_results_AC.RData")
+# # 2. SES based on similarity test results
+# 
+# rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res", "nr_occs_df")))
+# 
+# # empty df to store data in
+# results_ses <- data.frame(matrix(ncol = 5, nrow = 0))
+# colnames(results_ses) <- c("species", "region", "sim_setting", "sim_metric", "value")
+# 
+# 
+# settings <- c("ses_conservatism", "ses_shift") 
+# metrics <- c("rank.D","rank.I", "z.D", "z.I")
+# 
+# counter <- 0
+# for (spp in spp_suitable) {
+#   
+#   counter <- counter + 1
+#   print(counter)
+#   
+#   for (setting in settings) {
+#     
+#     # all niche dynamics files saved in that folder for this species and setting
+#     files_ses <- list.files(path = paste0(path_data, "niche_similarity/"), pattern = spp) 
+#     
+#     files_ses <- files_ses[grepl(paste0(setting), files_ses)]
+#     
+#     for (file in files_ses) {
+#       # load niche dynamic results
+#       load(paste0(path_data,"niche_similarity/",file)) # object name: sim_test_XX
+#       
+#       # remove ".RData from file name
+#       file_short <- unlist(strsplit(file, split = "[.]"))[1]
+#       
+#       # get region name
+#       region_name <- unlist(strsplit(file_short, split = "_"))[4]
+#       
+#       # get ses results for the different settings/metrics
+#       
+#       for (metric in metrics) {
+#         
+#         
+#         if (setting == "ses_conservatism") {
+#           sim_set <- "conservatism"
+#           sim_value <- ses_conservatism[[paste0("ses.",metric)]]
+#         } # end of if over setting == "conservatism"
+#         
+#         if (setting == "ses_shift") {
+#           sim_set <- "shift"
+#           sim_value <- ses_shift[[paste0("ses.",metric)]]
+#         } # end of if over setting == "shift"
+#         
+#         
+#         if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+#         # add to df
+#         results_ses <- rbind(results_ses,
+#                              data.frame(species = spp, 
+#                                         region = region_name, 
+#                                         sim_setting = sim_set,
+#                                         sim_metric = metric, 
+#                                         value = sim_value))} # end of if condition
+#         
+#       } # end loop over metrics
+#       
+#     } # end loop over files
+#   } # end loop over settings
+# } # end of loop over species
+# 
+# # subset for AC species
+# results_ses_AC <- subset(results_ses, species %in% spp_suitable_AC)
+# 
+# # save results 
+# save(results_ses, file = "results/ecospat/niche_ses_results.RData")
+# save(results_ses_AC, file = "results/ecospat/niche_ses_results_AC.RData")
 
 # dynamics ----------------------------------------------------------------
 
@@ -609,98 +618,3 @@ save(perc_df_AC, file = "results/ecospat/percentages_niche_conservatism_AC.RData
 
 
 
-# shiny overview ---------------------------------------------------------
-rm(list = ls())
-
-load("data/spp_suitable_AC.RData")
-load("results/ecospat/master_results_AC.RData")
-load("shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
-load("data/trait_analysis/year_first_intro_Seebens.RData")
-
-
-spp_pac <- read.table("data/PaciFLora.txt", header = TRUE) %>% 
-  select(c(Species, Family)) %>% 
-  rename("species" = "Species",
-         "family" = "Family") %>% 
-  dplyr::filter(species %in% spp_suitable_AC) %>% 
-  distinct(species, family)
-
-year_first_intro_Seebens <- year_first_intro_Seebens %>%
-  dplyr::select(!pac_region) %>%
-  pivot_longer(cols = !species,
-               names_to = "region",
-               values_to = "years_since_intro")
-
-input_TA <- input_TA %>% 
-  select(species, mean_height, mean_seedmass, growth_form, lifecycle) %>% 
-  distinct()
-
-overview_comparison <- master_results_AC %>% 
-  select(species, region, similarity, expansion, stability, unfilling,
-         rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering) %>% 
-  left_join(year_first_intro_Seebens, by = c("species", "region")) %>%  # years since first introduction
-  rename("orig_expansion" = "expansion",
-         "orig_stability" = "stability",
-         "orig_unfilling" = "unfilling") %>% 
-  mutate(region = case_when(region == "afr" ~ "Africa",
-                            region == "ate" ~ "temp. Africa",
-                            region == "atr" ~ "trop. Asia",
-                            region == "aus" ~ "Australasia",
-                            region == "eur" ~ "Europe",
-                            region == "pac" ~ "Pacific Islands",
-                            region == "nam" ~ "N. America",
-                            region == "sam" ~ "S. America")) %>% 
-  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
-  mutate(expansion = rel_expansion / total_esu) %>%
-  mutate(stability = rel_stability / total_esu) %>%
-  mutate(unfilling = rel_unfilling / total_esu) %>%
-  select(!total_esu) %>% 
-  left_join(select(spp_pac, species, family), by = "species") %>% 
-  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle), by = "species") %>% 
-  mutate(across(c(orig_expansion, orig_stability, orig_unfilling, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
-                  expansion, stability, unfilling), function(x) round(x * 100, 4))) 
-
-
-
-save(overview_comparison, file = "shiny/NicheDyn_exploration/data/shiny_overview_comparison.RData")
-
-
-overview_comparison_csv <- master_results_AC %>% 
-  select(species, region, similarity, expansion, stability, unfilling,
-         rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering) %>% 
-  rename("orig_expansion" = "expansion",
-         "orig_stability" = "stability",
-         "orig_unfilling" = "unfilling") %>% 
-  mutate(region = case_when(region == "afr" ~ "Africa",
-                            region == "ate" ~ "temp. Africa",
-                            region == "atr" ~ "trop. Asia",
-                            region == "aus" ~ "Australasia",
-                            region == "eur" ~ "Europe",
-                            region == "pac" ~ "Pacific Islands",
-                            region == "nam" ~ "N. America",
-                            region == "sam" ~ "S. America")) %>% 
-  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
-  mutate(expansion = rel_expansion / total_esu) %>%
-  mutate(stability = rel_stability / total_esu) %>%
-  mutate(unfilling = rel_unfilling / total_esu) %>%
-  select(!total_esu) %>% 
-  left_join(select(spp_pac, species, family), by = "species") %>% 
-  left_join(select(input_TA, species, mean_height, mean_seedmass, growth_form, lifecycle), by = "species")  %>% 
-  select(!c(orig_expansion, orig_stability, orig_unfilling)) %>% 
-  mutate(across(c(rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering, 
-                  expansion, stability, unfilling), function(x) round(x * 100, 2))) 
-
-write.csv(overview_comparison_csv, file = "shiny/NicheDyn_exploration/data/overview_comparison.csv", row.names = FALSE, quote = FALSE)
-
-
-# subset occurence data for AC species 
-# reason: reduce object size for shiny app
-
-load("data/occ_status_resolved_lonlat.RData")
-
-occ_status_AC <- occ_status_resolved %>% 
-  dplyr::filter(species %in% spp_suitable_AC) %>% 
-  dplyr::select(species, lon, lat, criterion_1) %>% 
-  dplyr::filter(criterion_1 %in% c("native", "introduced"))
-
-save(occ_status_AC, file = "shiny/NicheDyn_exploration/data/occ_status_AC.RData")
