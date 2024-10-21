@@ -1,3 +1,16 @@
+#' ---------------------------
+#
+# Purpose of script: storing functions to be used in the analysis
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-12
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: script contains functions for the status assignment and a modified 
+# version of the corrplot function https://github.com/taiyun/corrplot/blob/master/R/corrplot.R 
+# which was used to plot the trait analysis results
+#
+#' ---------------------------
+
 library(lcvplants)
 library(GIFT) # install from GitHub with: devtools::install_github("https://github.com/BioGeoMacro/GIFT")
 # library(reticulate) # R interface to Python modules

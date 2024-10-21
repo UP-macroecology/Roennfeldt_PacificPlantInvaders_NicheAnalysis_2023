@@ -1,3 +1,15 @@
+#' ---------------------------
+#
+# Purpose of script: storing modified versions of some functions from the ecospat package
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-12
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: the modifications were required due to the switch from raster to terra 
+# and a resulting bug in the ecospat functions
+#
+#' ---------------------------
+
 ecospat.niche.similarity.test.mod <- function(z1, z2, rep, intersection = NA, rand.type = 1, ncores = 1,
                                               overlap.alternative = "higher",
                                               expansion.alternative = "lower",
