@@ -1,7 +1,6 @@
 library(dplyr)
 library(stringr)
 
-rm(list = ls())
 
 path_ds  <- file.path("Y:/roennfeldt/C1/data") 
 
