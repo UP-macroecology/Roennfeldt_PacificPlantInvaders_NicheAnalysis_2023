@@ -1,18 +1,31 @@
+#' ---------------------------
+#
+# Purpose of script: final species selection before running the niche comparison
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2023-11
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: /
+#
+#' ---------------------------
+
+
 library(dplyr)
 library(stringr)
 
 
 path_ds  <- file.path("Y:/roennfeldt/C1/data") 
 
-# create df for that will store the number of occs per species and region
-# rows: 554 (number of specs in spp)
-# columns: 9 (native, pac, eur, afr, ate, atr, sam, nam)
+
 files_nat <- list.files(paste0(path_ds, "/final_input_nat/"), pattern = ".RData")
 
 specs <- files_nat %>%
   str_remove_all(pattern = "input_nat_") %>%
   str_remove_all(pattern = ".RData")
 
+# create df for that will store the number of occs per species and region
+# rows: 554 (number of specs in spp)
+# columns: 9 (native, pac, eur, afr, ate, atr, sam, nam)
 nr_occs_df <- data.frame(species = specs,
                          nat = 0,
                          pac = 0,
