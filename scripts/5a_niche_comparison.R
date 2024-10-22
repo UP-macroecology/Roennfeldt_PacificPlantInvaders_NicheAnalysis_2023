@@ -56,7 +56,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
     
     
     # get the regions in which this species occurs as introduced species
-    regions <- list.files(path = paste0(path_imp, "output/final_input_intr_rev/"), pattern = paste0(spp[spp_index],".RData")) %>% #TODO
+    regions <- list.files(path = paste0(path_imp, "output/final_input_intr_rev/"), pattern = paste0(spp[spp_index],".RData")) %>% 
       str_remove(".RData") %>% 
       str_split(pattern = "_") %>%
       map(~ .x[[3]]) %>%
@@ -67,7 +67,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
     for (region in regions) {
       
       # load intr occs for current region
-      load(paste0(path_imp, "output/final_input_intr_rev/input_intr_",region,"_",spp[spp_index],".RData")) #TODO
+      load(paste0(path_imp, "output/final_input_intr_rev/input_intr_",region,"_",spp[spp_index],".RData")) 
       
       # rename object to a shorter version and remove original
       input_intr <- data_prep_intr
@@ -83,7 +83,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         pca_env_regional <- dudi.pca(rbind(input_nat,input_intr)[,7:25], scannf = FALSE, nf = 2)
         
         # save the regional PCA for later if interested
-        # save(pca_env_regional, file = paste0(path_imp, "output/PCA/regional_pca_",region,"_",spp[spp_index],".RData")) #TODO
+        # save(pca_env_regional, file = paste0(path_imp, "output/PCA/regional_pca_",region,"_",spp[spp_index],".RData")) 
         
         # predict scores on the axis
         # PCA scores for the whole study area
@@ -120,7 +120,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         D_overlap <- ecospat.niche.overlap(grid_clim_nat, grid_clim_intr, cor = TRUE)$D
         
         # save results
-        save(D_overlap, file = paste0(path_imp, "output/niche_overlap/overlap_",spp[spp_index],"_",region,".RData")) #TODO
+        save(D_overlap, file = paste0(path_imp, "output/niche_overlap/overlap_",spp[spp_index],"_",region,".RData")) 
         
         
         
@@ -154,8 +154,8 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
                                                         rand.type = 2)
         
         #save results
-        save(sim_test_conservatism, file = paste0(path_imp, "output/niche_similarity/sim_conservatism_",spp[spp_index],"_",region,".RData")) #TODO
-        save(sim_test_shift, file = paste0(path_imp, "output/niche_similarity/sim_shift_",spp[spp_index],"_",region,".RData")) #TODO
+        save(sim_test_conservatism, file = paste0(path_imp, "output/niche_similarity/sim_conservatism_",spp[spp_index],"_",region,".RData")) 
+        save(sim_test_shift, file = paste0(path_imp, "output/niche_similarity/sim_shift_",spp[spp_index],"_",region,".RData")) 
         
         
         # # SES ---------------------------------------------------------------------
@@ -175,7 +175,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         # ses_conservatism$ses.z.D <- (obs.o$D - mean(sim.o$D)) / sd(sim.o$D)				# standardised effect size calculated as standardised mean difference between observation and simulated values (the z-score)
         # ses_conservatism$ses.z.I <- (obs.o$I - mean(sim.o$I)) / sd(sim.o$I)
         # 
-        # save(ses_conservatism, file = paste0(path_imp, "output/niche_similarity/ses_conservatism_",spp[spp_index],"_",region,".RData")) #TODO
+        # save(ses_conservatism, file = paste0(path_imp, "output/niche_similarity/ses_conservatism_",spp[spp_index],"_",region,".RData")) 
         # 
         # # standardised effect size - niche shift
         # ses_shift <- list()
@@ -200,8 +200,8 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         niche_dyn_inter <- ecospat.niche.dyn.index(grid_clim_nat, grid_clim_intr, intersection = 0)
         
         # save results
-        save(niche_dyn_whole, file = paste0(path_imp,"output/niche_dynamics/niche_dyn_whole_",spp[spp_index],"_",region,".RData")) #TODO
-        save(niche_dyn_inter, file = paste0(path_imp, "output/niche_dynamics/niche_dyn_inter_",spp[spp_index],"_",region,".RData")) #TODO
+        save(niche_dyn_whole, file = paste0(path_imp,"output/niche_dynamics/niche_dyn_whole_",spp[spp_index],"_",region,".RData")) 
+        save(niche_dyn_inter, file = paste0(path_imp, "output/niche_dynamics/niche_dyn_inter_",spp[spp_index],"_",region,".RData")) 
         
         
       } # end of if condition over input_intr
