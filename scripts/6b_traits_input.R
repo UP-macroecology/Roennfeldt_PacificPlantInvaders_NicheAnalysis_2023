@@ -1,11 +1,21 @@
+#' ---------------------------
+#
+# Purpose of script: merging geographic and species functional trait to prepare 
+# the input data for the trait analysis
+# Author: Anna Rönnfeldt
+# Date Created: ~ 2024-02
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: /
+#
+#' ---------------------------
+
 library(dplyr)
 library(stringr)
 library(tidyr) # to use unite()
 library(ggplot2)
 
 # preamble ----------------------------------------------------------------
-
-rm(list = ls())
 
 path_transfer <- "T:/Holle_Roennfeldt/"
 # path_transfer <- "Y:/AG26/Transfer/Holle_Roennfeldt/"
@@ -41,23 +51,6 @@ df_results <- master_results_AC %>%
   mutate(unfilling = rel_unfilling / total_esu) 
 
 
-
-# fragmentation -----------------------------------------------------------
-
-# df_fragmentation[df_fragmentation == "EUROPE"] <- "eur"
-# df_fragmentation[df_fragmentation == "AFRICA"] <- "afr"
-# df_fragmentation[df_fragmentation == "ASIA-TEMPERATE"] <- "ate"
-# df_fragmentation[df_fragmentation == "ASIA-TROPICAL"] <- "atr"
-# df_fragmentation[df_fragmentation == "AUSTRALASIA"] <- "aus"
-# df_fragmentation[df_fragmentation == "NORTHERN AMERICA"] <- "nam"
-# df_fragmentation[df_fragmentation == "SOUTHERN AMERICA"] <- "sam"
-# df_fragmentation[df_fragmentation == "PACIFIC"] <- "pac"
-# 
-# # spread df to wide format
-# df_frag_wide <- spread(df_fragmentation, metric_name, metric_value) %>%
-#   dplyr::select(!c("CORE", "CLUMPY"))
-
-
 # time since introduction -------------------------------------------------
 
 year_first_intro_Seebens[year_first_intro_Seebens == "NI"] <- NA
@@ -75,8 +68,8 @@ year_first_intro_Seebens$years_since_intro <- as.numeric(year_first_intro_Seeben
 # niche breadth -----------------------------------------------------------
 # 
 # df_niche_breadth_centroid <- data.frame(matrix(nrow = 0, ncol = 6))
-# colnames(df_niche_breadth_centroid) <- c("species", "niche_breadth_zcor", 
-#                                          "niche_centroid1_global", "niche_centroid2_global", 
+# colnames(df_niche_breadth_centroid) <- c("species", "niche_breadth_zcor",
+#                                          "niche_centroid1_global", "niche_centroid2_global",
 #                                          "niche_centroid1_native", "niche_centroid2_native")
 # 
 # 
@@ -87,9 +80,9 @@ year_first_intro_Seebens$years_since_intro <- as.numeric(year_first_intro_Seeben
 #   simplify()
 # 
 # for (spp in spp_breadth) {
-#   
+# 
 #   load(paste0("data/trait_analysis/niche_breadth_centroid/niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
-#   
+# 
 #   df_niche_breadth_centroid <- rbind(df_niche_breadth_centroid, nbc_spec_df)
 # } # end of loop over spp_suitable_AC
 
@@ -112,30 +105,19 @@ spec_traits <- species_pacific_traits_GIFT %>%
 # prepare the input data for the trait analysis (TA)
 input_TA <- df_results %>% left_join(spec_traits, by = "species") %>%
   unite(species_region, c("species", "region"), remove = FALSE, sep = " ") %>%
- # left_join(df_frag_wide, by = "region") %>% # add fragmentation metric (requires region name)
   left_join(dplyr::select(native_range_df, species, range_both), by = "species") %>% # native range size
   rename("range_size_nat" = "range_both") %>% 
-  # left_join(dplyr::select(intro_range_df, species, region, range_both), by = c("species", "region")) %>% # intro. range size
-  # rename("range_size_intr" = "range_both") %>% 
   left_join(select(df_native_niche, species, niche_breadth_zcor, niche_centroid1_global, niche_centroid2_global), by = "species") %>%  # native niche breadth and centroid
   rename("niche_breadth_nat" = "niche_breadth_zcor",
          "niche_centroid_a_nat" = "niche_centroid1_global",
          "niche_centroid_b_nat" = "niche_centroid2_global") %>% 
   left_join(year_first_intro_Seebens, by = c("species", "region")) %>% # years since first introduction
   left_join(df_lat_distance, by = c("species", "region")) %>% # nat & intr range centroid + euclidean distance
-  # dplyr::filter(dispersal %in% c("zoochorous", "anthropochorous", "anemochorous", "autochorous")) %>% 
   na.omit()
 
 save(input_TA, file = "shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
 
 
-
-
-# limit intro years -------------------------------------------------------
-
-# 
-# input_TA <- input_TA %>% 
-#   filter(years_since_intro <= 1000)
 # standardise data --------------------------------------------------------
 
 # growth form
@@ -148,75 +130,9 @@ input_TA[input_TA == "annual"] <- 1
 input_TA[input_TA == "biennial"] <- 2
 input_TA[input_TA == "perennial"] <- 3
 
-# dispersal mode
-# input_TA[input_TA == "autochorous"] <- 1
-# input_TA[input_TA == "anemochorous"] <- 2
-# input_TA[input_TA == "zoochorous"] <- 3
-# input_TA[input_TA == "anthropochorous"] <- 4
 
-# # make sure all trait columns are numeric
-# # then standardise
-# input_TA <- input_TA %>% 
-#   mutate(across(!c(species_region, species, region), as.numeric)) %>%
-#   mutate(mean_height = scale(mean_height)) %>% 
-#   mutate(mean_seedmass = scale(mean_seedmass)) %>% 
-#   mutate(growth_form = scale(growth_form)) %>% 
-#   mutate(lifecycle = scale(lifecycle)) %>% 
-#   mutate(range_size_nat = scale(range_size_nat)) %>% 
-#   mutate(years_since_intro = scale(years_since_intro)) %>% 
-#   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
-#   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
-#   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
-#   # mutate(max_elev_range = scale(max_elev_range)) %>% 
-#   # mutate(lat_dist = scale(lat_dist)) %>% 
-#   mutate(lat_dist = lat_dist/180) %>% 
-#   mutate(unfilling = logit(unfilling)) %>% 
-#   mutate(expansion = logit(expansion)) %>% 
-#   mutate(stability = logit(stability)) %>% 
-#   mutate(rel_unfilling = logit(rel_unfilling)) %>% 
-#   mutate(rel_expansion = logit(rel_expansion)) %>% 
-#   mutate(rel_stability = logit(rel_stability)) %>% 
-#   mutate(rel_abandonment = logit(rel_abandonment)) %>% 
-#   mutate(rel_pioneering = logit(rel_pioneering)) %>% 
-#   mutate(orig_expansion = logit(orig_expansion)) %>% 
-#   mutate(orig_stability = logit(orig_stability)) %>% 
-#   mutate(orig_unfilling = logit(orig_unfilling)) %>% 
-#   na.omit()
-# 
-# 
-# 
-# 
-# spp_traits <- unique(input_TA$species)
-# 
-# save(input_TA, file = "data/trait_analysis/input_TA.RData")
-# 
-
-
-
-
-
-# plot before scale -------------------------------------------------------
-
-
-# input_TA <- input_TA %>%
-#   mutate(across(!c(species_region, species, region), as.numeric))
-# 
-# 
-# ggplot(input_TA, aes(x = mean_height, y = stability)) +
-#   geom_point()
-# 
-# ggplot(input_TA, aes(x = log(mean_seedmass + 0.00001), y = stability)) +
-#   geom_point()
-# 
-# ggplot(input_TA, aes(x = log(years_since_intro), y = stability)) +
-#   geom_point()
-# 
-# ggplot(input_TA, aes(x = lat_dist, y = stability)) +
-#   geom_point()
-
-
-
-
+# make sure all trait columns are numeric
+# then standardise
 input_TA <- input_TA %>% 
   mutate(across(!c(species_region, species, region), as.numeric)) %>%
   mutate(mean_height = scale(mean_height)) %>% 
@@ -228,9 +144,7 @@ input_TA <- input_TA %>%
   mutate(niche_breadth_nat = scale(niche_breadth_nat)) %>% 
   mutate(niche_centroid_a_nat = scale(niche_centroid_a_nat)) %>% 
   mutate(niche_centroid_b_nat = scale(niche_centroid_b_nat)) %>% 
-  # mutate(max_elev_range = scale(max_elev_range)) %>% 
   mutate(lat_dist = scale(lat_dist)) %>%
-  # mutate(lat_dist = lat_dist/180) %>% 
   mutate(unfilling = logit(unfilling)) %>% 
   mutate(expansion = logit(expansion)) %>% 
   mutate(stability = logit(stability)) %>% 
@@ -244,5 +158,4 @@ input_TA <- input_TA %>%
   mutate(orig_unfilling = logit(orig_unfilling)) %>% 
   na.omit()
 
-#save(input_TA, file = "data/trait_analysis/input_TA_scale.RData")
 save(input_TA, file = "data/trait_analysis/input_TA_scale_log.RData")
