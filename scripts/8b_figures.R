@@ -1,15 +1,20 @@
+#' ---------------------------
+#
+# Purpose of script: creating figures to visualise the results of the niche comparison
 # Author: Anna Rönnfeldt
-# Date: 2023/11/16
-# Last update: 
+# Date Created: 2024-10-25
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: the script contains code for multiple different figure versions (e.g., for the publication or for printed posters)
+#
+#' ---------------------------
 
 
-# preamble ----------------------------------------------------------------
+
 library(dplyr)
 library(ggplot2)
 library(maps)
-# library(prettymapr)
 library(tidyr) # for %>% gather()
-# library(tidyterra)
 library(terra)
 library(viridis)
 
@@ -65,7 +70,6 @@ ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
 
 
 # 2. niche dynamics ------------------------------------------------------
-
 
 
 # relative dynamics - per region
@@ -233,8 +237,10 @@ png("plots/niche_dynamics/regional_dynamics_ecospat_U.png",width = 850, height =
 print(p4)
 dev.off()
 
-# 3. niche conservatism per region -------------------------------------------
 
+# Niche conservatism ------------------------------------------------------
+
+# getting an idea for the regional trends:
 pac <- subset(master_results_AC, region == "pac")
 nrow(pac)
 table(pac$similarity)
@@ -268,7 +274,7 @@ nrow(atr)
 table(atr$similarity)
 
 
-# 4. Niche conservatism ---------------------------------------------------
+# very basic bar plot to explore results:
 
 df_con <- data.frame(similarity = c("Conservatism", "Neither", "Switching"),
                freq = c(719, 874, 0))
@@ -293,7 +299,7 @@ ggsave("plots/results/Niche_conservatism_bar.png", p,
        units = "cm")
 
 
-# 6. stand. ESU --------------------------------------------------------------
+# stand. ESU --------------------------------------------------------------
 
 # TODO: move this seciton to the results_overview script and save the file there to load it back in here
 stand_ESU <- master_results_AC %>%
@@ -395,46 +401,6 @@ ggsave("plots/results/ESU_dynamics_poster.png", p_poster,
 
 
 
-# map ---------------------------------------------------------------------
-
-
-
-load("data/valen/island_lon_lat.RData")
-pac <- vect("data/spatial_data/map_shapefiles/pacific_map.shp")
-afr <- vect("data/spatial_data/map_shapefiles/africa_map.shp")
-ate <- vect("data/spatial_data/map_shapefiles/asia_temperate_map.shp")
-atr <- vect("data/spatial_data/map_shapefiles/asia_tropical_map.shp")
-aus <- vect("data/spatial_data/map_shapefiles/australia_map.shp")
-eur <- vect("data/spatial_data/map_shapefiles/europe_map.shp")
-nam <- vect("data/spatial_data/map_shapefiles/northern_america_map.shp")
-sam <- vect("data/spatial_data/map_shapefiles/southern_america_map.shp")
-
-
-# save plot for the pacific centred world map
-map_pacific <- map("world2", fill = TRUE, col = "lightgrey")
-map_pacific_data <- map_data(map_pacific)
-
-ggplot(island_lon_lat, aes(x = new_lon, y = lat)) +
-  geom_polygon(data = map_pacific_data, 
-               aes(x = long, y = lat, group = group)) +
-  geom_point(size = 5, alpha = 0.8) + 
-  geom_spatvector(data = sam, aes(x = lon, y = lat)) 
-
-ggplot(island_lon_lat, aes(x = new_lon, y = lat))
-
-windows()
-maps::map("world2", fill = TRUE, col = "grey100", ylim = c(-65,85), xlim = c(10,350))
-addnortharrow(pos = "bottomleft", scale = 1, padin = c(0.4, 0.2))
-map.axes()
-plot(pac, col = "#E090A5", add = TRUE)
-plot(afr, col = "plum4", add = TRUE)
-plot(ate, col = "#CFDEE7", add = TRUE)
-plot(atr, col = "#BFB48F", add = TRUE)
-plot(aus, col = "#2D728F", add = TRUE)
-plot(eur, col = "#FED766", add = TRUE)
-plot(nam, col = "#904E55", add = TRUE)
-plot(sam, col = "#83BCA9", add = TRUE)
-graphics::points(island_lon_lat[,c("new_lon", "lat")],  pch = 23, bg = "#E090A5", lwd = 2, cex = 3) 
 
 
 
@@ -615,7 +581,9 @@ sd(df_reg$n_regions)
 
 
 
-#  linerange similarity results -------------------------------------------
+# linerange plots ---------------------------------------------------------
+
+## count version similarity results -------------------------------------------
 library(dplyr)
 library(dotwhisker)
 library(ggplot2)
@@ -640,66 +608,60 @@ df_con <- master_results_AC %>%
 
 df_con <- data.frame(species_ID = ID, df_con)
 
-# df_plot <- df_con[1:30,] %>% 
+
+# # species with neither = 0 and then ordered by conservatism
+# set_1 <- df_con %>%
+#   filter(neither == 0) %>% 
 #   arrange(-conservatism)
-
-#unique(df_plot$species_ID)
-
-#  to do:
-
-# species with neither = 0 and then ordered by conservatism
-set_1 <- df_con %>%
-  filter(neither == 0) %>% 
-  arrange(-conservatism)
-
-# species with neither > 0, but mode conservatism, ordered by conservatism
-set_2 <- df_con %>%
-  mutate(conservatism = conservatism * (-1)) %>% 
-  filter(neither > 0 & conservatism > neither) %>% 
-  mutate(conservatism = conservatism * (-1)) %>% 
-  arrange(-conservatism) 
-
-# species with conservatism == neither
-set_3 <- df_con %>%
-  mutate(conservatism = conservatism * (-1)) %>% 
-  filter(conservatism == neither) %>% 
-  mutate(conservatism = conservatism * (-1)) %>% 
-  arrange(-conservatism) 
-
-# species with conservatism >0, but mode neither, ordered by neither
-set_4 <- df_con %>%
-  mutate(conservatism = conservatism * (-1)) %>% 
-  filter(conservatism > 0 & conservatism < neither) %>% 
-  arrange(-neither) %>% 
-  mutate(conservatism = conservatism * (-1))
-
-# species with conservatism = 0, ordered by neither
-set_5 <- df_con %>%
-  mutate(conservatism = conservatism * (-1)) %>% 
-  filter(conservatism == 0) %>% 
-  arrange(-neither) %>% 
-  mutate(conservatism = conservatism * (-1))
-
-
-df_plot <- rbind(set_5, set_4, set_3, set_2, set_1)
-
-df_plot %>%
-  ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
-  geom_linerange(aes(xmin = conservatism, xmax = neither)) +
-  geom_vline(xintercept = 0, col = "black") +
-  geom_vline(xintercept = c(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7), col = "lightgrey") +
-  scale_x_continuous(breaks = c(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7)) +
-  # position = "top") +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-# theme(panel.grid.major = element_blank(),
-#       panel.grid.minor = element_blank(),
-#       axis.ticks.y = element_blank(),
-#       axis.text.y = element_blank())
+# 
+# # species with neither > 0, but mode conservatism, ordered by conservatism
+# set_2 <- df_con %>%
+#   mutate(conservatism = conservatism * (-1)) %>% 
+#   filter(neither > 0 & conservatism > neither) %>% 
+#   mutate(conservatism = conservatism * (-1)) %>% 
+#   arrange(-conservatism) 
+# 
+# # species with conservatism == neither
+# set_3 <- df_con %>%
+#   mutate(conservatism = conservatism * (-1)) %>% 
+#   filter(conservatism == neither) %>% 
+#   mutate(conservatism = conservatism * (-1)) %>% 
+#   arrange(-conservatism) 
+# 
+# # species with conservatism >0, but mode neither, ordered by neither
+# set_4 <- df_con %>%
+#   mutate(conservatism = conservatism * (-1)) %>% 
+#   filter(conservatism > 0 & conservatism < neither) %>% 
+#   arrange(-neither) %>% 
+#   mutate(conservatism = conservatism * (-1))
+# 
+# # species with conservatism = 0, ordered by neither
+# set_5 <- df_con %>%
+#   mutate(conservatism = conservatism * (-1)) %>% 
+#   filter(conservatism == 0) %>% 
+#   arrange(-neither) %>% 
+#   mutate(conservatism = conservatism * (-1))
+# 
+# 
+# df_plot <- rbind(set_5, set_4, set_3, set_2, set_1)
+# 
+# df_plot %>%
+#   ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
+#   geom_linerange(aes(xmin = conservatism, xmax = neither)) +
+#   geom_vline(xintercept = 0, col = "black") +
+#   geom_vline(xintercept = c(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7), col = "lightgrey") +
+#   scale_x_continuous(breaks = c(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7)) +
+#   # position = "top") +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank())
+# # theme(panel.grid.major = element_blank(),
+# #       panel.grid.minor = element_blank(),
+# #       axis.ticks.y = element_blank(),
+# #       axis.text.y = element_blank())
 
 
-# percentage version ------------------------------------------------------
+## linerange percentage version -------------------------------------------------
 
 # species with neither = 0 and then ordered by conservatism
 set_1 <- df_con %>%
@@ -747,6 +709,8 @@ col_perc <- c("#80A8C9","#506F89","#101819","#809E51", "#C6C981")
 # col_perc <- c("#BFC270","#809E51","#101819","#506F89", "#80A8C9")
 
 
+# plot main figure structure 
+# (everything else (labels etc.) will be added in another software))
 df_plot %>%
   ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
   geom_linerange(aes(xmin = perc_con, xmax = perc_neither, colour = set)) +
@@ -775,21 +739,3 @@ df_plot %>%
 
 
 
-# 
-# 
-# 
-# df_plot %>%
-#   ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
-#   geom_linerange(aes(xmin = perc_con, xmax = perc_neither)) +
-#   geom_vline(xintercept = 0, col = "black") +
-#   geom_vline(xintercept = c(-70,-60,-50,-40,-30,-20,-10,10,20,30,40,50,60,70), col = "lightgrey") +
-#   scale_x_continuous(breaks = c(-70,-60,-50,-40,-30,-20,-10,10,20,30,40,50,60,70)) +
-#   # position = "top") +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank())
-# # theme(panel.grid.major = element_blank(),
-# #       panel.grid.minor = element_blank(),
-# #       axis.ticks.y = element_blank(),
-# #       axis.text.y = element_blank())
-# 

@@ -5,8 +5,8 @@
 # Date Created: ~ 2023-12
 # Email: roennfeldt@uni-potsdam.de
 #
-# Notes: the modifications were required due to the switch from raster to terra 
-# and a resulting bug in the ecospat functions
+# Notes: the modifications were required at the time of creation due to the switch 
+# from raster to terra and a resulting bug in the ecospat functions (likely fixed by now)
 #
 #' ---------------------------
 
@@ -356,7 +356,7 @@ ecospat.kd.mod <- function(x, ext, R = 100, th = 0, env.mask = c(),
 }
 
 
-##################################################################################################
+#'#################################################################################################
 ecospat.grid.clim.dyn.mod <- function(glob, glob1, sp, R = 100, th.sp = 0,
                                   th.env = 0, geomask = NULL,
                                   kernel.method = "adehabitat",
