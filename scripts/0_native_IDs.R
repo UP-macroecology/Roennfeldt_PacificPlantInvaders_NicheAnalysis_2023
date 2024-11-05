@@ -12,6 +12,7 @@
 library(dplyr)
 library(foreach)
 library(sf)
+library(stringr)
 library(terra)
 
 library(maps)
@@ -243,17 +244,43 @@ table(regions_per_species$nr_regions)
 save(spp_nat_regions, file = "results/spp_nat_regions_5_perc.RData")
 
 
-maps::map("world")
-points(nat_coords, col = "green")
-points(over_afr, col = "blue")
+
+# create tags -------------------------------------------------------------
+
+# load("results/spp_nat_regions_5_perc.RData")
+
+native_tags <- as.data.frame(matrix(nrow = 0, ncol = 2))
+names(native_tags) <- c("species", "tag")
+
+for (spp in unique(spp_nat_regions$species)) {
+  
+  # combine all regions of current species into one str tag
+  native_regions <- spp_nat_regions %>% 
+    filter(species == spp) %>% 
+    pull(region) %>% 
+    str_flatten(collapse = "_") # collapse vector to create str tag
+  
+  # add spp and tag in df
+  native_tags <- rbind(native_tags,
+                       data.frame(species = spp,
+                                  tag = native_regions))
+  
+} # end of for loop over species
+
+
+length(unique(native_tags$tag))
+
+sort(table(native_tags$tag))
+
+sort(table(spp_nat_regions$region))
 
 
 
-spp_index <- 294
+# identify species with native occurrences in the Pacific Region ----------
 
+spp_pac <- spp_nat_regions %>% 
+  filter(region == "pac") %>% 
+  pull(species)
 
-
-
-
-
+save(spp_pac, file = "data/spp_native_occs_pac.RData")
 
