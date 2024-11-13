@@ -23,6 +23,7 @@ sapply(package_vec, install.load.package)
 
 
 # library(dplyr)
+# library(fmsb)
 # library(kgc)
 # library(tidyr)
 
@@ -160,17 +161,17 @@ save(spp_zones_all, file = "data/climate_zones/spp_zones_all.RData")
 
 # figures -----------------------------------------------------------------
 
-create_radar_input <- function(df){
-  
-  max_values <- apply(df, 2, min)
-  min_values <- apply(df, 2, max)
-  mean_values <- apply(df, 2, mean)
-  
-  df_radar <- rbind(max_values, min_values, mean_values)
-  rownames(df_radar) <- NULL
-  
-  return(as.data.frame(df_radar))
-} # end of function definition
+# create_radar_input <- function(df){
+#   
+#   max_values <- apply(df, 2, min)
+#   min_values <- apply(df, 2, max)
+#   mean_values <- apply(df, 2, mean)
+#   
+#   df_radar <- rbind(max_values, min_values, mean_values)
+#   rownames(df_radar) <- NULL
+#   
+#   return(as.data.frame(df_radar))
+# } # end of function definition
 
 # mean trait values -------------------------------------------------------
 load("data/input_TA_unstand.RData")
@@ -228,8 +229,9 @@ mean_AC <- apply(traits_AC, 2, mean)
 mean_C <- apply(traits_C, 2, mean)
 
 mean_values <- as.data.frame(rbind(mean_A, mean_AC, mean_C), row.names = FALSE) 
-names(mean_values) <- c("mean height", "mean seedmass", "growth form", "life cycle\nshort to long", 
-                        "range size", "niche breadth", "niche centroid\nwarm to cold", "niche centroid\n wet dry")
+row.names(mean_values) <- c("zone A", "zone AC", " zone C")
+names(mean_values) <- c("mean height", "mean seedmass", "growth form", "life cycle\nshort    long", 
+                        "range size", "niche breadth", "niche centroid\nwarm    cold", "niche centroid\n wet    dry")
 
 max_values <- apply(mean_values, 2, max)
 
@@ -238,5 +240,46 @@ radar_input <- rbind(max_values,
                      rep(0,8),
                      mean_values)
 
-radarchart(radar_input)
+
+
+pnt_col = c("#7180AC", "#BE8A60", "#8E3E48")
+pnt_col = c("#317787", "#ED9A6E", "#804D57")
+
+
+windows()
+#radarchart(radar_input)
+par(mar = c(1.5, 1.5, 1.5, 1.5))
+radarchartcirc(radar_input, axistype = 0, seg = 1,
+           pty = 19,
+           #custom polygon
+           pcol = pnt_col, plwd = 2, plty = 1,
+           #custom the grid
+           cglcol = "darkgrey", cglty = 1, cglwd = 0.8,
+           #custom labels
+           vlcex = 0.8 )
+
+
+legend(x = -1.5, y = -1, horiz = TRUE,legend = rownames(radar_input[-c(1,2),]),
+       bty = "n", # no box drawn
+       pch = 19, col = pnt_col,
+       cex = 0.8)
+
+# add a legend
+# legend(x=1.5, y=1, legend = rownames(radar_input[-c(1,2),]), 
+#        bty = "n", pch=20 , col=pnt_col , text.col = "grey", 
+#        cex=1.2, pt.cex=2)
+set.seed(99)
+data <- as.data.frame(matrix( sample( 0:20 , 15 , replace=F) , ncol=5))
+colnames(data) <- c("math" , "english" , "biology" , "music" , "R-coding" )
+rownames(data) <- paste("mister" , letters[1:3] , sep="-")
+
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+data <- rbind(rep(20,5) , rep(0,5) , data)
+
+# plot with default options:
+radarchart(data)
+
+
+
+library(ggr)
 
