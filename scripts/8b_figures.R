@@ -49,37 +49,23 @@ results_dynamics_AC <- results_dynamics_AC %>%
 #   
 
 col_regular <- c("lightsalmon3","lightgoldenrod1","lightblue2","darkseagreen3",  "thistle4")
-col_poster <- c("#C76967","#FFE875","#A3DDEF","#87CF87",  "#927290")
+
 
 label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204",  "S. America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")
 
 
-# 1. overlap --------------------------------------------------------------
 
-ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
-  geom_boxplot(fill = "grey") +
-  scale_x_discrete(name = "\nNon-native region",
-                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
-  scale_y_continuous(name = "Niche overlap D\n", limits = c(0,1)) +
-  theme_bw(base_size = 20) +
-  theme(panel.grid.major = element_blank())
-
-
-
-
-
-# 2. niche dynamics ------------------------------------------------------
+# Niche dynamics ------------------------------------------------------
 
 
 # relative dynamics - per region
 (p1 <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
   geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
-  labs(x = "Non-native region", y = "Niche changes (%)\n") +
+  labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
   scale_x_discrete(name = "\nNon-native region",
                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
                    labels = label_regional) +
-  scale_fill_manual(name = "Niche changes", 
+  scale_fill_manual(name = NULL, 
                     labels = c("Abandonment", "Unfilling", "Stability", "Expansion", "Pioneering"),
                     values = col_regular) +
   theme_bw(base_size = 20) +
@@ -90,8 +76,8 @@ ggplot(results_overlap_AC, aes(x = region, y = schoeners_D)) +
         legend.position = "top",
         legend.text = element_text(size = 9),
         legend.title = element_text(size = 9),
-        legend.margin=margin(0,0,0,0),
-        legend.box.margin=margin(0,-10,-10,-10),
+        legend.margin = margin(0,0,0,0),
+        legend.box.margin = margin(0,-10,-10,-10),
         legend.key.size = unit(0.4, "cm"),
         # legend.key.spacing = unit(0.25, "cm"),
         axis.text = element_text(size = 9, color = "black"),
@@ -105,136 +91,6 @@ ggsave("plots/results/all_dynamics.jpg", p1,
 
 png("plots/niche_dynamics/regional_dynamics_all.png",width = 1450, height = 947)
 print(p1)
-dev.off()
-
-# relative dynamics
-p2 <- ggplot(rel_niche_dynamics_AC, aes(x = metric, y = percentage, fill = metric)) +
-  geom_boxplot(fatten = 1.5) +
-  labs(x = NULL, y = "Niche dynamics (%)\n") +
-  theme_bw(base_size = 20) +
-  scale_fill_manual(name = "Niche dynamics", 
-                    values = col_regular) +
-  scale_x_discrete(limits = c("abandonment", "unfilling", "stability", "expansion", "pioneering"),
-                   labels = c("Abandonment", "Unfilling", "Stability", "Expansion", "Pioneering")) +
-  theme(panel.grid.major = element_blank(),
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA,),
-        legend.position = "none")
-
-png("plots/niche_dynamics/dynamics_all.png",width = 1050, height = 947)
-print(p2)
-dev.off()
-
-# relative dynamics - Prague poster -> WHITE
-p <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
-  geom_boxplot(fatten = 1.5,
-               colour = "#F2F2F2") +
-  labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
-  scale_x_discrete(name = "\nNon-native region",
-                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = label_regional) +
-  scale_fill_manual(name = "Niche dynamics", 
-                    values = col_poster) +
-  theme_bw(base_size = 20) +
-  theme(panel.grid = element_blank(),
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"),
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA,),
-        legend.position = "none",
-        axis.title = element_text(colour = "#F2F2F2"),
-        axis.text = element_text(colour = "#F2F2F2"),
-        axis.line = element_line(colour = "#F2F2F2"),
-        axis.ticks = element_line(colour = "#F2F2F2"))
-
-# relative dynamics - Prague poster -> BLACK
-(p <- ggplot(rel_niche_dynamics_AC, aes(x = region, y = percentage, fill = metric)) +
-  geom_boxplot(fatten = 1.5) +
-  labs(x = "Non-native region", y = "Niche dynamics (%)") +
-  scale_x_discrete(name = "\nNon-native region",
-                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = label_regional) +
-  scale_fill_manual(name = "Niche dynamics", 
-                    values = col_poster) +
-  theme_bw(base_size = 20) +
-  theme(panel.grid = element_blank(),
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"), 
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA,),
-        legend.position = "none",
-        axis.text = element_text(colour = "#1B3C59")))
-
-ggsave("plots/results/Niche_dynamics_poster.jpg", p, 
-       bg = "transparent",
-       width = 35,
-       height = 17,
-       units = "cm")
-
-
-results_ecospat <- master_results_AC %>%
-  select(c(species, region, expansion, stability, unfilling)) %>% 
-  pivot_longer(!c(species, region), names_to = "dyn_metric", values_to = "percentage") %>%
-  mutate(across(!c(species, percentage), as.factor)) %>%
-  mutate(dyn_metric = factor(dyn_metric, levels = c("unfilling", "stability", "expansion")))
-  
-  
-  
-# original ecospat output
-# ggplot(results_ecospat, aes(x = region, y = percentage, fill = dyn_metric)) +
-#   geom_boxplot(fatten = 1.5) +
-#   labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
-#   scale_x_discrete(name = "\nNon-native region",
-#                    limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-#                    labels = c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 96", "N. America\n n = 204", "South America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")) +
-#   scale_fill_manual(name = "Niche dynamics", 
-#                     labels = c("Unfilling", "Stability", "Expansion"),
-#                     values = c("lightgoldenrod1", "lightblue2", "darkseagreen3")) +
-#   theme_bw(base_size = 20) +
-#   theme(panel.grid.major = element_blank(),
-#         legend.position = "top",
-#         plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
-
-
-
-df_es_original <- subset(results_ecospat, dyn_metric == "expansion" | dyn_metric == "stability")
-
-p3 <- ggplot(df_es_original, aes(x = region, y = percentage, fill = dyn_metric)) +
-  geom_boxplot(fatten = 1.5) +
-  labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
-  scale_x_discrete(name = "\nNon-native region",
-                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = label_regional) +
-  scale_fill_manual(name = "Niche dynamics", 
-                    labels = c("Stability", "Expansion"),
-                    values = c("lightblue2", "darkseagreen3")) +
-  theme_bw(base_size = 20) +
-  theme(panel.grid.major = element_blank(),
-        legend.position = "top",
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
-
-png("plots/niche_dynamics/regional_dynamics_ecospat_ES.png",width = 1050, height = 947)
-print(p3)
-dev.off()
-
-
-df_es_original <- subset(results_ecospat, dyn_metric == "unfilling")
-
-p4 <- ggplot(df_es_original, aes(x = region, y = percentage, fill = dyn_metric)) +
-  geom_boxplot(fatten = 1.5) +
-  labs(x = "Non-native region", y = "Niche dynamics (%)\n") +
-  scale_x_discrete(name = "\nNon-native region",
-                   limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                   labels = label_regional) +
-  scale_fill_manual(name = "Niche dynamics", 
-                    labels = "Unfilling",
-                    values = "lightgoldenrod1") +
-  theme_bw(base_size = 20) +
-  theme(panel.grid.major = element_blank(),
-        legend.position = "none",
-        plot.margin = unit(c(0.4,0.2,0.4,0.3), "cm"))
-
-png("plots/niche_dynamics/regional_dynamics_ecospat_U.png",width = 850, height = 947)
-print(p4)
 dev.off()
 
 
@@ -315,27 +171,21 @@ stand_ESU <- master_results_AC %>%
   mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion"))) %>% 
   mutate(percentage = percentage *100)
 
-#t <- subset(stand_ESU, region == "pac")
-
-#summary(t)
-# t <- master_results_AC %>% filter(species %in% c("Agave sisalana", "Spathodea campanulata"))
-# 
-# t2 <- t
 
 # plot ESU niche dynamcis
 
 col_ESU <- c("#FFEC8B","#B2DFEE","#9FD39F")
-col_ESU_poster <- c("#FFE875","#A3DDEF","#87CF87")
+
 # col_poster <- c("#FFE875","#A3DDEF","#87CF87")
 
 # relative dynamics 
 (p <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
     geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
-    labs(x = "Non-native region", y = "Niche changes (%)") +
+    labs(x = "Non-native region", y = "Niche dynamics (%)") +
     scale_x_discrete(name = "Non-native region",
                      limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
                      labels = label_regional) +
-    scale_fill_manual(name = "Niche changes", 
+    scale_fill_manual(name = NULL, 
                       labels = c("Unfilling", "Stability", "Expansion"),
                       values = col_ESU) +
     theme_bw(base_size = 20) +
@@ -358,52 +208,6 @@ ggsave("plots/results/ESU_dynamics.jpg", p,
        units = "cm")
 
 
-(p_poster <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
-    geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.7, outlier.size = 0.5) +
-    labs(x = "Non-native region", y = "Niche changes (%)") +
-    scale_x_discrete(name = "Non-native region",
-                     limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
-                     labels = label_regional) +
-    scale_fill_manual(name = "Niche changes", 
-                      labels = c("Unfilling", "Stability", "Expansion"),
-                      values = col_ESU_poster) +
-    theme_bw(base_size = 22) +
-    theme(panel.grid.major = element_blank(),
-          plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"),
-          legend.position = "null",
-          legend.text = element_text(size = 10, color = "#1B3C59"),
-          legend.title = element_text(size = 11, color = "#1B3C59"),
-          legend.margin=margin(0,0,0,0),
-          legend.box.margin=margin(0,-10,-10,-10),
-          panel.background = element_rect(fill = "transparent", color = NA),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(fill = "transparent", color = NA),
-          axis.text = element_text(size = 24, color = "#1B3C59"),
-          # axis.title = element_text(size = 11, color = "#1B3C59"),
-          axis.title = element_blank()))
-# axis.text = element_text(cNULL# axis.text = element_text(colour = "#1B3C59")))
-
-
-ggsave("plots/results/ESU_dynamics_poster.png", p_poster, 
-       bg = "transparent",
-       width = 45,
-       height = 18,
-       units = "cm")
-# 
-# png("plots/niche_dynamics/regional_dynamics_ESU.png",width = 1450, height = 947)
-# print(p)
-# dev.off()
-# 
-# png("plots/niche_dynamics/dynamics_ESU.png",width = 1050, height = 947)
-# print(p2)
-# dev.off()
-
-
-
-
-
-
 
 # barplot similarity results  ---------------------------------------------
 
@@ -411,11 +215,11 @@ rm(list = ls())
 
 perc_group <- function(x) {
   
-  if(x == 0) {g <- 0}
-  if(x > 0  & x <= 25) {g <- 1}
-  if(x > 25 & x <= 50) {g <- 2}
-  if(x > 50 & x <= 75) {g <- 3}
-  if(x > 75 & x <= 100) {g <- 4}
+  if (x == 0) {g <- 0}
+  if (x > 0  & x <= 25) {g <- 1}
+  if (x > 25 & x <= 50) {g <- 2}
+  if (x > 50 & x <= 75) {g <- 3}
+  if (x > 75 & x <= 100) {g <- 4}
   # if(x == 100) {g <- 5}
   
   return(g)
@@ -478,17 +282,8 @@ df_plot <- df_con %>%
   mutate(perc_group = factor(perc_group, levels = c(1,2,3,4)))
 
 
-
-
-# legend_labels <- c("0 < X <= 25", "25 < X <= 50", "50 < X <= 75", "75 < X <= 100")
-
-# legend_labels <- c(expression("0 < x" <= "25"), expression("25 < x" <= "50"), expression("50 < x" <= "75"), expression("75 < x" < "100"), expression("x = 100"))
 legend_labels <- c(expression("" <= "25%"), expression("" <= "50%"), expression("" <= "75%"), expression("" <= "100%"))
-
-
-col_gradient <- c("#E0C9AA", "#D4B387", "#725546", "#594236")
-
-col_gradient <- c("#C1C9D1", "#8B9BA9", "#5E7080", "#3E4A54")
+col_gradient <- c("#C1C9D1", "#8B9BA9", "#5E7080", "#3E4A54") # alternative: c("#E0C9AA", "#D4B387", "#725546", "#594236")
 
 (p <- ggplot(df_plot, aes(observation, group = perc_group)) +
     geom_bar(aes(fill = perc_group), position = "dodge") +
@@ -520,39 +315,7 @@ ggsave("plots/results/Similarity_percentage_100.jpg", p,
        height = 6,
        units = "cm")
 
-(p_poster <- ggplot(df_plot, aes(observation, group = perc_group)) +
-    geom_bar(aes(fill = perc_group), position = "dodge", color = "#494949", linewidth = 0.2, width = 0.9) +
-    xlab(NULL) +
-    ylab("Number of species") +
-    scale_fill_manual(labels = legend_labels,
-                      # name = "Consistency across regions:", 
-                      values = col_gradient,
-                      na.value = "transparent") +
-    scale_y_continuous(n.breaks = 8, limits = c(0,116), expand = c(0.01, 0)) +
-    scale_x_discrete(labels = c("Niche\n conservatism", "n.s.", "Niche\n switching")) +
-    theme_bw() +
-    theme(legend.title = element_blank(),
-          # legend.title = element_text(size = 10, color = "#1B3C59"),
-          legend.position = "top",
-          legend.spacing.x = unit(0.2, 'cm'),
-          legend.key.size = unit(0.5,"line"),
-          legend.text = element_text(size = 10, color = "#1B3C59"),
-          legend.margin = margin(0,0,3,5),
-          legend.box.margin = margin(0.5,-0.5,-10,-10),
-          axis.text = element_text(size = 10, color = "#1B3C59"),
-          axis.title = element_text(size = 11, color = "#1B3C59"),
-          panel.grid.major = element_blank(),
-          panel.background = element_rect(fill = "transparent", color = NA),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(fill = "transparent", color = NA)))
 
-
-ggsave("plots/results/Similarity_poster.png", p_poster,
-       bg = "transparent",
-       width = 9.5,
-       height = 12,
-       units = "cm")
 
 
 
