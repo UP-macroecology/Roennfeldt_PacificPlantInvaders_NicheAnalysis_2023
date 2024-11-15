@@ -26,6 +26,7 @@ sapply(package_vec, install.load.package)
 # library(fmsb)
 # library(kgc)
 # library(tidyr)
+# library(networkD3)
 
 # cluster version ---------------------------------------------------------
 
@@ -80,6 +81,7 @@ gc()
 library(dplyr)
 library(fmsb)
 library(tidyr)
+library(networkD3)
 
 load("data/df_occ_climate_zones.RData")
 load("data/spp_suitable_AC.RData")
@@ -241,6 +243,9 @@ radar_input <- rbind(max_values,
                      mean_values)
 
 
+## radar plot --------------------------------------------------------------
+
+
 
 pnt_col = c("#7180AC", "#BE8A60", "#8E3E48")
 pnt_col = c("#317787", "#ED9A6E", "#804D57")
@@ -280,6 +285,111 @@ data <- rbind(rep(20,5) , rep(0,5) , data)
 radarchart(data)
 
 
+# sankey diagram ----------------------------------------------------------
 
-library(ggr)
+load("results/ecospat/master_results_AC.RData")
+load("data/climate_zones/spp_zones_all.RData")
 
+species_flow <- master_results_AC %>% 
+  select(species, region) %>% 
+  left_join(select(spp_zones_all, species, freq_climate), by = "species") %>% 
+  filter(freq_climate %in% c("A", "AC", "C")) %>% 
+  count(vars = c("region", "freq_climate")) %>%  
+  mutate(group = as.factor(freq_climate)) 
+
+
+species_flow$region <- as.character(species_flow$region )
+species_flow[species_flow == "pac"] <- "Pacific Islands"
+species_flow[species_flow == "nam"] <- "North America"
+species_flow[species_flow == "sam"] <- "South America"
+species_flow[species_flow == "afr"] <- "Arica"
+species_flow[species_flow == "aus"] <- "Australasia"
+species_flow[species_flow == "ate"] <- "temp. Asia"
+species_flow[species_flow == "atr"] <- "trop. Asia"
+species_flow[species_flow == "eur"] <- "Europe"
+
+species_flow <- species_flow %>% 
+  mutate(metric = factor(region, levels = c("Pacific Islands", "Africa", "trop. Asia", "temp. Asia", "Australasia", "North America", "South America", "Europe")))
+
+nodes <- data.frame(name=c(as.character(species_flow$freq_climate), as.character(species_flow$region)) %>% unique())
+nodes$group <- as.factor(c("a", "ac", "c", rep("target_group", 8)))
+species_flow$IDsource=match(species_flow$freq_climate, nodes$name)-1
+species_flow$IDtarget=match(species_flow$region, nodes$name)-1
+
+# col_sankey <- 'd3.scaleOrdinal() .domain(["A", "AC", "C", "a", "ac", "c","target_group"]) .range(["#69b3a2", "steelblue","darkblue","#69b3a2", "steelblue","darkblue", "grey"])'
+col_sankey <- 'd3.scaleOrdinal() .domain(["A", "AC", "C", "a", "ac", "c","target_group"]) .range(["#C4594B", "#FEB248","#69b3a2","#C4594B", "#FEB248","#69b3a2", "grey"])'
+
+
+sankeyNetwork(Links = species_flow, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "freq", NodeID = "name",
+              nodeWidth = 40, fontSize = 13, nodePadding = 5,
+              sinksRight = FALSE, LinkGroup = "group",
+              colourScale = col_sankey, NodeGroup = "group")
+
+
+
+# chord diagram -----------------------------------------------------------
+# 
+# library(tidyverse)
+# library(viridis)
+# library(patchwork)
+# library(hrbrthemes)
+# library(circlize)
+# library(chorddiag)  #devtools::install_github("mattflor/chorddiag")
+# # Load dataset from github
+# data <- read.table("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/13_AdjacencyDirectedWeighted.csv", header=TRUE)
+# 
+# # short names
+# colnames(data) <- c("Africa", "East Asia", "Europe", "Latin Ame.",   "North Ame.",   "Oceania", "South Asia", "South East Asia", "Soviet Union", "West.Asia")
+# rownames(data) <- colnames(data)
+# 
+# # I need a long format
+# data_long <- data %>%
+#   rownames_to_column %>%
+#   gather(key = 'key', value = 'value', -rowname)
+# 
+# # parameters
+# circos.clear()
+# circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
+# par(mar = rep(0, 4))
+# 
+# # color palette
+# mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
+# mycolor <- mycolor[sample(1:10)]
+# 
+# # Base plot
+# chordDiagram(
+#   x = data_long, 
+#   grid.col = mycolor,
+#   transparency = 0.25,
+#   directional = 1,
+#   direction.type = c("arrows", "diffHeight"), 
+#   diffHeight  = -0.04,
+#   annotationTrack = "grid", 
+#   annotationTrackHeight = c(0.05, 0.1),
+#   link.arr.type = "big.arrow", 
+#   link.sort = TRUE, 
+#   link.largest.ontop = TRUE)
+# 
+# 
+# t <- master_results_AC %>% 
+#   select(species, region) %>% 
+#   left_join(select(spp_zones_all, species, freq_climate), by = "species") %>% 
+#   filter(freq_climate %in% c("A", "AC", "C")) 
+# 
+# mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
+# 
+# chordDiagram(
+#   x = t, 
+#   # grid.col = mycolor,
+#   transparency = 0.25,
+#   directional = 1,
+#   direction.type = c("arrows", "diffHeight"), 
+#   diffHeight  = -0.04,
+#   annotationTrack = "grid", 
+#   annotationTrackHeight = c(0.05, 0.1),
+#   link.arr.type = "big.arrow", 
+#   link.sort = TRUE, 
+#   link.largest.ontop = TRUE,
+#   small.gap = 0.5)
