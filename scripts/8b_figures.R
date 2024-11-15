@@ -501,4 +501,53 @@ df_plot %>%
         legend.position = "null")
 
 
+t <- df_plot %>% 
+  mutate(perc_con = perc_con * -1)
+
+t %>% 
+  ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
+  geom_linerange(aes(xmin = 0, xmax = perc_con, colour = set)) +
+  scale_color_manual(values = col_perc) +
+  geom_segment(x = 0, y = 1, xend = 100, yend = 1, color = "black") + 
+  geom_segment(x = 0, y = 317, xend = 100, yend = 317, color = "black") + 
+  geom_vline(xintercept = c(0,100), col = "black") +
+  geom_vline(xintercept = c(25,50,75,100), col = "darkgrey", linetype = 3) +
+  scale_x_continuous(limits = c(-10,100),
+                     labels = c(0,25,50,75,100),
+                     # breaks = c(-87.5,-62.5,-37.5,-12.5,12.5,37.5,62.5,87.5),
+                     breaks = c(0,25,50,75,100),
+                     position = "bottom") +
+  ylab(NULL) +
+  # position = "top") +
+  theme_void() +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = "null")
+  
+
+t %>% 
+  ggplot(aes(y = factor(species_ID, levels = unique(species_ID)))) +
+  geom_linerange(aes(xmin = 0, xmax = perc_con, colour = set)) +
+  scale_color_manual(values = col_perc) +
+  geom_vline(xintercept = c(25,50,75,100), col = "darkgrey", linetype = 3) +
+  geom_segment(x = 0, y = 1, xend = 100, yend = 1, color = "black") + 
+  geom_segment(x = 0, y = 317, xend = 100, yend = 317, color = "black") + 
+  geom_vline(xintercept = c(0,100), col = "black") +
+  scale_x_continuous(limits = c(-40,100),
+                     labels = c(0,25,50,75,100),
+                     # breaks = c(-87.5,-62.5,-37.5,-12.5,12.5,37.5,62.5,87.5),
+                     breaks = c(0,25,50,75,100),
+                     position = "bottom") +
+  ylab(NULL) +
+  # position = "top") +
+  theme_void() +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = "null")
 
