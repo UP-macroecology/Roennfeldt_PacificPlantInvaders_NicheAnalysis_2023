@@ -26,6 +26,7 @@ sapply(package_vec, install.load.package)
 # library(fmsb)
 # library(kgc)
 # library(tidyr)
+# library(networkD3) # for sankey network
 
 # cluster version ---------------------------------------------------------
 
@@ -80,6 +81,7 @@ gc()
 library(dplyr)
 library(fmsb)
 library(tidyr)
+library(networkD3)
 
 load("data/df_occ_climate_zones.RData")
 load("data/spp_suitable_AC.RData")
@@ -207,20 +209,22 @@ species_C <- spp_zones_all %>%
   filter(freq_climate == "C") %>% 
   pull(species)
 
+species_all <- spp_zones_all$species
+
 
 traits_A <- input_TA %>% 
   filter(species %in% species_A) %>% 
-  select(mean_height, mean_seedmass, growth_form, lifecycle, range_size_nat, niche_breadth_nat, niche_centroid_a_nat, niche_centroid_b_nat) %>% 
+  select(mean_height, mean_seedmass, growth_form, lifecycle, range_size_nat, niche_breadth_nat, niche_centroid_a_nat, niche_centroid_b_nat, years_since_intro) %>% 
   mutate_if(is.character, as.numeric) 
 
 traits_AC <- input_TA %>% 
   filter(species %in% species_AC) %>% 
-  select(mean_height, mean_seedmass, growth_form, lifecycle, range_size_nat, niche_breadth_nat, niche_centroid_a_nat, niche_centroid_b_nat) %>% 
+  select(mean_height, mean_seedmass, growth_form, lifecycle, range_size_nat, niche_breadth_nat, niche_centroid_a_nat, niche_centroid_b_nat, years_since_intro) %>% 
   mutate_if(is.character, as.numeric) 
 
 traits_C <- input_TA %>% 
   filter(species %in% species_C) %>% 
-  select(mean_height, mean_seedmass, growth_form, lifecycle, range_size_nat, niche_breadth_nat, niche_centroid_a_nat, niche_centroid_b_nat) %>% 
+  select(mean_height, mean_seedmass, growth_form, lifecycle, range_size_nat, niche_breadth_nat, niche_centroid_a_nat, niche_centroid_b_nat, years_since_intro) %>% 
   mutate_if(is.character, as.numeric) 
 
 
@@ -231,32 +235,48 @@ mean_C <- apply(traits_C, 2, mean)
 mean_values <- as.data.frame(rbind(mean_A, mean_AC, mean_C), row.names = FALSE) 
 row.names(mean_values) <- c("zone A", "zone AC", " zone C")
 names(mean_values) <- c("mean height", "mean seedmass", "growth form", "life cycle\nshort    long", 
-                        "range size", "niche breadth", "niche centroid\nwarm    cold", "niche centroid\n wet    dry")
+                        "range size", "niche breadth", "niche centroid\nwarm    cold", "niche centroid\n wet    dry", "years since introduction")
 
 max_values <- apply(mean_values, 2, max)
 
 
 radar_input <- rbind(max_values,
-                     rep(0,8),
+                     rep(0,9),
                      mean_values)
 
 
+# identify TA species and their climate zones -----------------------------
 
-pnt_col = c("#7180AC", "#BE8A60", "#8E3E48")
-pnt_col = c("#317787", "#ED9A6E", "#804D57")
+zones_TA <- spp_zones_all %>% 
+  filter(species %in% unique(input_TA$species))
+
+table(zones_TA$freq_climate)
+
+## radar plot --------------------------------------------------------------
 
 
-windows()
+
+# pnt_col = c("#7180AC", "#BE8A60", "#8E3E48")
+# pnt_col = c("#317787", "#ED9A6E", "#804D57")
+
+# same col scale as in the sankey diagram:
+pnt_col = c("#69b3a2", "steelblue","darkblue")
+
+# windows()
 #radarchart(radar_input)
-par(mar = c(1.5, 1.5, 1.5, 1.5))
-radarchartcirc(radar_input, axistype = 0, seg = 1,
+# par(mar = c(1.5, 1.5, 1.5, 1.5))
+# par(mar = c(0.2, 0.2, 0.2, 0.2))
+par(mar = c(0, 0, 0, 0))
+
+
+radarchart(radar_input, axistype = 0, seg = 1,
            pty = 19,
            #custom polygon
            pcol = pnt_col, plwd = 2, plty = 1,
            #custom the grid
            cglcol = "darkgrey", cglty = 1, cglwd = 0.8,
            #custom labels
-           vlcex = 0.8 )
+           ,vlcex = 0.5 )
 
 
 legend(x = -1.5, y = -1, horiz = TRUE,legend = rownames(radar_input[-c(1,2),]),
@@ -280,6 +300,149 @@ data <- rbind(rep(20,5) , rep(0,5) , data)
 radarchart(data)
 
 
+# sankey diagram ----------------------------------------------------------
 
-library(ggr)
+load("results/ecospat/master_results_AC.RData")
+load("data/climate_zones/spp_zones_all.RData")
 
+species_flow <- master_results_AC %>% 
+  select(species, region) %>% 
+  left_join(select(spp_zones_all, species, freq_climate), by = "species") %>% 
+  filter(freq_climate %in% c("A", "AC", "C"))
+
+
+flow_count <- dplyr::count(species_flow, region, freq_climate)
+
+
+flow_count$region <- as.character(flow_count$region )
+flow_count[flow_count == "pac"] <- "Pacific Islands"
+flow_count[flow_count == "nam"] <- "North America"
+flow_count[flow_count == "sam"] <- "South America"
+flow_count[flow_count == "afr"] <- "Africa"
+flow_count[flow_count == "aus"] <- "Australasia"
+flow_count[flow_count == "ate"] <- "temp. Asia"
+flow_count[flow_count == "atr"] <- "trop. Asia"
+flow_count[flow_count == "eur"] <- "Europe"
+
+flow_count <- flow_count %>% 
+  mutate(region = factor(region, levels = c("Pacific Islands", "Africa", "trop. Asia", "temp. Asia", "Australasia", "North America", "South America", "Europe")))
+
+nodes <- data.frame(name=c(as.character(flow_count$freq_climate), as.character(flow_count$region)) %>% unique())
+nodes$group <- as.factor(c("a", "ac", "c", rep("target_group", 8)))
+flow_count$IDsource=match(flow_count$freq_climate, nodes$name)-1
+flow_count$IDtarget=match(flow_count$region, nodes$name)-1
+
+col_sankey <- 'd3.scaleOrdinal() .domain(["A", "AC", "C", "a", "ac", "c","target_group"]) .range(["#69b3a2", "steelblue","darkblue","#69b3a2", "steelblue","darkblue", "grey"])'
+# col_sankey <- 'd3.scaleOrdinal() .domain(["A", "AC", "C", "a", "ac", "c","target_group"]) .range(["#C4594B", "#FEB248","#69b3a2","#C4594B", "#FEB248","#69b3a2", "grey"])'
+
+
+sankeyNetwork(Links = flow_count, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "n", NodeID = "name",
+              nodeWidth = 40, fontSize = 13, nodePadding = 5,
+              sinksRight = FALSE, LinkGroup = "freq_climate",
+              colourScale = col_sankey, NodeGroup = "group",
+              fontFamily = "Arial", margin = 0)
+
+
+
+
+# sankey all regions ------------------------------------------------------
+species_flow <- master_results_AC %>% 
+  select(species, region) %>% 
+  left_join(select(spp_zones_all, species, freq_climate), by = "species") 
+
+
+flow_count <- dplyr::count(species_flow, region, freq_climate)
+
+
+flow_count$region <- as.character(flow_count$region )
+flow_count[flow_count == "pac"] <- "Pacific Islands"
+flow_count[flow_count == "nam"] <- "North America"
+flow_count[flow_count == "sam"] <- "South America"
+flow_count[flow_count == "afr"] <- "Africa"
+flow_count[flow_count == "aus"] <- "Australasia"
+flow_count[flow_count == "ate"] <- "temp. Asia"
+flow_count[flow_count == "atr"] <- "trop. Asia"
+flow_count[flow_count == "eur"] <- "Europe"
+
+flow_count <- flow_count %>% 
+  mutate(region = factor(region, levels = c("Pacific Islands", "Africa", "trop. Asia", "temp. Asia", "Australasia", "North America", "South America", "Europe")))
+
+nodes <- data.frame(name=c(as.character(flow_count$freq_climate), as.character(flow_count$region)) %>% unique())
+nodes$group <- as.factor(c("a","ab","abd", "ac", "b", "bc", "c", "cd", "ce", rep("target_group", 8)))
+flow_count$IDsource=match(flow_count$freq_climate, nodes$name)-1
+flow_count$IDtarget=match(flow_count$region, nodes$name)-1
+
+windows()
+sankeyNetwork(Links = flow_count, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "n", NodeID = "name",
+              nodeWidth = 40, fontSize = 13, nodePadding = 5,
+              sinksRight = FALSE, LinkGroup = "freq_climate",
+              colourScale = , NodeGroup = "group",
+              fontFamily = "Arial", margin = 0)
+# chord diagram -----------------------------------------------------------
+# 
+# library(tidyverse)
+# library(viridis)
+# library(patchwork)
+# library(hrbrthemes)
+# library(circlize)
+# library(chorddiag)  #devtools::install_github("mattflor/chorddiag")
+# # Load dataset from github
+# data <- read.table("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/13_AdjacencyDirectedWeighted.csv", header=TRUE)
+# 
+# # short names
+# colnames(data) <- c("Africa", "East Asia", "Europe", "Latin Ame.",   "North Ame.",   "Oceania", "South Asia", "South East Asia", "Soviet Union", "West.Asia")
+# rownames(data) <- colnames(data)
+# 
+# # I need a long format
+# data_long <- data %>%
+#   rownames_to_column %>%
+#   gather(key = 'key', value = 'value', -rowname)
+# 
+# # parameters
+# circos.clear()
+# circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
+# par(mar = rep(0, 4))
+# 
+# # color palette
+# mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
+# mycolor <- mycolor[sample(1:10)]
+# 
+# # Base plot
+# chordDiagram(
+#   x = data_long, 
+#   grid.col = mycolor,
+#   transparency = 0.25,
+#   directional = 1,
+#   direction.type = c("arrows", "diffHeight"), 
+#   diffHeight  = -0.04,
+#   annotationTrack = "grid", 
+#   annotationTrackHeight = c(0.05, 0.1),
+#   link.arr.type = "big.arrow", 
+#   link.sort = TRUE, 
+#   link.largest.ontop = TRUE)
+# 
+# 
+# t <- master_results_AC %>% 
+#   select(species, region) %>% 
+#   left_join(select(spp_zones_all, species, freq_climate), by = "species") %>% 
+#   filter(freq_climate %in% c("A", "AC", "C")) 
+# 
+# mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
+# 
+# chordDiagram(
+#   x = t, 
+#   # grid.col = mycolor,
+#   transparency = 0.25,
+#   directional = 1,
+#   direction.type = c("arrows", "diffHeight"), 
+#   diffHeight  = -0.04,
+#   annotationTrack = "grid", 
+#   annotationTrackHeight = c(0.05, 0.1),
+#   link.arr.type = "big.arrow", 
+#   link.sort = TRUE, 
+#   link.largest.ontop = TRUE,
+#   small.gap = 0.5)
