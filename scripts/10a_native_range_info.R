@@ -1,6 +1,6 @@
 #' ---------------------------
 #
-# Purpose of script: identify in which regions the species have naitve occurrences
+# Purpose of script: identify in which regions the species have native occurrences
 # Author: Anna Rönnfeldt
 # Date Created: 2024-10-28
 # Email: roennfeldt@uni-potsdam.de
@@ -14,21 +14,20 @@ library(foreach)
 library(sf)
 library(stringr)
 library(terra)
-
 library(maps)
 
-path_occ_data <- "X:/roennfeldt/Projects/PhD_C1/data/regional_occs/criterion_1/native/"
-# load data ---------------------------------------------------------------
 
-# # occurrence data with status info from criterion 1 available
-# load("data/regional_occs/occ_subset_crit_1.RData") 
+
+# native region IDs -------------------------------------------------------
+
+path_occ_data <- "X:/roennfeldt/Projects/PhD_C1/data/regional_occs/criterion_1/native/"
+## prep data ---------------------------------------------------------------
 
 # species 
 load("data/spp_suitable_AC.RData")
 
 # prep spatial data 
 pac_islands <- vect("data/spatial_data/pacific_islands.shp") # island shape files
-
 tdwg <- st_read("data/tdwg/geojson/level1.geojson")[-9,] # without antarctic
 
 # prepare individual shapefiles for the 8 different mainland regions
@@ -76,17 +75,15 @@ crs_chelsa <- crs(chelsa)
 rm(chelsa)
 
 
-# prep storage object -----------------------------------------------------
+## identify native regions -------------------------------------------------
 
 spp_nat_regions <- as.data.frame(matrix(nrow = 0, ncol = 3))
 names(spp_nat_regions) <- c("species", "region", "nat_occs")
 
-# identify native regions -------------------------------------------------
-
-# for spp
-
 spp <- spp_suitable_AC
 
+# threshold to only consider a region with at least X % of the species' occurrences
+# as one of the native regions
 occ_percentage <- 5
 
 
@@ -111,7 +108,7 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     # check how many introduced occurrences intersect with the different regional polygons
     
 
-    ## Pacific Islands --------------------------------------------------------
+    ## Pacific Islands --
 
     over_pac <- terra::intersect(nat_coords, pac_islands)
     nr_pac <- as.numeric(length(over_pac))
@@ -124,8 +121,9 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     } # end of if condition
     
     rm(over_pac, nr_pac)
-    
-    ## Africa -----------------------------------------------------------------
+   
+     
+    ## Africa --
     
     over_afr <- terra::intersect(nat_coords, africa)
     nr_afr <- as.numeric(length(over_afr))
@@ -139,7 +137,8 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     
     rm(over_afr, nr_afr)
     
-    ## Europe -----------------------------------------------------------------
+    
+    ## Europe --
     
     over_eur <- terra::intersect(nat_coords, europe)
     nr_eur <- as.numeric(length(over_eur))
@@ -153,7 +152,9 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     
     rm(over_eur, nr_eur)
     
-    ## temp. Asia -------------------------------------------------------------
+    
+    ## temp. Asia --
+    
     
     over_ate <- terra::intersect(nat_coords, asia_temperate)
     nr_ate <- as.numeric(length(over_ate))
@@ -167,7 +168,8 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     
     rm(over_ate, nr_ate)
     
-    ## trop. Asia -------------------------------------------------------------
+    
+    ## trop. Asia --
     
     over_atr <- terra::intersect(nat_coords, asia_tropical)
     nr_atr <- as.numeric(length(over_atr))
@@ -181,7 +183,8 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     
     rm(over_atr, nr_atr)
     
-    ## Australasia -------------------------------------------------------------
+    
+    ## Australasia --
     
     over_aus <- terra::intersect(nat_coords, australasia)
     nr_aus <- as.numeric(length(over_aus))
@@ -195,7 +198,8 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     
     rm(over_aus, nr_aus)
     
-    ## Northern America -------------------------------------------------------------
+    
+    ## North America --
     
     over_nam <- terra::intersect(nat_coords, northern_america)
     nr_nam <- as.numeric(length(over_nam))
@@ -209,7 +213,8 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     
     rm(over_nam, nr_nam)
     
-    ## Southern America -------------------------------------------------------------
+    
+    ## South America --
     
     over_sam <- terra::intersect(nat_coords, southern_america)
     nr_sam <- as.numeric(length(over_sam))
@@ -225,8 +230,12 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
   }) # end of try
 
 
+save(spp_nat_regions, file = "results/spp_nat_regions_5_perc.RData")
 
-# compile results ---------------------------------------------------------
+
+## number of regions species are native to ---------------------------------
+
+ 
 
 regions_per_species <- data.frame(species = spp_suitable_AC, nr_regions = NA)
 
@@ -241,11 +250,10 @@ for (spec in spp_suitable_AC) {
 table(regions_per_species$nr_regions)
   
 
-save(spp_nat_regions, file = "results/spp_nat_regions_5_perc.RData")
 
 
 
-# create tags -------------------------------------------------------------
+## create ID tags -------------------------------------------------------------
 
 # load("results/spp_nat_regions_5_perc.RData")
 
@@ -267,20 +275,162 @@ for (spp in unique(spp_nat_regions$species)) {
   
 } # end of for loop over species
 
+save(native_tags, file = "data/native_region_IDs.RData")
 
-length(unique(native_tags$tag))
+length(unique(native_tags$tag)) # there are 82 unique combinations of native regions
 
-sort(table(native_tags$tag))
+sort(table(native_tags$tag)) # most common tag: nam_sam, followed by sam
 
-sort(table(spp_nat_regions$region))
+sort(table(spp_nat_regions$region)) # most common native region: sam
 
 
 
-# identify species with native occurrences in the Pacific Region ----------
+# identify species with native occurrences in the Pacific Region 
 
 spp_pac <- spp_nat_regions %>% 
   filter(region == "pac") %>% 
   pull(species)
 
 save(spp_pac, file = "data/spp_native_occs_pac.RData")
+
+# note: these were species native to individual islads or island groups,
+# but introduced to other parts of the Pacific Island region
+
+
+
+# Koeppen climate regions -------------------------------------------------
+
+# we identified the main climate regions in which the species have native occurrences 
+# because there where too many unique tags to get a meaningful idea of the species native range patterns
+
+library(dplyr)
+library(kgc)
+library(tidyr)
+
+
+## identify all climate regions (HPC cluster) ------------------------------
+
+path_occ_data <- "/import/ecoc9z/data-zurell/roennfeldt/C1/regional_occs/criterion_1/native/"
+load("/import/ecoc9z/data-zurell/roennfeldt/C1/input/spp_suitable_AC.RData")
+
+no_cores <- 20
+cl <- makeCluster(no_cores)
+registerDoParallel(cl)
+
+
+df_occ_zones <- foreach(spp_index = 1:length(spp_suitable_AC), .packages = c("dplyr", "kgc"), .combine = "rbind", .verbose = TRUE) %dopar% # can be easily modded to be done on the cluster
+  try({
+    print(spp_suitable_AC[spp_index])
+    
+    # load native occurrences
+    load(paste0(path_occ_data,"nat_occs",spp_suitable_AC[spp_index],".RData")) # object name: nat
+    
+    spp_occs <- nat %>%
+      select(occ_id, lon, lat) %>%
+      mutate(rndCoord.lon = RoundCoordinates(lon)) %>%
+      mutate(rndCoord.lat = RoundCoordinates(lat))
+    
+    spp_occ_zones <- data.frame(spp_occs, ClimateZ = LookupCZ(spp_occs)) %>%
+      select(occ_id, lon, lat, ClimateZ) %>%
+      # dplyr::rename(climate_zone = ClimateZ) %>%
+      mutate(species = spp_suitable_AC[spp_index], .before = occ_id)
+    
+    names(spp_occ_zones)[names(spp_occ_zones) == 'ClimateZ'] <- 'climate_zone'
+    
+    # df_occ_zones <- rbind(df_occ_zones, spp_occ_zones)
+    
+    spp_occ_zones
+    
+  }) # end of foreach loop over species
+
+save(df_occ_zones, file = "/import/ecoc9z/data-zurell/roennfeldt/C1/output/df_occ_climate_zones.RData")
+stopCluster(cl)
+
+# cluster specific clean up:
+# rm(list = ls())
+# gc()
+
+
+
+## identify main climate regions (local machine) ---------------------------
+
+load("data/df_occ_climate_zones.RData")
+load("data/spp_suitable_AC.RData")
+
+df_zones <- df_occ_zones %>% 
+  select(!.before) %>% 
+  select(species, occ_id, lon, lat, climate_zone)
+
+df_zones[df_zones$climate_zone == "Climate Zone info missing","climate_zone"] <- NA
+
+a_index <- which(grepl(pattern = "^A", df_zones$climate_zone))
+b_index <- which(grepl(pattern = "^B", df_zones$climate_zone))
+c_index <- which(grepl(pattern = "^C", df_zones$climate_zone))
+d_index <- which(grepl(pattern = "^D", df_zones$climate_zone))
+e_index <- which(grepl(pattern = "^E", df_zones$climate_zone))
+
+df_zones[a_index, "main_climate"] <- "A"
+df_zones[b_index, "main_climate"] <- "B"
+df_zones[c_index, "main_climate"] <- "C"
+df_zones[d_index, "main_climate"] <- "D"
+df_zones[e_index, "main_climate"] <- "E"
+
+#define custom function to add columns to data frame if they do not exist
+add_cols <- function(df, cols) {
+  add <- cols[!cols %in% names(df)]
+  if (length(add) !=0) df[add] <- NA
+  return(df)
+}
+
+zones <- c("A", "B", "C", "D", "E")
+
+spp_zones_all <- as.data.frame(matrix(ncol = 7, nrow = 0))
+names(spp_zones_all) <- c("species", "A", "B", "C", "D", "E", "main_climate")
+
+for (spp in spp_suitable_AC) {
+  
+  print(spp)
+  
+  spp_zones <- as.data.frame(table(subset(df_zones, species == spp)$main_climate)) %>% 
+    pivot_wider(names_from = Var1, values_from = Freq) %>%
+    mutate(species = spp) %>% 
+    add_cols(c("A", "B", "C", "D", "E")) %>% 
+    select(species, A, B, C, D, E) %>% 
+    mutate(total_occs = sum(A,B,C,D,E, na.rm = TRUE)) %>% 
+    mutate(A = round(100/total_occs*A)) %>% 
+    mutate(B = round(100/total_occs*B)) %>% 
+    mutate(C = round(100/total_occs*C)) %>% 
+    mutate(D = round(100/total_occs*D)) %>% 
+    mutate(E = round(100/total_occs*E)) %>% 
+    replace(is.na(.), 0) 
+  
+  spp_zones_all <- rbind(spp_zones_all, spp_zones)
+}
+
+spp_zones_all$freq_climate <- NA
+
+for (spp in spp_suitable_AC) { 
+  
+  print(spp)
+  
+  spp_label <- NULL
+  
+  for (zone in zones) {
+    print(zone)
+    if (spp_zones_all[spp_zones_all$species == spp, zone] >= 30) {
+      spp_label <- c(spp_label,zone)
+    } # end of if condition
+  } # end of for loop over zones
+  
+  spp_label <- paste(spp_label, collapse = "")
+  
+  spp_zones_all[spp_zones_all$species == spp,]$freq_climate <- spp_label
+} # end of for loop over species
+
+
+table(spp_zones_all$freq_climate)
+
+save(spp_zones_all, file = "data/climate_zones/spp_zones_all.RData")
+
+
 

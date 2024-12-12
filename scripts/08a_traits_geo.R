@@ -1,9 +1,9 @@
 #' ---------------------------
 #
 # Purpose of script: compiling "trait" information about the biogeographic 
-# characteristics of the different target regions 
+# characteristics of the different native/non-native regions 
 # Author: Anna Rönnfeldt
-# Date Created: ~ 2023-12
+# Date Created: ~ 2023-12 
 # Email: roennfeldt@uni-potsdam.de
 #
 # Notes: /

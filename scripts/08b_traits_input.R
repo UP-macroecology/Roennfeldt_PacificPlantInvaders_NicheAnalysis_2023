@@ -115,8 +115,7 @@ input_TA <- df_results %>% left_join(spec_traits, by = "species") %>%
   left_join(df_lat_distance, by = c("species", "region")) %>% # nat & intr range centroid + euclidean distance
   na.omit()
 
-save(input_TA, file = "shiny/NicheDyn_exploration/data/input_TA_unstand.RData")
-
+save(input_TA, file = "data/trait_analysis/input_TA_unstand.RData")
 
 # standardise data --------------------------------------------------------
 

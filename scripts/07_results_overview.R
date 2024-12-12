@@ -1,6 +1,7 @@
 #' ---------------------------
 #
-# Purpose of script: cimpiling all results as individual tables or master table
+# Purpose of script: compiling all results as individual tables or master table 
+# & statistical analysis (differences in the niche dynamcis between regions)
 # Author: Anna Rönnfeldt
 # Date Created: ~ 2023-12
 # Email: roennfeldt@uni-potsdam.de
@@ -553,6 +554,28 @@ master_results_AC <- subset(master_results, species %in% spp_suitable_AC)
 save(master_results, file = "results/ecospat/master_results.RData")
 save(master_results_AC, file = "results/ecospat/master_results_AC.RData")
 
+
+
+# stand. ESU --------------------------------------------------------------
+
+# standardise expansion, stability, and unfilling values so that they refer to 
+# the entirety of the analogue niche space 
+
+stand_ESU <- master_results_AC %>%
+  mutate(region = factor(region, levels = c("pac", "afr", "ate", "atr", "aus", "eur", "nam", "sam"))) %>%
+  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
+  mutate(expansion = rel_expansion / total_esu) %>%
+  mutate(stability = rel_stability / total_esu) %>%
+  mutate(unfilling = rel_unfilling / total_esu) %>%
+  select(c(species, region, unfilling, stability, expansion)) %>%
+  pivot_longer(!c(species, region), names_to = "metric", values_to = "percentage") %>%
+  replace(is.na(.), 0) %>%
+  mutate(across(!c(species,percentage), as.factor)) %>%
+  mutate(metric = factor(metric, levels = c("unfilling", "stability", "expansion"))) %>% 
+  mutate(percentage = percentage *100)
+
+save(stand_ESU, file = "results/ecospat/stand_ESU.RData")
+
 # percentage niche conservatism -------------------------------------------
 
 # empty df to store data in
@@ -615,6 +638,51 @@ for (reg in regs) {
 # save results
 save(perc_df, file = "results/ecospat/percentages_niche_conservatism.RData")
 save(perc_df_AC, file = "results/ecospat/percentages_niche_conservatism_AC.RData")
+
+
+
+# statistical analysis ----------------------------------------------------
+
+# test for differences between Pacific Islands and the other regions
+
+# load("results/ecospat/master_results_AC.RData")
+
+# select relevant columns and calulate standardised stability, unfilling, and expansion 
+master_results_AC <- master_results_AC %>%
+  mutate(region = factor(region, levels = c("pac", "afr", "ate", "atr", "aus", "eur", "nam", "sam"))) %>% # sets pac as "intercept"
+  select(c(species, region, overlap, rel_expansion, rel_stability, rel_unfilling, rel_abandonment, rel_pioneering)) %>%
+  mutate(total_esu = rel_expansion + rel_stability + rel_unfilling) %>%
+  mutate(stand_expansion = rel_expansion / total_esu) %>%
+  mutate(stand_stability = rel_stability / total_esu) %>%
+  mutate(stand_unfilling = rel_unfilling / total_esu) 
+
+
+# working with the rel. dynamicsfor abandonment and pioneering
+m_abandonment <- glm(rel_abandonment ~ region, data = master_results_AC, family = "binomial")
+m_pioneering <- glm(rel_pioneering ~ region, data = master_results_AC, family = "binomial")
+
+# working with the standardised ESU values (based on rel. dynamics)
+m_expansion <- glm(stand_expansion ~ region, data = master_results_AC, family = "binomial")
+m_stability <- glm(stand_stability ~ region, data = master_results_AC, family = "binomial")
+m_unfilling <- glm(stand_unfilling ~ region, data = master_results_AC, family = "binomial")
+
+
+
+anova(m_expansion)
+summary(m_expansion)
+
+anova(m_stability)
+summary(m_stability)
+
+anova(m_unfilling)
+summary(m_unfilling)
+
+anova(m_abandonment)
+summary(m_abandonment)
+
+anova(m_pioneering)
+summary(m_pioneering)
+
 
 
 
