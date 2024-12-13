@@ -26,7 +26,7 @@ Each occurrence point is then matched with the according climate data. For this,
 ### 5 - Final species selection 
 
 ### 6 - Niche comparison
-The niche comparison is in large parts based on the R package *ecospat*. Niche differences between native and non-native niche are quantified for each niche pair (n = XX) resulting from the introductions of the xx study species when introduced to different regions. If a species has been introduced to five regions, this results in five distinct comparisons with the species native niche. 
+The niche comparison is in large parts based on the R package *ecospat*. Niche differences between native and non-native niche are quantified for each niche pair (n = 1593) resulting from the introductions of the xx study species when introduced to different regions. If a species has been introduced to five regions, this results in five distinct comparisons with the species native niche. 
 
 The niche comparison runs through the following analysis steps:
 * perparing the **PCA environment** and calculating the occurrence density grids which are the base for the next steps
@@ -40,7 +40,11 @@ The results obtained for the individual niche pairs are then compiled in a separ
 
 ### 8 - Trait data
 
-To Do: inlcude Valén's code to show how data on functional traits and the time since introduction were compiled
+#### Time since introduction:
+The time since the initial introduction of the species' to the individual study regions is determined using data from the first record database by [Seebens](https://doi.org/10.12761/sgn.2016.01.022). 
+
+#### Species functional traits:
+Functional trait data provided by the [GIFT](10.1111/jbi.13623) data base is downloaded via the *GIFT* R package. 
 
 #### Biogeographic characteristics:
 * Native range size: sum of the area of the WCvP leve 3 polygons and/or the GIFT polygons with which occurrence points were matched during the status assignment
@@ -74,7 +78,7 @@ The results of the trait analysis are plottet in a separate script. The figures 
 Identifying the species' native ranges (by adding tags, mostly at a continental scale) and most prominent main climate classifications and to get a feeling for the species' native ranges.
 
 
-### 10 - Figures
+### 11 - Figures
 
 
 
