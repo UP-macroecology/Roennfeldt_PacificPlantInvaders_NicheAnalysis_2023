@@ -22,7 +22,7 @@ library(tidyr)
 select <- dplyr::select
 source("scripts/functions.R")
 
-regions <- c("afr", "ate", "atr", "aus", "eur", "nam", "pac", "sam")
+regions <- c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr")
 
 covariates <- c("mean_height", "mean_seedmass", "growth_form", "lifecycle", 
                 "years_since_intro", 
@@ -200,29 +200,52 @@ bg_col <- "transparent"
 grid_col <- "#737373"
 col <- rev(COL2('RdBu', 200))
 
-col_names <- c("Africa (n = 124)",
-               "temp. Asia (n = 95)",
-               "trop. Asia (n = 78)",
-               "Australasia (n = 124)",
-               "Europe (n = 56)",
-               "N. America (n = 110)",
-               "Pacific Islands (n = 143)",
-               "S. America (n = 41)")
+# col_names <- c("Africa (n = 124)",
+#                "temp. Asia (n = 95)",
+#                "trop. Asia (n = 78)",
+#                "Australasia (n = 124)",
+#                "Europe (n = 56)",
+#                "N. America (n = 110)",
+#                "Pacific Islands (n = 143)",
+#                "S. America (n = 41)")
+
+# col_names <- c("Pacific Islands (n = 143)",
+#                "Africa (n = 124)",
+#                "Australasia (n = 124)",
+#                "Europe (n = 56)",
+#                "N. America (n = 110)",
+#                "S. America (n = 41)",
+#                "temp. Asia (n = 95)",
+#                "trop. Asia (n = 78)")
+# 
+# row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Residence time",
+#                "Native niche breadth", "Native range size" ,  "Distance lat. centroids", 
+#                "Native niche centroid 1", "Native niche centroid 2")
 
 
-row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Residence time",
-               "Native niche breadth", "Native range size" ,  "Distance lat. centroids", 
-               "Native niche centroid 1", "Native niche centroid 2")
+col_names <- NA
+row_names <- NA
 
+col_lim <- c(-1, 1)
 
+txt_col <- "black"
+na_col <- "transparent"
+bg_col <- "transparent"
+grid_col <- "#737373"
+col <- rev(COL2('RdBu', 200))
 
-w <- 12
-h <- 16
+w <- 480
+h <- 480
 dpi <- 300
-file_type <- "png"
 
-Cairo(file = paste0("plots/trait_analysis/unfilling_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-      bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
+file_type <- "svg"
+path_plots <- "plots/manuscript/trait_analysis/"
+
+# Cairo(file = paste0(path_plots,"unfilling_main.",file_type),  width = w, height = h, type = file_type, pointsize = 8, 
+#       bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
+
+svg(paste0(path_plots,"unfilling_main.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 # unfilling
 corrplot_mod(m_imp = u_imp_mtx,
@@ -237,14 +260,18 @@ corrplot_mod(m_imp = u_imp_mtx,
              is.corr = FALSE,
              tl.col = txt_col,
              tl.srt = 55,
+             tl.cex = 1,
              na.label = "square",
              na.label.col = na_col,
              outline = TRUE)
 
 dev.off()
 
-Cairo(file = paste0("plots/trait_analysis/stability_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-      bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
+# Cairo(file = paste0(path_plots,"stability_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+#       bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
+
+svg(paste0(path_plots,"stability_main.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 # stability
 corrplot_mod(m_imp = s_imp_mtx,
@@ -264,8 +291,12 @@ corrplot_mod(m_imp = s_imp_mtx,
 
 dev.off()
 
-Cairo(file = paste0("plots/trait_analysis/expansion_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-      bg = bg_col, canvas = bg_col, units = "cm", dpi = dpi)
+# Cairo(file = paste0(path_plots,"expansion_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+#       bg = bg_col, canvas = bg_col, units = "cm", dpi = dpi)
+
+svg(paste0(path_plots,"expansion_main.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
+
 # expansion
 corrplot_mod(m_imp = e_imp_mtx,
              m_efs = e_efs_mtx,
@@ -284,11 +315,11 @@ corrplot_mod(m_imp = e_imp_mtx,
 
 dev.off()
 
+svg(paste0(path_plots,"abandonment_main.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
-#layout.show(3)
-
-Cairo(file = paste0("plots/trait_analysis/abandonent_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-      bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
+# Cairo(file = paste0(path_plots,"abandonent_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+#       bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
 # abandonment
 corrplot_mod(m_imp = a_imp_mtx,
              m_efs = a_efs_mtx,
@@ -309,8 +340,11 @@ corrplot_mod(m_imp = a_imp_mtx,
 
 dev.off()
 
-Cairo(file = paste0("plots/trait_analysis/pioneering_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-      bg = bg_col, canvas = bg_col, units = "px", dpi = "auto")
+# Cairo(file = paste0(path_plots,"pioneering_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
+#       bg = bg_col, canvas = bg_col, units = "px", dpi = "auto")
+
+svg(paste0(path_plots,"pioneering_main.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 # pioneering
 corrplot_mod(m_imp = p_imp_mtx,
@@ -332,31 +366,6 @@ corrplot_mod(m_imp = p_imp_mtx,
 
 dev.off()
 
-
-
-
-
-## var imp (traits, time, geo) ---------------------------------------------
-
-# determine mean variable importance for the ecological trait, time since introduction, 
-# geographic characteristics, and time + geo combined
-traits <- c(0.305,0.151, 0, 0.47, 0.142, 0.146, 0.741, 0.311, 0.13, 0.29, 0, 0.298, 0.134, 0.035, 0.79, 0.326, 0.222, 0.350, 0.346, 0.052, 0.033, 0, 0.319)
-time <- c(0.336, 0, 0.567, 0.34, 0.289, 0, 0.094, 0, 0.234, 0.112, 0.361, 0.267, 0.207, 0, 0, 0, 0, 0.317, 0, 0.129, 0.196, 0.182, 0.135)
-geo <- c(0.358, 0.848, 0.433, 0.19, 0.569, 0.771, 0.164, 0.688, 0.636, 0.599, 0.639, 0.435, 0.659, 0.965, 0.21, 0.674, 0.777, 0.334, 0.654, 0.819, 0.77, 0.817, 0.546)
-geo_time <- c(0.694, 0.848, 1, 0.53, 0.858, 0.771, 0.258, 0.688, 0.87, 0.711, 1, 0.702, 0.866, 0.965, 0.21, 0.674, 0.777, 0.651, 0.654, 0.948, 0.966, 1, 0.681)
-
-
-mean(traits) # 0.2431
-sd(traits) # 0.2133
-
-mean(time)
-sd(time)
-
-mean(geo)
-sd(geo)
-
-mean(geo_time)
-sd(geo_time)
 
 
 # 2. full model -----------------------------------------------------------
