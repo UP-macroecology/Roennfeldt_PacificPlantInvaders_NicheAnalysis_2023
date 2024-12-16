@@ -11,7 +11,7 @@
 #
 #' ---------------------------
 
-library(Cairo)
+#library(Cairo)
 library(corrplot)
 library(dplyr)
 library(ggplot2)
@@ -571,6 +571,27 @@ e_imp_mtx[] <- imp_value
 p_imp_mtx[] <- imp_value
 
 
+
+# col_names <- c("Africa (n = 124)",
+#                "temp. Asia (n = 95)",
+#                "trop. Asia (n = 78)",
+#                "Australasia (n = 124)",
+#                "Europe (n = 56)",
+#                "N. America (n = 110)",
+#                "Pacific Islands (n = 143)",
+#                "S. America (n = 41)")
+# 
+# 
+# row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Residence time",
+#                "Native niche breadth", "Native range size" ,  "Distance lat. centroids", 
+#                "Native niche centroid 1", "Native niche centroid 2")
+
+
+
+
+col_names <- NA
+row_names <- NA
+
 col_lim <- c(-1, 1)
 
 txt_col <- "black"
@@ -579,26 +600,16 @@ bg_col <- "transparent"
 grid_col <- "#737373"
 col <- rev(COL2('RdBu', 200))
 
-col_names <- c("Africa (n = 124)",
-               "temp. Asia (n = 95)",
-               "trop. Asia (n = 78)",
-               "Australasia (n = 124)",
-               "Europe (n = 56)",
-               "N. America (n = 110)",
-               "Pacific Islands (n = 143)",
-               "S. America (n = 41)")
-
-
-row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Residence time",
-               "Native niche breadth", "Native range size" ,  "Distance lat. centroids", 
-               "Native niche centroid 1", "Native niche centroid 2")
-
-
-
-w <- 12
-h <- 16
+w <- 28
+h <- 28
 dpi <- 300
-file_type <- "png"
+
+file_type <- "svg"
+path_plots <- "plots/manuscript/trait_analysis/"
+
+
+svg(paste0(path_plots,"unfilling_full.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 
 
@@ -607,7 +618,6 @@ corrplot_mod(m_imp = u_imp_mtx,
              m_efs = u_efs_mtx,
              addgrid.col = grid_col,
              bg = bg_col,
-             #mar = c(0,0,0,0),
              col.lim = col_lim,
              col = col,
              row_names = NA,
@@ -615,10 +625,16 @@ corrplot_mod(m_imp = u_imp_mtx,
              is.corr = FALSE,
              tl.col = txt_col,
              tl.srt = 55,
-             tl.cex = 0.5,
+             tl.cex = 1,
              na.label = "square",
              na.label.col = na_col,
              outline = TRUE)
+
+dev.off()
+
+
+svg(paste0(path_plots,"expansion_full.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 # expansion
 corrplot_mod(m_imp = e_imp_mtx,
@@ -638,6 +654,12 @@ corrplot_mod(m_imp = e_imp_mtx,
              na.label.col = na_col,
              outline = TRUE)
 
+dev.off()
+
+
+svg(paste0(path_plots,"stability_full.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
+
 # stability
 corrplot_mod(m_imp = s_imp_mtx,
              m_efs = s_efs_mtx,
@@ -655,6 +677,12 @@ corrplot_mod(m_imp = s_imp_mtx,
              na.label = "square",
              na.label.col = na_col,
              outline = TRUE)
+
+dev.off()
+
+
+svg(paste0(path_plots,"abandonment_full.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 # abandonment
 corrplot_mod(m_imp = a_imp_mtx,
@@ -674,6 +702,12 @@ corrplot_mod(m_imp = a_imp_mtx,
              na.label.col = na_col,
              outline = TRUE)
 
+dev.off()
+
+
+svg(paste0(path_plots,"pioneering_full.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
+
 # pioneering
 corrplot_mod(m_imp = p_imp_mtx,
              m_efs = p_efs_mtx,
@@ -692,6 +726,9 @@ corrplot_mod(m_imp = p_imp_mtx,
              na.label.col = na_col,
              outline = TRUE)
 
+dev.off()
+
+
 
 # 3. univariate models ----------------------------------------------------
 
@@ -708,7 +745,7 @@ for (reg in regions) {
   print(reg)
   
   # load in results 
-  traits_res <- read.csv(paste0("results/trait_analysis/univariate/trait_analysis_results/results_TraitAnal_df_ESU_",reg,".csv"))
+  traits_res <- read.csv(paste0("results/trait_analysis/univariate/results_TraitAnal_df_ESU_",reg,".csv"))
   
   traits_res_reg_e <- traits_res %>%
     as_tibble() %>% 
@@ -796,28 +833,7 @@ traits_res_s[traits_res_s$region == "nam" & traits_res_s$term == "lat_dist", "es
 traits_res_s[traits_res_s$region == "afr" & traits_res_s$term == "lat_dist", "estimate"] <- -2.5
 traits_res_s[traits_res_s$region == "ate" & traits_res_s$term == "lat_dist", "estimate"] <- -2.5
 
-# orig. ecospat output
-traits_res_oe[traits_res_oe$region == "pac" & traits_res_oe$term == "lat_dist", "estimate"] <- 3.5
-traits_res_oe[traits_res_oe$region == "atr" & traits_res_oe$term == "lat_dist", "estimate"] <- 3.5
-traits_res_oe[traits_res_oe$region == "eur" & traits_res_oe$term == "lat_dist", "estimate"] <- 3.5
-traits_res_oe[traits_res_oe$region == "sam" & traits_res_oe$term == "lat_dist", "estimate"] <- 3.5
-traits_res_oe[traits_res_oe$region == "aus" & traits_res_oe$term == "mean_seedmass", "estimate"] <- 3.5
 
-traits_res_ou[traits_res_ou$region == "atr" & traits_res_ou$term == "lat_dist", "estimate"] <- 3.5
-traits_res_ou[traits_res_ou$region == "nam" & traits_res_ou$term == "lat_dist", "estimate"] <- 3.5
-traits_res_ou[traits_res_ou$region == "ate" & traits_res_ou$term == "lat_dist", "estimate"] <- 3.5
-
-traits_res_os[traits_res_os$region == "pac" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "atr" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "eur" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "sam" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "aus" & traits_res_os$term == "mean_seedmass", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "nam" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "afr" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-traits_res_os[traits_res_os$region == "ate" & traits_res_os$term == "lat_dist", "estimate"] <- -2
-
-traits_res_ou[traits_res_ou$region == "eur" & traits_res_ou$term == "mean_seedmass", "estimate"] <- -2
-traits_res_ou[traits_res_ou$region == "eur" & traits_res_ou$term == "lat_dist", "estimate"] <- -2
 
 
 # set limits for the colour scales
@@ -924,24 +940,42 @@ e_efs_mtx[e_efs_mtx > 1] <- 1
 p_efs_mtx[p_efs_mtx < -1] <- -1
 p_efs_mtx[p_efs_mtx > 1] <- 1
 
-col_names <- c("Africa", "temp. Asia", "trop. Asia", "Australasia", "Europe", "N. America", "Pacific Islands", "S. America")
+# col_names <- c("Africa", "temp. Asia", "trop. Asia", "Australasia", "Europe", "N. America", "Pacific Islands", "S. America")
+# 
+# row_names <- c("Plant height", 
+#                "Seed mass", 
+#                "Growth form", 
+#                "Life cycle",  
+#                "Residence time",
+#                "Native niche breadth", 
+#                "Native range size" ,  
+#                "Distance lat. centroids", 
+#                "Native niche centroid 1", 
+#                "Native niche centroid 2")
 
-row_names <- c("Plant height", 
-               "Seed mass", 
-               "Growth form", 
-               "Life cycle",  
-               "Residence time",
-               "Native niche breadth", 
-               "Native range size" ,  
-               "Distance lat. centroids", 
-               "Native niche centroid 1", 
-               "Native niche centroid 2")
+col_names <- NA
+row_names <- NA
 
 col_lim <- c(-1, 1)
+
 txt_col <- "black"
-na_col <- "white"
+na_col <- "transparent"
+bg_col <- "transparent"
+grid_col <- "#737373"
 col <- rev(COL2('RdBu', 200))
 
+w <- 28
+h <- 28
+dpi <- 300
+
+file_type <- "svg"
+path_plots <- "plots/manuscript/trait_analysis/"
+
+
+
+
+svg(paste0(path_plots,"abandonment_uni.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 # AP
 corrplot_mod(m_imp = a_imp_mtx,
@@ -961,6 +995,12 @@ corrplot_mod(m_imp = a_imp_mtx,
              na.label.col = na_col,
              outline = TRUE)
 
+dev.off()
+
+
+svg(paste0(path_plots,"pioneering_uni.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
+
 corrplot_mod(m_imp = p_imp_mtx,
              m_efs = p_efs_mtx,
              mar = c(2,2,3,2),
@@ -977,7 +1017,14 @@ corrplot_mod(m_imp = p_imp_mtx,
              na.label = "square",
              na.label.col = na_col,
              outline = TRUE)
+
+dev.off()
+
 # ESU
+
+svg(paste0(path_plots,"expansion_uni.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
+
 corrplot_mod(m_imp = e_imp_mtx,
              m_efs = e_efs_mtx,
              mar = c(2,2,3,2),
@@ -994,6 +1041,12 @@ corrplot_mod(m_imp = e_imp_mtx,
              na.label = "square",
              na.label.col = na_col,
              outline = TRUE)
+
+dev.off()
+
+
+svg(paste0(path_plots,"stability_uni.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
 
 corrplot_mod(m_imp = s_imp_mtx,
              m_efs = s_efs_mtx,
@@ -1012,6 +1065,12 @@ corrplot_mod(m_imp = s_imp_mtx,
              na.label.col = na_col,
              outline = TRUE)
 
+dev.off()
+
+
+svg(paste0(path_plots,"unfilling_uni.svg"), width = w, height = h, 
+    pointsize = 10, bg = bg_col)
+
 corrplot_mod(m_imp = u_imp_mtx,
              m_efs = u_efs_mtx,
              mar = c(2,2,3,2),
@@ -1029,4 +1088,5 @@ corrplot_mod(m_imp = u_imp_mtx,
              na.label.col = na_col,
              outline = TRUE)
 
+dev.off()
 
