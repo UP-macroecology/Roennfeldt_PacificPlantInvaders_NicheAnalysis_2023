@@ -1091,7 +1091,7 @@ for (reg in regions) {
   } # end of for loop over covariates
   
   # save output
-  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/univariate/trait_analysis_results/results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
+  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/univariate/results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
   
 } # end of for loop over regions
 
