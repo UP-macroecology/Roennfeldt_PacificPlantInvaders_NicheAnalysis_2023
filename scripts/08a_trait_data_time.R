@@ -1,3 +1,17 @@
+#' ---------------------------
+#
+# Purpose of script:
+# Author: Valén Holle
+# Date Created: 2024-05
+# Email: roennfeldt@uni-potsdam.de
+#
+# Notes: the initial csv file is a modified version of the Seebens data: 
+# Non-numeric entries such as "mid 20 th century" where modified by hand. See publication methods.
+#
+#' ---------------------------
+
+
+
 # load needed packages
 library(dplyr)
 library(terra)
