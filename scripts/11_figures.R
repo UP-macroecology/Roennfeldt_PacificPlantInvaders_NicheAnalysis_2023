@@ -555,7 +555,18 @@ pnt_col = c("darkblue", "steelblue","#69b3a2") # doesn't show up in correct orde
 par(mar = c(0, 0, 0, 0))
 
 
-png(file = "plots/manuscript/radar.png", width = 680, height = 680, units = "px", pointsize = 12)
+# png(file = "plots/manuscript/radar.png", width = 680, height = 680, units = "px", pointsize = 12)
+# radarchartcirc(radar_input, axistype = 0, seg = 1,
+#                pty = 19,
+#                #custom polygon
+#                pcol = pnt_col, plwd = 2, plty = 1,
+#                #custom the grid
+#                cglcol = "darkgrey", cglty = 1, cglwd = 0.8,
+#                #custom labels
+#                vlcex = 0.5 )
+# dev.off()
+
+svg(file = "plots/manuscript/inkscape/radar.svg", width = 18, height = 18)
 radarchartcirc(radar_input, axistype = 0, seg = 1,
                pty = 19,
                #custom polygon
@@ -616,6 +627,7 @@ col_all <- 'd3.scaleOrdinal() .domain(["A", "AB","ABC", "AC", "B","BC", "C", "CD
 #               fontFamily = "Arial", margin = 0)
 
 
+
 # no labels
 sankeyNetwork(Links = flow_count, Nodes = nodes,
               Source = "IDsource", Target = "IDtarget",
@@ -624,6 +636,10 @@ sankeyNetwork(Links = flow_count, Nodes = nodes,
               sinksRight = FALSE, LinkGroup = "freq_climate",
               colourScale = col_all, NodeGroup = "group",
               fontFamily = "Arial", margin = 0)
+
+
+
+
 
 
 
