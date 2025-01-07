@@ -80,6 +80,9 @@ Identifying the species' native ranges (by adding tags, mostly at a continental 
 
 ### 11 - Figures
 
-
-
+## Operating system info
+* R version 4.2.2 (2022-10-31 ucrt)
+* Platform: x86_64-w64-mingw32/x64 (64-bit)
+* Running under: Windows 10 x64 (build 19045)
+* Attached packages: [1] ade4_1.7-22  [2] corrplot_0.92  [3] devtools_2.4.5  [4] doParallel_1.0.17  [5] dotwhisker_0.7.4  [6] dplyr_1.1.2  [7] ecospat_4.0.0  [8] fmsb_0.7.6  [9] foreach_1.5.2  [10] furrr_0.3.1  [11] ggplot2_3.5.1  [12] GIFT_1.0.0  [13] hrbrthemes_0.8.7  [14] lcvplants_2.1.0  [15] maps_3.4.1  [16] networkD3_0.4  [17] phylolm_2.6.2  [18] purrr_1.0.1  [19] RColorBrewer_1.1-3  [20] sf_1.0-16  [21] sfheaders_0.4.2  [22] stringr_1.5.0  [23] terra_1.7-78 [24] tidyr_1.3.0 [25] viridis_0.6.3 
 
