@@ -13,7 +13,7 @@
 library(dplyr)
 library(stringr)
 library(tidyr) # to use unite()
-library(ggplot2)
+# library(ggplot2)
 
 # preamble ----------------------------------------------------------------
 

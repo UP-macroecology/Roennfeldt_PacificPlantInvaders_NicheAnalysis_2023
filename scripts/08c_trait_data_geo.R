@@ -12,7 +12,7 @@
 
 library(dplyr)
 library(GIFT)
-library(landscapemetrics)
+# library(landscapemetrics)
 # library(maps)
 library(sf)
 library(terra)
