@@ -84,8 +84,8 @@ label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasi
         axis.text = element_text(size = 9, color = "black"),
         axis.title = element_text(size = 11)))
 
-ggsave("plots/results/all_dynamics.jpg", p1, 
-       width = 16,
+ggsave("plots/manuscript/inkscape/all_dynamics.svg", p1, 
+       width = 17.8,
        height = 10,
        units = "cm")
 
@@ -182,14 +182,14 @@ col_ESU <- c("#FFEC8B","#B2DFEE","#9FD39F")
           legend.position = "top",
           legend.text = element_text(size = 10),
           legend.title = element_text(size = 11),
-          legend.margin=margin(0,0,0,0),
-          legend.box.margin=margin(0,-10,-10,-10),
+          legend.margin = margin(0,0,0,0),
+          legend.box.margin = margin(0,-10,-10,-10),
           axis.text = element_text(size = 9, color = "black"),
           axis.title = element_text(size = 11)))
           # axis.text = element_text(colour = "#1B3C59")))
 
-ggsave("plots/results/ESU_dynamics.jpg", p, 
-       width = 16,
+ggsave("plots/manuscript/inkscape/ESU_dynamics.svg", p, 
+       width = 17.8,
        height = 11,
        units = "cm")
 
@@ -290,10 +290,10 @@ col_gradient <- c("#C1C9D1", "#8B9BA9", "#5E7080", "#3E4A54") # alternative: c("
           axis.text = element_text(size = 8, color = "black"),
           panel.grid.major = element_blank()))
 
-ggsave("plots/results/Similarity_percentage_100.jpg", p,
+ggsave("plots/manuscript/inkscape/barplot_similarity.svg", p,
        bg = "transparent",
-       width = 8,
-       height = 6,
+       width = 16,
+       height = 14,
        units = "cm")
 
 
