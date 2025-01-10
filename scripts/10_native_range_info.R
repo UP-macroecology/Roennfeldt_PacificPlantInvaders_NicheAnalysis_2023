@@ -14,21 +14,26 @@ library(foreach)
 library(sf)
 library(stringr)
 library(terra)
+library(tidyr)
 library(maps)
 
 
 
+# required paths ----------------------------------------------------------
+
+path_chelsa <- ""
+
+
 # native region IDs -------------------------------------------------------
 
-path_occ_data <- "X:/roennfeldt/Projects/PhD_C1/data/regional_occs/criterion_1/native/"
 ## prep data ---------------------------------------------------------------
 
 # species 
-load("data/spp_suitable_AC.RData")
+load("data/species_selection/spp_suitable_AC.RData")
 
 # prep spatial data 
 pac_islands <- vect("data/spatial_data/pacific_islands.shp") # island shape files
-tdwg <- st_read("data/tdwg/geojson/level1.geojson")[-9,] # without antarctic
+tdwg <- st_read("data/spatial_data/tdwg/geojson/level1.geojson")[-9,] # without antarctic
 
 # prepare individual shapefiles for the 8 different mainland regions
 # unique(tdwg$LEVEL1_NAM)
@@ -66,7 +71,7 @@ rm(tdwg_poly, tdwg)
 
 # prepare reference crs
 # load chelsa tif as reference raster with a 1km resolution
-chelsa <- rast("Z:/Arbeit/datashare/data/envidat/biophysical/CHELSA_V2/global/CHELSA_pr_01_1980_V.2.1.tif")
+chelsa <- rast(paste0(path_chelsa,"/CHELSA_pr_01_1980_V.2.1.tif"))
 # change values to 1 to decrease size
 values(chelsa) <- 1 
 
@@ -93,7 +98,7 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
     print(spp_index)
     
     # load native occurrences
-    load(paste0(path_occ_data,"nat_occs",spp[spp_index],".RData")) # object name: nat
+    load(paste0("data/occurrence_data/regional_occs/criterion_1/native/nat_occs",spp[spp_index],".RData")) # object name: nat
     
     # define the minimum number of occurrences needed to make up x % of the overall occurrences
     min_occ <- base::round(nrow(nat)/100*occ_percentage)
@@ -230,7 +235,7 @@ foreach(spp_index = 1:length(spp), .packages = c("dplyr", "terra")) %do% # can b
   }) # end of try
 
 
-save(spp_nat_regions, file = "results/spp_nat_regions_5_perc.RData")
+save(spp_nat_regions, file = "data/native_regions/spp_nat_regions_5_perc.RData")
 
 
 ## number of regions species are native to ---------------------------------
@@ -255,7 +260,7 @@ table(regions_per_species$nr_regions)
 
 ## create ID tags -------------------------------------------------------------
 
-# load("results/spp_nat_regions_5_perc.RData")
+# load("data/native_region_ID/spp_nat_regions_5_perc.RData")
 
 native_tags <- as.data.frame(matrix(nrow = 0, ncol = 2))
 names(native_tags) <- c("species", "tag")
@@ -275,7 +280,7 @@ for (spp in unique(spp_nat_regions$species)) {
   
 } # end of for loop over species
 
-save(native_tags, file = "data/native_region_IDs.RData")
+save(native_tags, file = "data/native_regions/native_region_IDs.RData")
 
 length(unique(native_tags$tag)) # there are 82 unique combinations of native regions
 
@@ -285,20 +290,11 @@ sort(table(spp_nat_regions$region)) # most common native region: sam
 
 
 
-# identify species with native occurrences in the Pacific Region 
-
-spp_pac <- spp_nat_regions %>% 
-  filter(region == "pac") %>% 
-  pull(species)
-
-save(spp_pac, file = "data/spp_native_occs_pac.RData")
-
-# note: these were species native to individual islads or island groups,
-# but introduced to other parts of the Pacific Island region
-
-
-
 # Koeppen climate regions -------------------------------------------------
+
+
+# written for HPC
+
 
 # we identified the main climate regions in which the species have native occurrences 
 # because there where too many unique tags to get a meaningful idea of the species native range patterns
@@ -310,8 +306,9 @@ library(tidyr)
 
 ## identify all climate regions (HPC cluster) ------------------------------
 
-path_occ_data <- "/import/ecoc9z/data-zurell/roennfeldt/C1/regional_occs/criterion_1/native/"
-load("/import/ecoc9z/data-zurell/roennfeldt/C1/input/spp_suitable_AC.RData")
+path_data <- ""
+
+load(paste0(path_data, "/species_selection/spp_suitable_AC.RData"))
 
 no_cores <- 20
 cl <- makeCluster(no_cores)
@@ -323,7 +320,7 @@ df_occ_zones <- foreach(spp_index = 1:length(spp_suitable_AC), .packages = c("dp
     print(spp_suitable_AC[spp_index])
     
     # load native occurrences
-    load(paste0(path_occ_data,"nat_occs",spp_suitable_AC[spp_index],".RData")) # object name: nat
+    load(paste0(path_data,"/occurrence_data/regionl_occs/criterion_1/native/nat_occs",spp_suitable_AC[spp_index],".RData")) # object name: nat
     
     spp_occs <- nat %>%
       select(occ_id, lon, lat) %>%
@@ -343,7 +340,7 @@ df_occ_zones <- foreach(spp_index = 1:length(spp_suitable_AC), .packages = c("dp
     
   }) # end of foreach loop over species
 
-save(df_occ_zones, file = "/import/ecoc9z/data-zurell/roennfeldt/C1/output/df_occ_climate_zones.RData")
+save(df_occ_zones, file = paste0(path_data, "/native_regions/df_occ_climate_zones.RData"))
 stopCluster(cl)
 
 # cluster specific clean up:
@@ -354,8 +351,8 @@ stopCluster(cl)
 
 ## identify main climate regions (local machine) ---------------------------
 
-load("data/df_occ_climate_zones.RData")
-load("data/spp_suitable_AC.RData")
+load("data/native_regions/df_occ_climate_zones.RData")
+load("data/species_selection/spp_suitable_AC.RData")
 
 df_zones <- df_occ_zones %>% 
   select(!.before) %>% 
@@ -430,7 +427,7 @@ for (spp in spp_suitable_AC) {
 
 table(spp_zones_all$freq_climate)
 
-save(spp_zones_all, file = "data/climate_zones/spp_zones_all.RData")
+save(spp_zones_all, file = "data/native_regions/spp_zones_all.RData")
 
 
 
