@@ -1,12 +1,13 @@
 data/
 lit/
+misc/
 writing/
 results/*
 plots/
 scripts/valen*
 scripts/remove*
 scripts/chapter_2*
-scripts/misc*
+scripts/clutter*
 scripts/explore_results*
 scripts/status_scripts*
 
