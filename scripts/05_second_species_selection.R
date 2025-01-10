@@ -102,5 +102,5 @@ spp_suitable <- suitable[!(suitable$nat == 0 | suitable$pac == 0 | suitable$main
 
 spp_suitable <- spp_suitable$species
 
-save(spp_suitable, file = "data/spp_suitable_after_thinning.RData")
+save(spp_suitable, file = "data/species_selection/spp_suitable.RData")
 
