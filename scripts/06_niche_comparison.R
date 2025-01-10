@@ -30,7 +30,7 @@ sapply(package_vec, install.load.package)
 path_imp  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") 
 
 # load final species selection
-load(paste0(path_imp, "input/spp_suitable_after_thinning.RData"))
+load(paste0(path_imp, "input/spp_suitable.RData"))
 spp <- spp_suitable
 
 # ecospat niche comparison ---
