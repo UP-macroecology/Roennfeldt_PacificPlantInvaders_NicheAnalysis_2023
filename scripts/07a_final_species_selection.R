@@ -10,7 +10,7 @@ load("data/species_selection/spp_suitable_after_thinning.RData")
 
 # prep df to sotre results
 AC_occs_df <- as.data.frame(matrix(ncol = 5, nrow = 0))
-names(AC_occs_df) <- c("species", "intr_region", "intr_occs_AC", "nat_occs_AC", "suitabilty")
+names(AC_occs_df) <- c("species", "intr_region", "intr_occs_AC", "nat_occs_AC", "suitability")
 
 counter <- 0
 for (spp in spp_suitable) {
@@ -149,7 +149,7 @@ for (spp in spp_suitable) {
                                      intr_region = region,
                                      intr_occs_AC = nr_intr_AC,
                                      nat_occs_AC = nr_nat_AC,
-                                     suitabilty = status))
+                                     suitability = status))
       
     } # end of if condition
     
@@ -158,3 +158,49 @@ for (spp in spp_suitable) {
 
 
 save(AC_occs_df, file = "data/species_selection/temporary/AC_occs_df.RData")
+
+
+
+# select suitable species -------------------------------------------------
+
+# a species is suitable for the analysis if they have more than 20 occurrence point in the analogue native and non-native 
+# climatic niche space for the Pacific Islands and at least one of the other study regions
+
+# load("data/species_selection/temporary/AC_occs_df.RData")
+
+# prep df to store info
+regional_suitability_df <- data.frame(species = unique(AC_occs_df$species),
+                                      nat = 1,
+                                      pac = 0,
+                                      afr = 0,
+                                      ate = 0,
+                                      atr = 0,
+                                      aus = 0,
+                                      eur = 0,
+                                      nam = 0,
+                                      sam = 0,
+                                      sum_mainland = 0)
+
+
+for (spp in unique(AC_occs_df$species)) {
+  
+  regions <- unique(AC_occs_df[AC_occs_df$species == spp,"intr_region"])
+  
+  for (region in regions) {
+    
+    if (AC_occs_df[AC_occs_df$species == spp & AC_occs_df$intr_region == region, "suitability"] == 1) {
+      regional_suitability_df[regional_suitability_df$species == spp, region] <- 1
+    }  # end of if condition
+  } # end of for loop over regions
+} # end of for loop over species
+
+
+regional_suitability_df$sum_mainland <- rowSums(regional_suitability_df[,4:10])
+
+spp_suitable_AC <- regional_suitability_df[!(regional_suitability_df$nat == 0 | 
+                                            regional_suitability_df$pac == 0 |
+                                            regional_suitability_df$sum_mainland == 0),] %>% 
+  pull(species)
+
+save(spp_suitable_AC, file = "data/species_selection/spp_suitable_AC.RData")
+
