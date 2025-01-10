@@ -15,8 +15,17 @@ library(dplyr)
 library(terra)
 library(foreach)
 
-load("data/status_assignment/occ_status_resolved.RData")
-load("data/occ_cleaned_slim.RData")
+# required paths ----------------------------------------------------------
+
+# provide path to folder with chels data here
+path_chelsa <- ""
+
+
+# prep data ---------------------------------------------------------------
+
+
+load("data/occurrence_data/status_occs/occ_status_resolved.RData")
+load("data/occurrence_data/occ_cleaned_slim.RData")
 
 # select occ_id, and lon/lat columns
 occ_cleaned_slim <- occ_cleaned_slim[,c(1,3:4)]
@@ -45,14 +54,14 @@ rm(occ_cleaned_slim)
 occ_crit_2 <- subset(occ_status_resolved, criterion_2 == "native" | criterion_2 == "introduced")
 spp_2 <- unique(occ_crit_2$species.x) # 3645 unique species left (initially 3668)
 
-save(occ_crit_2, file = "data/regional_occs/occ_subset_crit_2.RData")
-save(spp_2, file = "data/regional_occs/spp_crit_2.RData")
+save(occ_crit_2, file = "data/occurrence_data/regional_occs/occ_subset_crit_2.RData")
+save(spp_2, file = "data/occurrence_data/regional_occs/spp_crit_2.RData")
 
 # prep spatial data -------------------------------------------------------
 
 pac_islands <- vect("data/spatial_data/pacific_islands.shp") # island shape files
 
-tdwg <- st_read("data/tdwg/geojson/level1.geojson")[-9,] # without antarctic
+tdwg <- st_read("data/spatial_data/tdwg/geojson/level1.geojson")[-9,] # without antarctic
 
 # prepare individual shapefiles for the 8 different mainland regions
 # unique(tdwg$LEVEL1_NAM)
@@ -88,7 +97,7 @@ rm(tdwg_poly, tdwg)
 
 # prepare reference crs
 # load chelsa tif as reference raster with a 1km resolution
-chelsa <- rast("Y:/AG26/Arbeit/datashare/data/envidat/biophysical/CHELSA_V2/global/CHELSA_pr_01_1980_V.2.1.tif")
+chelsa <- rast(paste0(path_chelsa,"/CHELSA_pr_01_1980_V.2.1.tif"))
 # change values to 1 to decrease size
 values(chelsa) <- 1 
 
@@ -99,8 +108,8 @@ rm(chelsa)
 # prep species list -------------------------------------------------------
 
 # load species list and occ subset
-load("data/regional_occs/occ_subset_crit_2.RData")
-load("data/regional_occs/spp_crit_2.RData")
+load("data/occurrence_data/regional_occs/occ_subset_crit_2.RData")
+load("data/occurrence_data/regional_occs/spp_crit_2.RData")
 
 occ_crit_2 <- occ_crit_2 %>%
   rename("species" = "species.x")
@@ -144,7 +153,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
       
       # save df with native occurrences for further processing
       
-      save(nat, file = paste0("data/regional_occs/criterion_2/native/nat_occs",spp_2[spp_index],".RData"))
+      save(nat, file = paste0("data/occurrence_data/regional_occs/criterion_2/native/nat_occs",spp_2[spp_index],".RData"))
       
       # subset for introduced
       intr <- subset(occ_crit_2, criterion_2 == "introduced" & species == spp_2[spp_index])
@@ -172,7 +181,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_pac <- semi_join(intr, crds_pac, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_pac, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_pac_",spp_2[spp_index],".RData"))
+        save(intr_df_pac, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_pac_",spp_2[spp_index],".RData"))
         
       } # end of if over_pac
       
@@ -191,7 +200,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_afr <- semi_join(intr, crds_afr, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_afr, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_afr_",spp_2[spp_index],".RData"))
+        save(intr_df_afr, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_afr_",spp_2[spp_index],".RData"))
         
       } # end of if over_africa
       
@@ -210,7 +219,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_eur <- semi_join(intr, crds_eur, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_eur, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_eur_",spp_2[spp_index],".RData"))
+        save(intr_df_eur, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_eur_",spp_2[spp_index],".RData"))
         
       } # end of if over_europe
       
@@ -229,7 +238,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_ate <- semi_join(intr, crds_ate, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_ate, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_ate_",spp_2[spp_index],".RData"))
+        save(intr_df_ate, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_ate_",spp_2[spp_index],".RData"))
         
       } # end of if over_ate
       
@@ -248,7 +257,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_atr <- semi_join(intr, crds_atr, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_atr, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_atr_",spp_2[spp_index],".RData"))
+        save(intr_df_atr, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_atr_",spp_2[spp_index],".RData"))
         
       } # end of if over_atr
       
@@ -267,7 +276,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_aus <- semi_join(intr, crds_aus, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_aus, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_aus_",spp_2[spp_index],".RData"))
+        save(intr_df_aus, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_aus_",spp_2[spp_index],".RData"))
         
       } # end of if over_aus
       
@@ -286,7 +295,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_nam <- semi_join(intr, crds_nam, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_nam, file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_nam_",spp_2[spp_index],".RData"))
+        save(intr_df_nam, file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_nam_",spp_2[spp_index],".RData"))
         
       } # end of if over_nam
       
@@ -305,7 +314,7 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
         intr_df_sam <- semi_join(intr, crds_sam, by = c("lon", "lat"))
         
         # save for later processing
-        save(intr_df_sam , file = paste0("data/regional_occs/criterion_2/introduced/intr_occs_sam_",spp_2[spp_index],".RData"))
+        save(intr_df_sam , file = paste0("data/occurrence_data/regional_occs/criterion_2/introduced/intr_occs_sam_",spp_2[spp_index],".RData"))
         
       } # end of if over_sam
       
@@ -329,4 +338,4 @@ foreach(spp_index = 1:length(spp_2), .packages = c("dplyr", "terra")) %do% # can
   }) # end of try criterion 1
 
 
-save(occ_count_crit_2, file = "data/regional_occs/criterion_2/occ_count_crit_2.RData")
+save(occ_count_crit_2, file = "data/occurrence_data/regional_occs/criterion_2/occ_count_crit_2.RData")
