@@ -14,10 +14,8 @@ library(dplyr)
 library(stringr)
 
 
-path_ds  <- file.path("Y:/roennfeldt/C1/data") 
 
-
-files_nat <- list.files(paste0(path_ds, "/final_input_nat/"), pattern = ".RData")
+files_nat <- list.files("data/occurrence_data/final_input_nat/", pattern = ".RData")
 
 specs <- files_nat %>%
   str_remove_all(pattern = "input_nat_") %>%
@@ -46,7 +44,7 @@ for (file in files_nat) {
   
   print(counter)
   
-  load(paste0(path_ds, "/final_input_nat/",file))
+  load(paste0("data/occurrence_data/final_input_nat/",file))
   
   # get the species name
   spp <- file %>%
@@ -66,7 +64,7 @@ for (spp in specs) {
   print(counter)
   print(spp)
   
-  files_intr <- list.files(paste0(path_ds, "/final_input_intr/"), pattern = spp)
+  files_intr <- list.files("data/occurrence_data/final_input_intr/", pattern = spp)
   
   regions <- files_intr %>%
     str_remove_all(pattern = "input_intr_") %>%
@@ -74,7 +72,7 @@ for (spp in specs) {
   
   for (file in files_intr) {
     
-    load(paste0(path_ds, "/final_input_intr/",file))
+    load(paste0("data/occurrence_data/final_input_intr/",file))
     
     region <-  file %>%
       str_remove_all(pattern = "input_intr_") %>%
@@ -89,7 +87,7 @@ for (spp in specs) {
 
 nr_occs_df <- nr_occs_df[,1:10]
 
-save(nr_occs_df, file = "data/nr_occs_df_after_thinning.RData")
+save(nr_occs_df, file = "data/occurrence_data/nr_occs_df_after_thinning.RData")
 
 suitable <- nr_occs_df[,-1]
 suitable[suitable < 20] <- 0
