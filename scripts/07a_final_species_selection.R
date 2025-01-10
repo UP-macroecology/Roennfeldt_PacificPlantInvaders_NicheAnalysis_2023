@@ -19,7 +19,7 @@ for (spp in spp_suitable) {
   print(counter)
   
   # get the regions in which this species occurs as introduced species
-  regions <- list.files(path = "data/final_input_intr/", pattern = paste0("_",spp,".RData")) %>% 
+  regions <- list.files(path = "data/occurrence_data/final_input_intr/", pattern = paste0("_",spp,".RData")) %>% 
     str_remove(".RData") %>% 
     str_split(pattern = "_") %>%
     map(~ .x[[3]]) %>%
@@ -29,8 +29,8 @@ for (spp in spp_suitable) {
   for (region in regions) {
     
     # load intr and nat occurrences of that species-region combination
-    load(paste0("data/final_input_nat/input_nat_", spp,".RData")) 
-    load(paste0("data/final_input_intr/input_intr_",region,"_",spp,".RData"))
+    load(paste0("data/occurrence_data/final_input_nat/input_nat_", spp,".RData")) 
+    load(paste0("data/occurrence_data/final_input_intr/input_intr_",region,"_",spp,".RData"))
     
     # rename object to a shorter version and remove original
     input_intr <- data_prep_intr
@@ -157,7 +157,7 @@ for (spp in spp_suitable) {
 } # end of for loop over species
 
 
-save(AC_occs_df, file = "data/species_selection/temporary/AC_occs_df.RData")
+save(AC_occs_df, file = "data/species_selection/AC_occs_df.RData")
 
 
 
@@ -166,7 +166,7 @@ save(AC_occs_df, file = "data/species_selection/temporary/AC_occs_df.RData")
 # a species is suitable for the analysis if they have more than 20 occurrence point in the analogue native and non-native 
 # climatic niche space for the Pacific Islands and at least one of the other study regions
 
-# load("data/species_selection/temporary/AC_occs_df.RData")
+# load("data/species_selection/AC_occs_df.RData")
 
 # prep df to store info
 regional_suitability_df <- data.frame(species = unique(AC_occs_df$species),
