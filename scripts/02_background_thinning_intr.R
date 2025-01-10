@@ -5,7 +5,7 @@
 # Date Created: ~ 2023-09
 # Email: roennfeldt@uni-potsdam.de
 #
-# Notes: /
+# Notes: designed to be run on HPC, not local machine
 #
 #' ---------------------------
 
@@ -23,9 +23,11 @@ package_vec <- c(
 sapply(package_vec, install.load.package)
 
 
-# required paths
-# path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
-path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
+# required paths ----------------------------------------------------------
+
+
+# path to data location (here on HPC)
+path_data <- ""
 
 # required functions -----------------------------------------------------------
 
@@ -87,7 +89,7 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 1){
 
 
 # required data -----------------------------------------------------------
-load(paste0(path_imp, "input/occ_count_crit_1.RData"))
+load(paste0(path_data, "/occurrence_data/regional_occs/criterion_1/occ_count_crit_1.RData"))
 
 # pre-select suitable species ------------------------------------------------
 
@@ -107,7 +109,7 @@ spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 
 
 spp <- spp_suitable$species
 
-specs_done <- list.files(paste0(path_imp, "output/coords_final_intr/")) %>% 
+specs_done <- list.files(paste0(path_data, "/occurrence_data/coords_final_intr/")) %>% 
   str_remove(".RData") %>% 
   str_split(pattern = "_") %>%
   map(~ .x[[6]]) %>%
@@ -127,10 +129,10 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
   try({
     
     # load world mask
-    world_mask <- rast(paste0(path_imp, "input/world_mask.tif"))
+    world_mask <- rast(paste0(path_data, "/spatial_data/world_mask.tif"))
     
     # get all intr files that exist for one species
-    files_all <- list.files(path = paste0(path_imp,"regional_occs/criterion_1/introduced/"), pattern = paste0("_",spp[spp_index],".RData"))
+    files_all <- list.files(path = paste0(path_data,"/occurrence_data/regional_occs/criterion_1/introduced/"), pattern = paste0("_",spp[spp_index],".RData"))
     
     # for loop over files
     for (file in files_all) {
@@ -139,7 +141,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
       
       print(region)
       
-      t <- loadRData(paste0(path_imp,"regional_occs/criterion_1/introduced/intr_occs_",region,"_",spp[spp_index],".RData"))
+      t <- loadRData(paste0(path_data,"/occurrence_data/regional_occs/criterion_1/introduced/intr_occs_",region,"_",spp[spp_index],".RData"))
       
       print(nrow(t))
       
@@ -188,7 +190,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
         as.data.frame() %>%
         mutate(status = "Intr")
       
-      save(coords_final_nat_200, file = paste0(path_imp, "output/coords_final_intr/coords_final_intr1_200_",region,"_",spp[spp_index],".RData"))
+      save(coords_final_nat_200, file = paste0(path_data, "/occurrence_data/coords_final_intr/coords_final_intr1_200_",region,"_",spp[spp_index],".RData"))
       
     } # end of for loop over files
     

@@ -22,10 +22,11 @@ package_vec <- c(
 
 sapply(package_vec, install.load.package)
 
-# required paths ---------------------------------------------------------------
+# required paths ----------------------------------------------------------
 
-# path_ds <- "Z:/AG26/Arbeit/datashare/data/biodat/distribution/Pacific_invaders/"
-path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
+# path to data location (here on HPC)
+path_data <- ""
+
 
 # required functions -----------------------------------------------------------
 
@@ -85,8 +86,9 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 10){
 }
 
 # required data -----------------------------------------------------------
-load(paste0(path_imp, "input/occ_count_crit_1.RData"))
-# world_mask <- rast(paste0(path_imp, "input/world_mask.tif"))
+
+load(paste0(path_data, "/occurrence_data/regional_occs/criterion_1/occ_count_crit_1.RData"))
+
 
 # pre-select suitable species ------------------------------------------------
 
@@ -105,7 +107,7 @@ spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 
 spp <- spp_suitable$species
 
 
-specs_done <- list.files(paste0(path_imp, "output/coords_final_nat/")) %>% 
+specs_done <- list.files(paste0(path_data, "/occurrence_data/coords_final_nat/")) %>% 
   str_remove(".RData") %>% 
   str_split(pattern = "_") %>%
   map(~ .x[[5]]) %>%
@@ -124,9 +126,9 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
   try({
 
     print(spp[spp_index])
-    world_mask <- rast(paste0(path_imp, "input/world_mask.tif"))
+    world_mask <- rast(paste0(path_data, "/spatial_data/world_mask.tif"))
 
-    t <- loadRData(paste0(path_imp,"regional_occs/criterion_1/native/nat_occs",spp[spp_index],".RData")) # the objects all have different names depending on the target region
+    t <- loadRData(paste0(path_data, "/occurrence_dataregional_occs/criterion_1/native/nat_occs",spp[spp_index],".RData")) # the objects all have different names depending on the target region
 
 
     # select coordinates of the occs
@@ -174,7 +176,7 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
       as.data.frame() %>%
       mutate(status = "Nat")
 
-    save(coords_final_nat_200, file = paste0(path_imp, "output/coords_final_nat/coords_final_nat_200_", spp[spp_index],".RData"))
+    save(coords_final_nat_200, file = paste0(path_data, "/occurrence_data/coords_final_nat/coords_final_nat_200_", spp[spp_index],".RData"))
     
 
   })} # end of foreach
