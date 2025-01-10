@@ -158,40 +158,6 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         save(sim_test_shift, file = paste0(path_imp, "output/niche_similarity/sim_shift_",spp[spp_index],"_",region,".RData")) 
         
         
-        # # SES ---------------------------------------------------------------------
-        # 
-        # # Note: not considered for the final paper publication
-        # 
-        # # standardised effect size - conservatism
-        # ses_conservatism <- list()
-        # 
-        # sim.o <- sim_test_conservatism[["sim"]]
-        # obs.o <- sim_test_conservatism[["obs"]]
-        # 
-        # ses_conservatism$p.D <- (sum(sim.o$D >= obs.o$D) + 1)/(length(sim.o$D) + 1)
-        # ses_conservatism$p.I <- (sum(sim.o$I >= obs.o$I) + 1)/(length(sim.o$I) + 1)
-        # ses_conservatism$ses.rank.D <- ((sum(obs.o$D > sim.o$D) + 1)/(length(sim.o$D) + 1)) 	# standardised effect size based on the rank of the observation among simulated values
-        # ses_conservatism$ses.rank.I <- ((sum(obs.o$I > sim.o$I) + 1)/(length(sim.o$I) + 1))
-        # ses_conservatism$ses.z.D <- (obs.o$D - mean(sim.o$D)) / sd(sim.o$D)				# standardised effect size calculated as standardised mean difference between observation and simulated values (the z-score)
-        # ses_conservatism$ses.z.I <- (obs.o$I - mean(sim.o$I)) / sd(sim.o$I)
-        # 
-        # save(ses_conservatism, file = paste0(path_imp, "output/niche_similarity/ses_conservatism_",spp[spp_index],"_",region,".RData")) 
-        # 
-        # # standardised effect size - niche shift
-        # ses_shift <- list()
-        # 
-        # sim.o <- sim_test_shift[["sim"]]
-        # obs.o <- sim_test_shift[["obs"]]
-        # 
-        # ses_shift$p.D <- (sum(sim.o$D <= obs.o$D) + 1)/(length(sim.o$D) + 1)
-        # ses_shift$p.I <- (sum(sim.o$I <= obs.o$I) + 1)/(length(sim.o$I) + 1)
-        # ses_shift$ses.rank.D <- ((sum(obs.o$D > sim.o$D) + 1)/(length(sim.o$D) + 1)) 	# standardised effect size based on the rank of the observation among simulated values
-        # ses_shift$ses.rank.I <- ((sum(obs.o$I > sim.o$I) + 1)/(length(sim.o$I) + 1))
-        # ses_shift$ses.z.D <- (obs.o$D - mean(sim.o$D)) / sd(sim.o$D)				# standardised effect size calculated as standardised mean difference between observation and simulated values (the z-score)
-        # ses_shift$ses.z.I <- (obs.o$I - mean(sim.o$I)) / sd(sim.o$I)
-        # 
-        # save(ses_shift, file = paste0(path_imp,"output/niche_similarity/ses_shift_ ",spp[spp_index],"_",region,".RData")) 
-        
         # niche dynamics ----------------------------------------------------------
         
         # over whole environmental extent
