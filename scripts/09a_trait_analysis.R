@@ -48,7 +48,7 @@ ETP <- function(x) {eval(parse(text = x))}
 # load data ---------------------------------------------------------------
 
 # input data 
-load("data/trait_analysis/input_TA_scale_log.RData")
+load("data/trait_data/input_TA_scale_log.RData")
 regions <- unique(input_TA$region)
 
 input_TA_all_regions <- input_TA
@@ -56,17 +56,17 @@ input_TA_all_regions <- input_TA
 
 # data for the univariate analysis:
 # required data
-load("data/spp_suitable_AC.RData") # species list 
+load("data/species_selection/spp_suitable_AC.RData") # species list 
 load("results/ecospat/master_results_AC.RData") # results niche comparison
 
 
-load("data/trait_analysis/species_pacific_traits_GIFT.RData") # GIFT trait data
+load("data/trait_data/species_pacific_traits_GIFT.RData") # GIFT trait data
 
 # geographic traits
-load("data/trait_analysis/native_niche_breadth_centroid.RData")
-load("data/trait_analysis/native_range_size.RData")
-load("data/trait_analysis/year_first_intro_Seebens.RData")
-load("data/trait_analysis/lat_dist.RData")
+load("data/trait_data/native_niche_breadth_centroid.RData")
+load("data/trait_data/native_range_size.RData")
+load("data/trait_data/year_first_intro_Seebens.RData")
+load("data/trait_data/lat_dist.RData")
 
 # prepare input data ------------------------------------------------------
 
@@ -292,7 +292,7 @@ for (reg in regions) {
        null_orig_exp, lm_orig_exp, step_lm_orig_exp,
        null_orig_unf, lm_orig_unf, step_lm_orig_unf,
        null_orig_stab, lm_orig_stab, step_lm_orig_stab,
-       file = paste0("results/trait_analysis/main_analysis_scale/log_ESU_models_",reg,".RData"))
+       file = paste0("results/trait_analysis/main_analysis/log_ESU_models_",reg,".RData"))
   
   # variable importance -----------------------------------------------------
   
@@ -417,7 +417,7 @@ for (reg in regions) {
   }
   
   # the metric Mr2 is of main interest (mean R2)
-  save(step.varImp.allmetrics, file = paste0("results/trait_analysis/main_analysis_scale/log_VarImp_phylo_trait_models_ESU_",reg,".RData"))
+  save(step.varImp.allmetrics, file = paste0("results/trait_analysis/main_analysis/log_VarImp_phylo_trait_models_ESU_",reg,".RData"))
   
   for (i in MOD) {
     print(i)
@@ -466,7 +466,7 @@ for (reg in regions) {
     
   }
   
-  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/main_analysis_scale/log_results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
+  write.csv(results_TraitAnal_df, file = file.path(paste0("results/trait_analysis/main_analysis/log_results_TraitAnal_df_ESU_",reg,".csv")), row.names = F)
   
   
 } # end of for loop over regions
@@ -944,7 +944,7 @@ for (covariate in covariates) {
          null_orig_exp, lm_orig_exp, step_lm_orig_exp,
          null_orig_unf, lm_orig_unf, step_lm_orig_unf,
          null_orig_stab, lm_orig_stab, step_lm_orig_stab,
-         file = paste0("results/trait_analysis/univariate/trait_models/",covariate,"_ESU_models_",reg,".RData"))
+         file = paste0("results/trait_analysis/univariate/",covariate,"_ESU_models_",reg,".RData"))
     
     # variable importance -----------------------------------------------------
     
@@ -1045,7 +1045,7 @@ for (covariate in covariates) {
     }
     
     # the metric Mr2 is of main interest (mean R2)
-    save(step.varImp.allmetrics, file = paste0("results/trait_analysis/univariate/variance_importance/VarImp_phylo_trait_models_ESU_",reg,".RData"))
+    save(step.varImp.allmetrics, file = paste0("results/trait_analysis/univariate/VarImp_phylo_trait_models_ESU_",reg,".RData"))
     
     for (i in MOD) {
       print(i)

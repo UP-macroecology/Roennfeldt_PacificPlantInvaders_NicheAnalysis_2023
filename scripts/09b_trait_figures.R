@@ -42,7 +42,7 @@ for (reg in regions) {
   print(reg)
   
   # load in results 
-  traits_res <- read.csv(paste0("results/trait_analysis/main_analysis_scale/log_results_TraitAnal_df_ESU_",reg,".csv"))
+  traits_res <- read.csv(paste0("results/trait_analysis/main_analysis/log_results_TraitAnal_df_ESU_",reg,".csv"))
   
   traits_res_reg_e <- traits_res %>%
     as_tibble() %>% 
@@ -99,7 +99,7 @@ r2_pio <- NULL
 
 for (reg in regions) {
   
-  df_res <- read.csv(paste0("results/trait_analysis/main_analysis_scale/log_results_TraitAnal_df_ESU_",reg,".csv"))
+  df_res <- read.csv(paste0("results/trait_analysis/main_analysis/log_results_TraitAnal_df_ESU_",reg,".csv"))
   
   r2_exp <- c(r2_exp, round(df_res[df_res$Trait == "R2", "expansion_coef"], 2))
   r2_sta <- c(r2_sta, round(df_res[df_res$Trait == "R2", "stability_coef"], 2))
@@ -238,11 +238,8 @@ w <- 480
 h <- 480
 dpi <- 300
 
-file_type <- "svg"
-path_plots <- "plots/manuscript/trait_analysis/"
 
-# Cairo(file = paste0(path_plots,"unfilling_main.",file_type),  width = w, height = h, type = file_type, pointsize = 8, 
-#       bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
+path_plots <- ""
 
 svg(paste0(path_plots,"unfilling_main.svg"), width = w, height = h, 
     pointsize = 10, bg = bg_col)
@@ -267,8 +264,6 @@ corrplot_mod(m_imp = u_imp_mtx,
 
 dev.off()
 
-# Cairo(file = paste0(path_plots,"stability_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-#       bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
 
 svg(paste0(path_plots,"stability_main.svg"), width = w, height = h, 
     pointsize = 10, bg = bg_col)
@@ -290,9 +285,6 @@ corrplot_mod(m_imp = s_imp_mtx,
              outline = TRUE)
 
 dev.off()
-
-# Cairo(file = paste0(path_plots,"expansion_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-#       bg = bg_col, canvas = bg_col, units = "cm", dpi = dpi)
 
 svg(paste0(path_plots,"expansion_main.svg"), width = w, height = h, 
     pointsize = 10, bg = bg_col)
@@ -318,9 +310,7 @@ dev.off()
 svg(paste0(path_plots,"abandonment_main.svg"), width = w, height = h, 
     pointsize = 10, bg = bg_col)
 
-# Cairo(file = paste0(path_plots,"abandonent_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-#       bg = bg_col, canvas = bg_col, units = "px", dpi = dpi)
-# abandonment
+
 corrplot_mod(m_imp = a_imp_mtx,
              m_efs = a_efs_mtx,
              addgrid.col = grid_col,
@@ -340,8 +330,7 @@ corrplot_mod(m_imp = a_imp_mtx,
 
 dev.off()
 
-# Cairo(file = paste0(path_plots,"pioneering_main.",file_type),  width = w, height = h, type = file_type, pointsize = 12, 
-#       bg = bg_col, canvas = bg_col, units = "px", dpi = "auto")
+
 
 svg(paste0(path_plots,"pioneering_main.svg"), width = w, height = h, 
     pointsize = 10, bg = bg_col)
@@ -572,23 +561,6 @@ p_imp_mtx[] <- imp_value
 
 
 
-# col_names <- c("Africa (n = 124)",
-#                "temp. Asia (n = 95)",
-#                "trop. Asia (n = 78)",
-#                "Australasia (n = 124)",
-#                "Europe (n = 56)",
-#                "N. America (n = 110)",
-#                "Pacific Islands (n = 143)",
-#                "S. America (n = 41)")
-# 
-# 
-# row_names <- c("Plant height", "Seed mass", "Growth form", "Life cycle",  "Residence time",
-#                "Native niche breadth", "Native range size" ,  "Distance lat. centroids", 
-#                "Native niche centroid 1", "Native niche centroid 2")
-
-
-
-
 col_names <- NA
 row_names <- NA
 
@@ -604,8 +576,6 @@ w <- 28
 h <- 28
 dpi <- 300
 
-file_type <- "svg"
-path_plots <- "plots/manuscript/trait_analysis/"
 
 
 svg(paste0(path_plots,"unfilling_full.svg"), width = w, height = h, 
@@ -940,18 +910,7 @@ e_efs_mtx[e_efs_mtx > 1] <- 1
 p_efs_mtx[p_efs_mtx < -1] <- -1
 p_efs_mtx[p_efs_mtx > 1] <- 1
 
-# col_names <- c("Africa", "temp. Asia", "trop. Asia", "Australasia", "Europe", "N. America", "Pacific Islands", "S. America")
-# 
-# row_names <- c("Plant height", 
-#                "Seed mass", 
-#                "Growth form", 
-#                "Life cycle",  
-#                "Residence time",
-#                "Native niche breadth", 
-#                "Native range size" ,  
-#                "Distance lat. centroids", 
-#                "Native niche centroid 1", 
-#                "Native niche centroid 2")
+
 
 col_names <- NA
 row_names <- NA
@@ -967,11 +926,6 @@ col <- rev(COL2('RdBu', 200))
 w <- 28
 h <- 28
 dpi <- 300
-
-file_type <- "svg"
-path_plots <- "plots/manuscript/trait_analysis/"
-
-
 
 
 svg(paste0(path_plots,"abandonment_uni.svg"), width = w, height = h, 
