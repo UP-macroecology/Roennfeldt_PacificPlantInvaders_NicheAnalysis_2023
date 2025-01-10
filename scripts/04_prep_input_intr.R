@@ -25,12 +25,10 @@ sapply(package_vec, install.load.package)
 
 # required paths and data -------------------------------------------------
 
-path_imp  <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/") 
+path_data  <- ""
+path_chelsa <- ""
 
-# final species selection
-# load(paste0(path_imp, "output/final_species_list_preliminary.RData")) 
-
-load(paste0(path_imp, "output/first_selection_species_list.RData")) # object: spp_final
+load(paste0(path_data, "/species_selection/spp_first_selection.RData")) # object: spp_final
 
 
 # merge occurrences and climate data --------------------------------------
@@ -45,11 +43,11 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr", "string
   try({
     
     # load chelsa data
-    chelsa_bioclim <- terra::rast(str_sort(list.files(paste0(path_imp, "input/chelsa_V2/"), pattern = ".tif", full.names = TRUE), numeric = TRUE))
+    chelsa_bioclim <- terra::rast(str_sort(list.files(paste0(path_chelsa, "/"), pattern = ".tif", full.names = TRUE), numeric = TRUE))
     
     
     # get all intr files that exist for the current species
-    files <- list.files(path = paste0(path_imp,"output/coords_final_intr/"), pattern = paste0("_",spp_final[spp_index],".RData")) #TODO
+    files <- list.files(path = paste0(path_data,"/occurrence_data/coords_final_intr/"), pattern = paste0("_",spp_final[spp_index],".RData")) #TODO
     
     for (file in files) { 
       
@@ -58,7 +56,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr", "string
       print(region)
       # load coords_final
       # note: accidentally kept the object names for the intr objects as "nat"
-      load(paste0(path_imp, "output/coords_final_intr/coords_final_intr1_200_",region,"_",spp_final[spp_index],".RData")) #TODO
+      load(paste0(path_data, "/occurrence_data/coords_final_intr/coords_final_intr1_200_",region,"_",spp_final[spp_index],".RData")) #TODO
       
       # Extract BioClim variables
       env_vars <- terra::extract(chelsa_bioclim, y = coords_final_nat_200[,c("lon", "lat")]) %>%
@@ -70,7 +68,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr", "string
       # Prepare dataset including occurrence and environmental data
       data_prep_intr <- bind_cols(coords_final_nat_200, env_vars) %>% drop_na()
       
-      save(data_prep_intr, file = paste0(path_imp, "output/final_input_intr/input_intr_",region,"_",spp_final[spp_index],".RData")) #TODO
+      save(data_prep_intr, file = paste0(path_data, "/occurrence_data/final_input_intr/input_intr_",region,"_",spp_final[spp_index],".RData")) #TODO
       } # end of for loop over files
   })} # end of try and foreach 
 

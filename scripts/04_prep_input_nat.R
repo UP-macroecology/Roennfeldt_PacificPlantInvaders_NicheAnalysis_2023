@@ -24,10 +24,11 @@ sapply(package_vec, install.load.package)
 
 # required paths and data -------------------------------------------------
 
-path_imp  <- file.path("/import/ecoc9/data-zurell/roennfeldt/C1/") 
+path_data  <- ""
+path_chelsa <- ""
 
 # species selection
-load(paste0(path_imp, "output/first_selection_species_list.RData")) # object: spp_final
+load(paste0(path_data, "/species_selection/spp_first_selection.RData")) # object: spp_final
 
 
 # merge occurrences and climate data --------------------------------------
@@ -40,10 +41,10 @@ registerDoParallel(cl)
 foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr", "stringr", "tidyr")) %dopar% {
   try({
     # load coords final for the current species
-    load(paste0(path_imp, "output/coords_final_nat/coords_final_nat_200_",spp_final[spp_index],".RData")) #TODO
+    load(paste0(path_data, "/occurrence_data/coords_final_nat/coords_final_nat_200_",spp_final[spp_index],".RData")) #TODO
     
     # load in chelsa data 
-    chelsa_bioclim <- terra::rast(str_sort(list.files(paste0(path_imp, "input/chelsa_V2/"), pattern = ".tif", full.names = TRUE), numeric = TRUE))
+    chelsa_bioclim <- terra::rast(str_sort(list.files(paste0(path_chelsa, "/"), pattern = ".tif", full.names = TRUE), numeric = TRUE))
     
     # Extract BioClim variables
     env_vars <- terra::extract(chelsa_bioclim, y = coords_final_nat_200[,c("lon", "lat")]) %>%
@@ -55,7 +56,7 @@ foreach(spp_index = 1:length(spp_final), .packages = c("terra", "dplyr", "string
     # Prepare dataset including occurrence and environmental data
     data_prep_nat <- bind_cols(coords_final_nat_200, env_vars) %>% drop_na()
     
-    save(data_prep_nat, file = paste0(path_imp,"output/final_input_nat/input_nat_",spp_final[spp_index],".RData")) 
+    save(data_prep_nat, file = paste0(path_data,"/occurrence_data/final_input_nat/input_nat_",spp_final[spp_index],".RData")) 
     
     print(spp_final[spp_index])
     
