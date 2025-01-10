@@ -131,6 +131,7 @@ defense <- GIFT_traits(trait_IDs = c("6.5.1"), agreement = 0.66,
 # extract traits of Pacific plant invaders -------------------------------------
 
 # read in the data table containing all species names of the Pacific plant invaders
+
 load("data/species_overview.RData") 
 
 # concatenate the two columns containing the GIFT species name in the species overview
@@ -253,7 +254,7 @@ species_pacific_traits_GIFT <- select(species_pacific_traits_GIFT_prep, 2,3,1,4:
 
 # save the created data frame containing available trait entries for all
 # Pacific plant invaders
-save(species_pacific_traits_GIFT, file = "data/trait_analysis/species_pacific_traits_GIFT.RData")
+save(species_pacific_traits_GIFT, file = "data/trait_data/species_pacific_traits_GIFT.RData")
 
 
 

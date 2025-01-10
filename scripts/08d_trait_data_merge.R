@@ -17,24 +17,21 @@ library(tidyr) # to use unite()
 
 # preamble ----------------------------------------------------------------
 
-path_transfer <- "T:/Holle_Roennfeldt/"
-# path_transfer <- "Y:/AG26/Transfer/Holle_Roennfeldt/"
-
 logit <- function(x) {x = ifelse(x < 0.0001,0.0001,ifelse(x > 0.9999,.9999,x));log(x/(1 - x))}
 
 # required data
-load("data/spp_suitable_AC.RData") # species list 
+load("data/species_selection/spp_suitable_AC.RData") # species list 
 load("results/ecospat/master_results_AC.RData") # results niche comparison
 
 
-load(paste0(path_transfer, "trait_data_processed/species_pacific_traits_GIFT.RData")) # GIFT trait data
+load("data/trait_data/species_pacific_traits_GIFT.RData") # GIFT trait data
 
 
 # geographic traits
-load("data/trait_analysis/native_niche_breadth_centroid.RData")
-load("data/trait_analysis/native_range_size.RData")
-load("data/trait_analysis/year_first_intro_Seebens.RData")
-load("data/trait_analysis/lat_dist.RData")
+load("data/trait_data/native_niche_breadth_centroid.RData")
+load("data/trait_data/native_range_size.RData")
+load("data/trait_data/year_first_intro_Seebens.RData")
+load("data/trait_data/lat_dist.RData")
 
 # response data -----------------------------------------------------------
 
@@ -115,7 +112,7 @@ input_TA <- df_results %>% left_join(spec_traits, by = "species") %>%
   left_join(df_lat_distance, by = c("species", "region")) %>% # nat & intr range centroid + euclidean distance
   na.omit()
 
-save(input_TA, file = "data/trait_analysis/input_TA_unstand.RData")
+save(input_TA, file = "data/trait_data/input_TA_unstand.RData")
 
 # standardise data --------------------------------------------------------
 
@@ -157,4 +154,4 @@ input_TA <- input_TA %>%
   mutate(orig_unfilling = logit(orig_unfilling)) %>% 
   na.omit()
 
-save(input_TA, file = "data/trait_analysis/input_TA_scale_log.RData")
+save(input_TA, file = "data/trait_data/input_TA_scale_log.RData")

@@ -20,8 +20,8 @@ library(stringr)
 
 
 # required data
-data_seebens <- read.csv("data/Seebens_year_intro_rev.csv") # year of first introduction based on Seebens 
-load("data/spp_suitable_after_thinning.RData.RData") # data frame containing study species names
+data_seebens <- read.csv("data/trait_data/Seebens_year_intro.csv") # year of first introduction based on Seebens 
+load("data/species_selection/spp_suitable.RData") # data frame containing study species names
 tdwg_4 <- st_read("data/spatial_data/level4.geojson") # tdwg regions level 4
 tdwg_3 <- st_read("data/spatial_data/level3.geojson") # tdwg regions level 3
 tdwg_2 <- st_read("data/spatial_data/level2.geojson") # tdwg regions level 2
@@ -263,7 +263,7 @@ for (sp in study_species) { # start of the loop over all study species
   
   # find out, in which reference regions the species was introduced by listing all
   # intr files that exist for the current species
-  files <- list.files(path = paste0("data/coords_final_intr/"), pattern = paste0("_",sp,".RData")) 
+  files <- list.files(path = paste0("data/occurrence_data/coords_final_intr/"), pattern = paste0("_",sp,".RData")) 
   
   # extract the regions of introduction
   regions <- sapply(files, function(x) { unlist(str_split(x, pattern = "_"))[5]
@@ -321,4 +321,4 @@ for (sp in study_species) { # start of the loop over all study species
 
 # Save the data frame containing the time since introduction for each species, if available,
 # for each of the 8 different reference regions
-save(year_first_intro_Seebens, file = "data/trait_analysis/year_first_intro_Seebens_rev.RData") 
+save(year_first_intro_Seebens, file = "data/trait_data/year_first_intro_Seebens.RData") 

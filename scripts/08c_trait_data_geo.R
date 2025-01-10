@@ -24,8 +24,8 @@ library(ecospat)
 # Native range size -------------------------------------------------------
 
 # load data
-load("data/occ_status_resolved_lonlat.RData")
-load("data/spp_suitable_after_thinning.RData")
+load("data/occurrence_data/occ_status_resolved_lonlat.RData")
+load("data/species_selection/spp_suitable.RData")
 
 # calculate range size from the tdwg lvl 3 polygons (and gift areas where lvl 3 == NA)
 
@@ -72,7 +72,7 @@ for (spp in spp_suitable) {
 }
 
 
-save(native_range_df, file = "data/trait_analysis/native_range_size.RData")
+save(native_range_df, file = "data/trait_data/native_range_size.RData")
 
 rm(list = setdiff(ls(), c("occ_status_resolved", "spp_suitable")))
 
@@ -81,7 +81,7 @@ rm(list = setdiff(ls(), c("occ_status_resolved", "spp_suitable")))
 # Native range centroid ---------------------------------------------------
 
 # load data
-tdwg <- st_read("data/tdwg/geojson/level3.geojson") # tdwg level 3
+tdwg <- st_read("data/spatial_data/tdwg/geojson/level3.geojson") # tdwg level 3
 load("data/status_assignment/Gift_polygons.RData") # GIFT polygons, prepared during status assignment
 
 # prepare df
@@ -143,7 +143,7 @@ for (spp in spp_suitable) {
   native_centroid_df[native_centroid_df$species == spp, "lat_centroid"] <- spp_lat
 }
 
-save(native_centroid_df, file = "data/trait_analysis/native_centroid.RData")
+save(native_centroid_df, file = "data/trait_data/native_centroid.RData")
 
 rm(list = setdiff(ls(), c("occ_status_resolved", "spp_suitable", "spp_traits", "tdwg", "GIFT_polygons")))
 
@@ -179,7 +179,7 @@ for (spp in spp_traits) {
   for (region in regions) {
     
     # load in intr occurrences in that region
-    load(paste0(path_data,"input_intr_",region,"_",spp,".RData")) # object name: data_prep_intr
+    load(paste0("data/occurrence_data/final_input_intr/input_intr_",region,"_",spp,".RData")) # object name: data_prep_intr
     
     present_coords <- subset(data_prep_intr, present == 1) %>% 
       select(lon, lat)
@@ -239,7 +239,7 @@ for (spp in spp_traits) {
 
 intro_centroid_df <- intro_centroid_df[-1,]
 
-save(intro_centroid_df, file = "data/trait_analysis/intro_centroid.RData")
+save(intro_centroid_df, file = "data/trait_data/intro_centroid.RData")
 
 rm(list = ls())
 
@@ -250,8 +250,8 @@ rm(list = ls())
 # Latitudinal distance ----------------------------------------------------
 
 # load data
-load("data/trait_analysis/intro_centroid.RData")
-load("data/trait_analysis/native_centroid.RData")
+load("data/trait_data/intro_centroid.RData")
+load("data/trait_data/native_centroid.RData")
 
 df_lat_distance <- data.frame(species = as.factor(NULL),
                               region = as.factor(NULL),
@@ -284,7 +284,7 @@ for (spec in specs) {
     
 } # end of for loop over specs
 
-save(df_lat_distance, file = "data/trait_analysis/lat_dist.RData")
+save(df_lat_distance, file = "data/trait_data/lat_dist.RData")
 
 rm(list = ls())
 
@@ -294,8 +294,8 @@ rm(list = ls())
 # the file size of the global niche objects crashes local machines
 
 # required path
-path_imp <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/")
-bioclim_folder <- "/import/ecoc9z/data-zurell/roennfeldt/C1/input/Chelsa_V2"
+path_data <- ""
+path_chelsa <- ""
 # based on: (line 169)
 # https://github.com/UP-macroecology/EBBA_Niche_vs_Range_shifts/blob/main/scripts/3_prep_trait_data.R
 
@@ -307,7 +307,7 @@ bioclim_folder <- "/import/ecoc9z/data-zurell/roennfeldt/C1/input/Chelsa_V2"
 bio_numb <- c(1:19)
 
 # bioclim variables:
-biovars_rast <- rast(file.path(bioclim_folder,
+biovars_rast <- rast(file.path(path_chelsa,
                                paste0("CHELSA_bio10_", bio_numb,".tif")))
 
 # global raster points (= environmental background, absences and presences):
@@ -317,9 +317,9 @@ BL_global_points <- biovars_rast[[1]] %>%
 # add bioclim variables to raster points:
 BL_vars_df <- terra::extract(biovars_rast, BL_global_points)
 
-save(BL_vars_df, file = paste0(path_imp, "output/PCA/BL_vars_df.RData"))
+save(BL_vars_df, file = paste0(path_data, "/trait_data/PCA/BL_vars_df.RData"))
 
-# load(paste0(path_imp, "output/PCA/BL_vars_df.RData"))
+# load(paste0(path_data, "output/PCA/BL_vars_df.RData"))
 
 BL_vars_df <- na.omit(BL_vars_df)
 
@@ -330,26 +330,26 @@ names(BL_vars_df) <- str_replace(names(BL_vars_df), pattern = "CHELSA_bio", "B_"
 # calibrating the PCA in the whole study area:
 pca_env_global <- dudi.pca(BL_vars_df[, paste0("CHELSA_bio10_", bio_numb)], scannf = FALSE,
                    nf = 2) # number of axes
-save(pca_env_global, file = paste0(path_imp, "output/PCA/global_pca.RData"))
+save(pca_env_global, file = paste0(path_data, "/trait_data/PCA/global_pca.RData"))
 
 
-# load(paste0(path_imp, "output/PCA/global_pca.RData"))
+# load(paste0(path_data, "output/PCA/global_pca.RData"))
 
 # change column names to shorter version (so that labels don't overlap in the corplot)
 rownames(pca_env_global$co) <- str_replace(rownames(pca_env_global$tco), pattern = "CHELSA_bio10_", "B_")
 
 
-# cor plot
-pdf(paste0(path_imp, "plots/pca_global_cor_plot.pdf"))
-
-ecospat.plot.contrib(contrib = pca_env_global$co, eigen = pca_env_global$eig)
-
-dev.off()
+# # cor plot
+# pdf(paste0(path_data, "plots/pca_global_cor_plot.pdf"))
+# 
+# ecospat.plot.contrib(contrib = pca_env_global$co, eigen = pca_env_global$eig)
+# 
+# dev.off()
 
 
 # predict the scores on the PCA axes:
 global_scores <- pca_env_global$li # PCA scores for global raster points
-save(global_scores, file = paste0(path_imp, "output/PCA/global_scores.RData"))
+save(global_scores, file = paste0(path_data, "/trait_data/PCA/global_scores.RData"))
 
 
 rm(list = ls())
@@ -360,14 +360,14 @@ rm(list = ls())
 source("ecospat_mod.R")
 
 # load the global pca environment and scores
-load(paste0(path_imp, "output/PCA/global_pca.RData"))
-load(paste0(path_imp, "output/PCA/global_scores.RData"))
+load(paste0(path_data, "/trait_data/PCA/global_pca.RData"))
+load(paste0(path_data, "/trait_data/PCA/global_scores.RData"))
 
 # load final species selection
-load(paste0(path_imp, "input/spp_trait_analysis.RData"))
+load(paste0(path_data, "/species_selection/spp_trait_analysis.RData"))
 
 
-spp_done <- list.files(paste0(path_imp, "output/PCA/"), pattern = "native_niche_breadth_centroid_twice_") %>%
+spp_done <- list.files(paste0(path_data, "/trait_data/PCA/"), pattern = "native_niche_breadth_centroid_twice_") %>%
   str_remove(".RData") %>%
   str_split(pattern = "_") %>%
   map(~ .x[[6]]) %>%
@@ -389,7 +389,7 @@ foreach(spp_index = 1:length(spp),
 
 
                                 # load species occurrence data already matched with bioclim variables
-                                load(paste0(path_imp, "output/final_input_nat_rev/input_nat_",spp[spp_index],".RData"))
+                                load(paste0(path_data, "/occurrence_data/final_input_nat/input_nat_",spp[spp_index],".RData"))
 
                                 # rename object to a shorter version and remove original
                                 input_nat <- data_prep_nat
@@ -428,7 +428,7 @@ foreach(spp_index = 1:length(spp),
                                 nbc_spec_df$niche_centroid1_native <- median(species_scores_native[,1])
                                 nbc_spec_df$niche_centroid2_native <- median(species_scores_native[,2])
 
-                                save(nbc_spec_df, file = paste0(path_imp,"output/PCA/native_niche_breadth_centroid_twice_",spp[spp_index],".RData"))
+                                save(nbc_spec_df, file = paste0(path_data,"/trait_data/PCA/native_niche_breadth_centroid_twice_",spp[spp_index],".RData"))
 
 
                             } # end of foreach over spp
@@ -436,14 +436,14 @@ foreach(spp_index = 1:length(spp),
 
 stopCluster(cl)
 
-
+# on local machine:
 
 # combine data on native niche breadth and centroid
 
 df_native_niche <- data.frame(matrix(nrow = 0, ncol = 6))
 colnames(df_native_niche) <- c("species", "niche_breadth_zcor", "niche_centroid1_global", "niche_centroid2_global", "niche_centroid1_native", "niche_centroid2_native")
 
-spp_breadth <- list.files("data/trait_analysis/niche_breadth_centroid/", pattern = "niche_breadth_centroid_twice_") %>%
+spp_breadth <- list.files("data/trait_data/niche_breadth_centroid/", pattern = "niche_breadth_centroid_twice_") %>%
   str_remove(".RData") %>%
   str_split(pattern = "_") %>%
   map(~ .x[[6]]) %>%
@@ -451,12 +451,12 @@ spp_breadth <- list.files("data/trait_analysis/niche_breadth_centroid/", pattern
 
 for (spp in spp_breadth) {
   
-  load(paste0("data/trait_analysis/niche_breadth_centroid/native_niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
+  load(paste0("data/trait_data/niche_breadth_centroid/native_niche_breadth_centroid_twice_",spp,".RData")) # object name: nbc_spec_df
   df_native_niche <- rbind(df_native_niche, nbc_spec_df)
 } # end of loop over spp_suitable_AC
 
 # save results
-save(df_native_niche, file = "data/trait_analysis/native_niche_breadth_centroid.RData")
+save(df_native_niche, file = "data/trait_data/native_niche_breadth_centroid.RData")
 
 
 
