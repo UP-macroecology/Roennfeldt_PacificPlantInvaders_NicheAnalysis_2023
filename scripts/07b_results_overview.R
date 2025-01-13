@@ -12,6 +12,7 @@
 
 library(dplyr)
 library(stringr) # for str_trim
+library(tidyr)
 
 
 # functions ---------------------------------------------------------------
@@ -355,7 +356,6 @@ rm(list = setdiff(ls(), c("path_data", "similarity_res", "spp_suitable", "spp_su
 
 load("results/ecospat/niche_overlap_results_AC.RData")
 load("results/ecospat/niche_similarity_results_AC.RData")
-load("results/ecospat/niche_ses_results_AC.RData")
 load("results/ecospat/niche_dynamics_results_AC.RData")
 load("results/ecospat/rel_niche_dynamics_results_AC.RData")
 
@@ -600,7 +600,5 @@ summary(m_abandonment)
 
 anova(m_pioneering)
 summary(m_pioneering)
-
-
 
 
