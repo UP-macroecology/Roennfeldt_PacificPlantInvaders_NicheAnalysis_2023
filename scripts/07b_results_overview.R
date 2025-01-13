@@ -28,9 +28,9 @@ similarity_res <- function(df, spec, reg, setting, metric){
 
 # required data -----------------------------------------------------------
 
-
+load("data/species_selection/AC_occs_df.RData")
 load("data/species_selection/spp_suitable.RData")
-load("data/occurrence_data/nr_occs_df_after_thinning.RData")
+# load("data/occurrence_data/nr_occs_df_after_thinning.RData")
 load("data/species_selection/spp_suitable_AC.RData")
 
 # overlap -----------------------------------------------------------------
@@ -61,8 +61,8 @@ for (spp in spp_suitable) {
     # get the region name
     region_name <- unlist(strsplit(file_short, split = "_"))[3]
     
-    
-    if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+    # only include results for this niche pair if it is suitable (see previous script)
+    if (AC_occs_df[AC_occs_df$species == spp & AC_occs_df$intr_region == region_name, "suitability"] == 1) {
       # add info to df
       results_overlap <- rbind(results_overlap,
                                data.frame(species = spp, 
@@ -78,9 +78,9 @@ results_overlap_AC <- subset(results_overlap, species %in% spp_suitable_AC)
 # save results 
 save(results_overlap_AC, file = "results/ecospat/niche_overlap_results_AC.RData")
 
-# similarity & SES --------------------------------------------------------
+# similarity  --------------------------------------------------------
 
-rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res", "nr_occs_df")))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res", "AC_occs_df")))
 
 # 1. similarity test results
 # empty df to store data in
@@ -129,8 +129,8 @@ for (spp in spp_suitable) {
           sim_set <- "shift"
           sim_value <- sim_test_shift[[paste0("p.",metric)]]}
         
-        
-        if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+        # only include results for this niche pair if it is suitable (see previous script)
+        if (AC_occs_df[AC_occs_df$species == spp & AC_occs_df$intr_region == region_name, "suitability"] == 1) {
           
           # add to df
           results_similarity <- rbind(results_similarity,
@@ -155,7 +155,7 @@ save(results_similarity_AC, file = "results/ecospat/niche_similarity_results_AC.
 
 # dynamics ----------------------------------------------------------------
 
-rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res","nr_occs_df")))
+rm(list = setdiff(ls(), c("path_data", "spp_suitable", "spp_suitable_AC", "similarity_res","AC_occs_df")))
 
 # empty df to store data in
 results_dynamics <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -201,7 +201,8 @@ for (spp in spp_suitable) {
           dyn_value <- niche_dyn_whole[["dynamic.index.w"]][[metric]]
         }
         
-        if (nr_occs_df[nr_occs_df$species == spp, region_name] >= 20) {
+        # only include results for this niche pair if it is suitable (see previous script)
+        if (AC_occs_df[AC_occs_df$species == spp & AC_occs_df$intr_region == region_name, "suitability"] == 1) {
         # add to df
         results_dynamics <- rbind(results_dynamics,
                                   data.frame(species = spp, 
@@ -602,3 +603,4 @@ anova(m_pioneering)
 summary(m_pioneering)
 
 
+summary(subset(master_results_AC, region == "sam"))
