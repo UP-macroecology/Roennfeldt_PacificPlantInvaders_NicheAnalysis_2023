@@ -80,6 +80,47 @@ Identifying the species' native ranges (by adding tags, mostly at a continental 
 
 ### 11 - Figures
 
+---------------------------------------------------------------
+**Required folder structure**
+---------------------------------------------------------------
+
+```
+scripts
+├── misc (includes script to recreate folder structure)
+
+data
+├── species_selection
+├── occurrence_data
+│   ├── regional_occs
+│   ├── status_occs
+│   ├── coords_final_nat
+│   ├── coords_final_intr
+│   ├── final_input_nat
+│   ├── final_input_intr
+├── status_assignment
+│   ├── GloNAF 
+├── spatial_data
+│   ├── tdwg 
+├── native_region_ID
+├── trait_data
+│   ├── PCA
+│   ├── niche_breadth_centroid 
+├── phylogenies
+
+results
+├── ecospat
+│   ├── niche_overlap
+│   ├── niche_similarity
+│   ├── niche_dynamics
+├── trait_analysis
+│   ├── full_models
+│   ├── main_analysis
+│   ├── univariate
+
+plots
+
+```
+
 ## Operating system info
 * R version 4.2.2 (2022-10-31 ucrt)
 * Platform: x86_64-w64-mingw32/x64 (64-bit)
