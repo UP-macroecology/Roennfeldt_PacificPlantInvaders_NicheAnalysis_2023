@@ -22,17 +22,20 @@ library(terra)
 library(viridis)
 
 
+
+# required paths ----------------------------------------------------------
+
+path_plot <- "plots/manuscript/inkscape/"
+
 # load data ---------------------------------------------------------------
 
 load("results/ecospat/master_results_AC.RData")
 load("results/ecospat/rel_niche_dynamics_results_AC.RData")
 load("results/ecospat/niche_dynamics_results_AC.RData")
 load("results/ecospat/niche_overlap_results_AC.RData")
-# load("results/ecospat/niche_ses_results_AC.RData")
-# load("results/ecospat/percentages_niche_conservatism.RData")
 load("results/ecospat/stand_ESU.RData")
-load("data/input_TA_unstand.RData")
-load("data/climate_zones/spp_zones_all.RData")
+load("data/trait_data/input_TA_unstand.RData")
+load("data/native_regions/spp_zones_all.RData")
 
 
 rel_niche_dynamics_AC <- rel_niche_dynamics_AC %>%
@@ -52,7 +55,9 @@ results_dynamics_AC <- results_dynamics_AC %>%
 col_regular <- c("lightsalmon3","lightgoldenrod1","lightblue2","darkseagreen3",  "thistle4")
 
 
-label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasia\n n = 219", "Europe\n n = 90", "N. America\n n = 204",  "S. America\n n = 219", "temp. Asia\n n = 179", "trop. Asia\n n = 151")
+label_regional <- c("Pacific Islands\n n = 316", "Africa\n n = 212", 
+                    "Australasia\n n = 217", "Europe\n n = 82", "N. America\n n = 199",
+                    "S. America\n n = 219", "temp. Asia\n n = 173", "trop. Asia\n n = 148")
 
 
 
@@ -84,57 +89,54 @@ label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", "Australasi
         axis.text = element_text(size = 9, color = "black"),
         axis.title = element_text(size = 11)))
 
-ggsave("plots/manuscript/inkscape/all_dynamics.svg", p1, 
+ggsave(paste0(path_plot,"all_dynamics.svg"), p1, 
        width = 17.8,
        height = 10,
        units = "cm")
 
 
-png("plots/niche_dynamics/regional_dynamics_all.png",width = 1450, height = 947)
-print(p1)
-dev.off()
 
 
 # Niche conservatism ------------------------------------------------------
 
-# getting an idea for the regional trends:
-pac <- subset(master_results_AC, region == "pac")
-nrow(pac)
-table(pac$similarity)
+# # getting an idea for the regional trends:
+# pac <- subset(master_results_AC, region == "pac")
+# nrow(pac)
+# table(pac$similarity)
+# 
+# afr <- subset(master_results_AC, region == "afr")
+# nrow(afr)
+# table(afr$similarity)
+# 
+# aus <- subset(master_results_AC, region == "aus")
+# nrow(aus)
+# table(aus$similarity) 
+# 
+# eur <- subset(master_results_AC, region == "eur")
+# nrow(eur)
+# table(eur$similarity) 
+# 
+# nam <- subset(master_results_AC, region == "nam")
+# nrow(nam)
+# table(nam$similarity)
+# 
+# sam <- subset(master_results_AC, region == "sam")
+# nrow(sam)
+# table(sam$similarity)
+# 
+# ate <- subset(master_results_AC, region == "ate")
+# nrow(ate)
+# table(ate$similarity)
+# 
+# atr <- subset(master_results_AC, region == "atr")
+# nrow(atr)
+# table(atr$similarity)
 
-afr <- subset(master_results_AC, region == "afr")
-nrow(afr)
-table(afr$similarity)
-
-aus <- subset(master_results_AC, region == "aus")
-nrow(aus)
-table(aus$similarity) 
-
-eur <- subset(master_results_AC, region == "eur")
-nrow(eur)
-table(eur$similarity) 
-
-nam <- subset(master_results_AC, region == "nam")
-nrow(nam)
-table(nam$similarity)
-
-sam <- subset(master_results_AC, region == "sam")
-nrow(sam)
-table(sam$similarity)
-
-ate <- subset(master_results_AC, region == "ate")
-nrow(ate)
-table(ate$similarity)
-
-atr <- subset(master_results_AC, region == "atr")
-nrow(atr)
-table(atr$similarity)
-
+table(master_results_AC$similarity) # conservatism 713, neither 853
 
 # very basic bar plot to explore results:
-
 df_con <- data.frame(similarity = c("Conservatism", "Neither", "Switching"),
-               freq = c(719, 874, 0))
+               freq = c(713, 853, 0))
 
 (p <- ggplot(df_con, aes(x = similarity, y = freq)) +
   labs(x = NULL, y = NULL) + 
@@ -149,11 +151,11 @@ df_con <- data.frame(similarity = c("Conservatism", "Neither", "Switching"),
         plot.background = element_rect(fill = "transparent", color = NA,),
         axis.text = element_text(colour = "#1B3C59")))
 
-# ggsave("plots/results/Niche_conservatism_bar.png", p, 
-#        bg = "transparent",
-#        width = 13,
-#        height = 18,
-#        units = "cm")
+ggsave(paste0(path_plot,"Niche_conservatism_bar.png"), p,
+       bg = "transparent",
+       width = 13,
+       height = 18,
+       units = "cm")
 
 
 # stand. ESU --------------------------------------------------------------
@@ -166,7 +168,7 @@ col_ESU <- c("#FFEC8B","#B2DFEE","#9FD39F")
 
 # relative dynamics 
 (p <- ggplot(stand_ESU, aes(x = region, y = percentage, fill = metric)) +
-    geom_boxplot(fatten = 1.5, colour = "black", , linewidth = 0.4, outlier.size = 0.5) +
+    geom_boxplot(fatten = 1, colour = "black", linewidth = 0.4, outlier.size = 0.5) +
     labs(x = "Non-native region", y = "Niche dynamics (%)") +
     scale_x_discrete(name = "Non-native region",
                      limits = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"),
@@ -188,12 +190,17 @@ col_ESU <- c("#FFEC8B","#B2DFEE","#9FD39F")
           axis.title = element_text(size = 11)))
           # axis.text = element_text(colour = "#1B3C59")))
 
-ggsave("plots/manuscript/inkscape/ESU_dynamics.svg", p, 
-       width = 17.8,
+# ggsave(paste0(path_plot,"ESU_dynamics.svg"), p, 
+#        width = 17.8,
+#        height = 11,
+#        units = "cm")
+
+
+# medium figure size:
+ggsave(paste0(path_plot,"ESU_dynamics_medium.svg"), p, 
+       width = 11,
        height = 11,
        units = "cm")
-
-
 
 # barplot similarity results  ---------------------------------------------
 
@@ -290,7 +297,7 @@ col_gradient <- c("#C1C9D1", "#8B9BA9", "#5E7080", "#3E4A54") # alternative: c("
           axis.text = element_text(size = 8, color = "black"),
           panel.grid.major = element_blank()))
 
-ggsave("plots/manuscript/inkscape/barplot_similarity.svg", p,
+ggsave(paste0(path_plot,"barplot_similarity.svg"), p,
        bg = "transparent",
        width = 16,
        height = 14,
@@ -310,8 +317,9 @@ ggsave("plots/manuscript/inkscape/barplot_similarity.svg", p,
 
 # linerange plots ---------------------------------------------------------
 
+load("results/ecospat/master_results_AC.RData")
 
-ID <- c(1:317)
+ID <- c(1:316)
 
 df_con <- master_results_AC %>% 
   group_by(species, similarity) %>% 
@@ -341,20 +349,12 @@ df_reg <- master_results_AC %>%
   mutate(perc_con = round(100/total*abs(conservatism), 2)) %>% 
   mutate(region = factor(region, levels = c("pac", "afr", "aus", "eur", "nam", "sam", "ate", "atr"))) 
 
-# label_regional <- c("Pacific Islands\n n = 317", "Africa\n n = 214", 
-#                     "Australasia\n n = 219", "Europe\n n = 90", 
-#                     "N. America\n n = 204",  "S. America\n n = 219",
-#                     "temp. Asia\n n = 179", "trop. Asia\n n = 151")
-# 
-# label_regional <- c("Pac. Islands\n n = 317", "Africa\n n = 214", 
-#                     "Austral.\n n = 219", "Europe\n n = 90", 
-#                     "N. America\n n = 204",  "S. America\n n = 219",
-#                     "temp. Asia\n n = 179", "trop. Asia\n n = 151")
 
-label_regional <- c("Pac\n n=317", "Afr\n n=214", 
-                    "Aus\n n=219", "Eur\n n=90", 
-                    "Nam\n n=204", "Sam\n n=219",
-                    "Ate\n n=179", "Atr\n n=151")
+
+label_regional <- c("Pac\n n=316", "Afr\n n=212", 
+                    "Aus\n n=217", "Eur\n n=82", 
+                    "Nam\n n=199", "Sam\n n=219",
+                    "Ate\n n=173", "Atr\n n=148")
 
 (p_barplot <- df_reg %>% 
     ggplot(aes(x = region, y = perc_con)) +
@@ -371,7 +371,7 @@ label_regional <- c("Pac\n n=317", "Afr\n n=214",
           axis.title = element_text(size = 7, colour = "grey22"),
           axis.text = element_text(size = 7, colour = "grey22")))
 
-ggsave("plots/manuscript/inkscape/regional_barplot.svg", p_barplot,
+ggsave(paste0(path_plot,"regional_barplot.svg"), p_barplot,
        bg = "transparent",
        device = "svg",
        width = 9.5,
@@ -450,7 +450,7 @@ df_plot_con <- df_plot %>%
           legend.position = "null"))
 
 
-ggsave("plots/manuscript/inkscape/linerange_empty.svg", p_linerange,
+ggsave(paste0(path_plot,"linerange_empty.svg"), p_linerange,
        device = "svg",
        # bg = "white",
        width = 16,
@@ -566,7 +566,7 @@ par(mar = c(0, 0, 0, 0))
 #                vlcex = 0.5 )
 # dev.off()
 
-svg(file = "plots/manuscript/inkscape/radar.svg", width = 18, height = 18)
+svg(file = paste0(path_plot,"radar.svg"), width = 18, height = 18)
 radarchartcirc(radar_input, axistype = 0, seg = 1,
                pty = 19,
                #custom polygon
