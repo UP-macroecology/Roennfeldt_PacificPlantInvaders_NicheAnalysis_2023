@@ -1,17 +1,33 @@
-# NichePac - Niche Analysis 2023
+# Climatic niche conservatism in non-native plants depends on introduction history and biogeographic context
 
-**DFG Project:** NichePac <br/>
-**Author:** Anna Rönnfeldt <br/>
-**WP1:** Quantification of the niche dynamics of alien plant species in the Pacific region. <br/>
+Anna Rönnfeldt<sup>1,*</sup>, Valén Holle<sup>1</sup>, Katrin Schifferle<sup>1</sup>, Laure Gallien<sup>2</sup>, Tiffany Knight<sup>3,4,5,6</sup>,  Patrick Weigelt<sup>7,8</sup>, Dylan Craven <sup>9,10</sup>, Juliano Sarmento Cabral<sup>11</sup>, Damaris Zurell<sup>1</sup>
 
+1. University of Potsdam, Inst. for Biochemistry and Biology, D-14469 Potsdam, Germany
+2. University Grenoble Alpes, University Savoie Mont Blanc, CNRS, LECA, Laboratoire d'Ecologie Alpine, 38000 Grenoble, France
+3. Department of Species Interaction Ecology, Helmholtz Centre for Environmental Research – UFZ, Permoserstraße 15, Leipzig 04318, Germany
+4. German Centre for Integrative Biodiversity Research (iDiv), Halle-Jena-Leipzig, Puschstrasse 4, Leipzig 04103, Germany
+5. Institute of Biology, Martin Luther University Halle-Wittenberg, Am Kirchtor 1, 06108, Halle (Saale), Germany
+6. German Centre for Integrative Biodiversity Research (iDiv), Halle-Jena-Leipzig, Puschstrasse 4, Leipzig 04103, Germany Department of Science and Conservation, National Tropical Botanical Garden, Kalāheo, HI, USA
+7. Department of Environmental Science, Radboud Institute for Biological and Environmental Sciences (RIBES), Radboud University, Heyendaalseweg 135, 6525AJ Nijmegen, The Netherlands. 
+8. Biodiversity, Macroecology & Biogeography, University of Göttingen, Büsgenweg 1, 37077 Göttingen, Germany
+9. GEMA Center for Genomics, Ecology & Environment, Universidad Mayor, Camino La Pirámide 5750, Huechuraba, Santiago, Chile
+10. Data Observatory Foundation, ANID Technology Center No. DO210001, Eliodoro Yáñez 2990, 7510277, Providencia, Santiago, Chile
+11. University of Birmingham, College of Life and Environmental Sciences, School of Biosciences, B15 2TT Birmingham, UK
+
+*Corresponding author: Anna Rönnfeldt <br>
+Email:  anna.roennfeldt@uni-potsdam.de
+
+### ABSTRACT:
+Many tools informing preventive measures in invasion management build on the assumption that introduced species will conserve their climatic niches outside their native ranges. The reliability of this assumption has been the subject of previous research on non-native niche dynamics, for example, testing niche expansion into previously unoccupied climatic conditions. Yet, these analyses often found contradictory results, and only a few compared the niche dynamics of species introduced to multiple regions. Here, we used an ordination-based approach to quantify the climatic niche changes (stability, unfilling, expansion) of 316 plant species introduced to eight different regions across the world. We then performed multiple phylogenetic regressions to assess how the regional context and species’ characteristics affect niche dynamics. Niche conservatism varied across regions, even within species. While niche expansion was generally low, with some exceptions on the species level, niche unfilling varied strongly between regions. Generally, region-specific introduction history and biogeographic characteristics were more important for explaining niche changes than ecological traits. Niche expansion was consistently higher for species with small native range sizes, and niche stability increased, while niche unfilling decreased with time since introduction. The strong effect of residence time on niche unfilling suggests that the lack of niche conservatism observed in many regions might be transient.  Overall, our results shed light on the context dependency of climatic niche changes when species are introduced to new regions, highlighting that the species and region-specific context should be accounted for when assessing the potential for niche changes. 
 
 ## Workflow
 
-The analysis builds on the global occurrence data of the plant species listed in the [PaciFLora](https://bdj.pensoft.net/article/67318/) data set. Each occurrence point is matches with a biogeographic status (*native* or *introduced*). Code for the data preparation can be found in a seperate [repository](https://github.com/UP-macroecology/GlobalOccurrences.git). 
+The analysis builds on global occurrence data of the plant species listed in the [PaciFLora](https://bdj.pensoft.net/article/67318/) data set. Each occurrence point is matched with a biogeographic status (*native* or *introduced*). Code for this data preparation can be found in a seperate [repository](https://github.com/UP-macroecology/StatusAssignment). 
 
 ### 0 - set up folder structure
+script [00_folder_structure](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/00_folder_structure.R)
 
-Set up the folder structure required for the analysis using the [00_folder_structure](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/00_folder_structure.R) script.
+The folder structure that is required for the analysis is set up.
 
 ### 1 - Split occurrence data into regional subsets
 scripts [01_regional_occs_criterion_1](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/01_regional_occs_criterion_1.R), [01_regional_occs_criterion_2](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/01_regional_occs_criterion_2.R)
@@ -60,7 +76,7 @@ The time since the initial introduction of the species' to the individual study 
 #### Species functional traits:
 script [07b_trait_data_species](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/07b_trait_data_species.R)
 
-Functional trait data provided by the [GIFT](10.1111/jbi.13623) data base is downloaded via the *GIFT* R package. 
+Functional trait data provided by the [GIFT](https://doi.org/10.1111/jbi.13623) data base is downloaded via the *GIFT* R package. 
 
 #### Biogeographic characteristics:
 script [07c_trait_data_geo](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/07c_trait_data_geo.R)
@@ -156,3 +172,8 @@ plots
 * Attached packages: [1] ade4_1.7-22  [2] corrplot_0.92  [3] devtools_2.4.5  [4] doParallel_1.0.17  [5] dotwhisker_0.7.4  [6] dplyr_1.1.2  [7] ecospat_4.0.0  [8] fmsb_0.7.6  [9] foreach_1.5.2  [10] furrr_0.3.1  [11] ggplot2_3.5.1  [12] GIFT_1.0.0  [13] hrbrthemes_0.8.7  [14] lcvplants_2.1.0  [15] maps_3.4.1  [16] networkD3_0.4  [17] phylolm_2.6.2  [18] purrr_1.0.1  [19] RColorBrewer_1.1-3  [20] sf_1.0-16  [21] sfheaders_0.4.2  [22] stringr_1.5.0  [23] terra_1.7-78 [24] tidyr_1.3.0 [25] viridis_0.6.3 
 
 ## References
+
+Karger, et al., Climatologies at high resolution for the earth’s land surface areas. Sci Data 4, 170122 (2017). [https://doi.org/10.1038/sdata.2017.122](https://doi.org/10.1038/sdata.2017.122) <br>
+Karger, et al., Data from: Climatologies at high resolution for the earth’s land surface areas. Dryad. [https://doi.org/10.5061/DRYAD.KD1D4](https://doi.org/10.5061/DRYAD.KD1D4). Deposited 2018. <br>
+Weigelt, König, Kreft, GIFT – A Global Inventory of Floras and Traits for macroecology and biogeography. J Biogeogr 47, 16–43 (2020). [https://doi.org/10.1111/jbi.13623](https://doi.org/10.1111/jbi.13623) <br>
+Wohlwend, et al., Data Descriptor: Pacific Introduced Flora (PaciFLora). BDJ 9, e67318 (2021). [https://doi.org/10.3897/BDJ.9.e67318](https://doi.org/10.3897/BDJ.9.e67318)
