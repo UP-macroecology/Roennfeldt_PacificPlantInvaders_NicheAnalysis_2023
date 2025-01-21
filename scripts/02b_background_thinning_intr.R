@@ -89,34 +89,22 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 1){
 
 
 # required data -----------------------------------------------------------
-load(paste0(path_data, "/occurrence_data/regional_occs/criterion_1/occ_count_crit_1.RData"))
 
-# pre-select suitable species ------------------------------------------------
+# species selection
+load(paste0(path_data, "/species_selection/spp_first_selection.RData"))
 
-occ_count_crit_1 <- occ_count_crit_1 %>% 
-  arrange(species) %>%
-  distinct(species, .keep_all = TRUE)
-
-suitable <- occ_count_crit_1[,-1]
-suitable[suitable < 20] <- 0 # set cells with less than 20 occurrences to 0 (unsuitable)
-suitable[suitable >= 20] <- 1 # set cells with at least than 20 occurrences to 1 (suitable)
-suitable$species <- occ_count_crit_1$species
-suitable <- suitable %>% relocate(species)
-suitable$mainland_regions <- rowSums(suitable[,4:10]) # count how many mainland regions are suitable for each species
-# only keep species with enough occurrences in their native range, the Pacific Islands and at least one mainland region
-spp_suitable <- suitable[!(suitable$native_occs == 0 | suitable$pacific_occs == 0 | suitable$mainland_regions == 0),]
+spp <- spp_final
 
 
-spp <- spp_suitable$species
+# specs_done <- list.files(paste0(path_data, "/occurrence_data/coords_final_intr/")) %>% 
+#   str_remove(".RData") %>% 
+#   str_split(pattern = "_") %>%
+#   map(~ .x[[6]]) %>%
+#   simplify() %>%
+#   unique()
+# 
+# spp <- setdiff(spp_final, specs_done)
 
-specs_done <- list.files(paste0(path_data, "/occurrence_data/coords_final_intr/")) %>% 
-  str_remove(".RData") %>% 
-  str_split(pattern = "_") %>%
-  map(~ .x[[6]]) %>%
-  simplify() %>%
-  unique()
-
-spp <- setdiff(spp, specs_done)
 
 
 # Start parallel computing
