@@ -47,7 +47,7 @@ Each occurrence point is then matched with the according climate data. For this,
 ### 4 - Second species selection 
 scripts [04_second_species_selection](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/04_second_species_selection.R)
 
-Downsizing speies selection again, to speed up the analysis run time.
+Downsizing species selection again, to speed up the analysis run time.
 
 ### 5 - Niche comparison
 scripts [05_niche_comparison](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/05_niche_comparison.R)
