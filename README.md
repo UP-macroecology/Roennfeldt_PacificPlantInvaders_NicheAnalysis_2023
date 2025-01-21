@@ -130,7 +130,7 @@ script [10_figures](https://github.com/UP-macroecology/Roennfeldt_PacificPlantIn
 
 ```
 scripts
-├── misc (includes script to recreate folder structure)
+├── misc 
 
 data
 ├── species_selection
