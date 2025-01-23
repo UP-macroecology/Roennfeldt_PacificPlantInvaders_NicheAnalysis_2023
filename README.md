@@ -124,6 +124,11 @@ Identifying the species' native ranges (by adding tags, mostly at a continental 
 ### 10 - Figures
 script [10_figures](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/10_figures.R)
 
+### Misc.
+scripts [species_overview](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/misc/species_overview.R), [data_supp_prep](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/misc/data_supp_prep.R)
+
+The folder [misc](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/tree/main/scripts/misc) contains scripts to create an indermediate file to provide an overview of the species, potential species pseudonyms, and whether they would be included in the analysis according to selection criterion 1 or 2. This file is required to run script [07b_trait_data_species](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/07b_trait_data_species.R) as is. Another script in this folder contains the code that was used to assamble the supplementary data table accompanying the published paper. 
+
 ---------------------------------------------------------------
 **Required folder structure**
 ---------------------------------------------------------------
