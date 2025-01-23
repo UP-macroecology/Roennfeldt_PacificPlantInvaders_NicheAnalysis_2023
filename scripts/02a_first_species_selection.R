@@ -18,7 +18,7 @@ library(doParallel)
 # required path -----------------------------------------------------------
 
 
-path_data  <- file.path("/import/ecoc9z/data-zurell/roennfeldt/C1/") 
+path_data  <- ""
 
 # required data -----------------------------------------------------------
 
