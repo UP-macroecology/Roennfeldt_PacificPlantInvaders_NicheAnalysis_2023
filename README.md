@@ -17,8 +17,11 @@ Anna Rönnfeldt<sup>1,*</sup>, Valén Holle<sup>1</sup>, Katrin Schifferle<sup>1
 *Corresponding author: Anna Rönnfeldt <br>
 Email:  anna.roennfeldt@uni-potsdam.de
 
+**Funding:** This study was supported by the German Research Foundation DFG (grant no. ZU 361/3-1 to DZ) 
+
 ### ABSTRACT:
 Many tools informing preventive measures in invasion management build on the assumption that introduced species will conserve their climatic niches outside their native ranges. The reliability of this assumption has been the subject of previous research on non-native niche dynamics, for example, testing niche expansion into previously unoccupied climatic conditions. Yet, these analyses often found contradictory results, and only a few compared the niche dynamics of species introduced to multiple regions. Here, we used an ordination-based approach to quantify the climatic niche changes (stability, unfilling, expansion) of 316 plant species introduced to eight different regions across the world. We then performed multiple phylogenetic regressions to assess how the regional context and species’ characteristics affect niche dynamics. Niche conservatism varied across regions, even within species. While niche expansion was generally low, with some exceptions on the species level, niche unfilling varied strongly between regions. Generally, region-specific introduction history and biogeographic characteristics were more important for explaining niche changes than ecological traits. Niche expansion was consistently higher for species with small native range sizes, and niche stability increased, while niche unfilling decreased with time since introduction. The strong effect of residence time on niche unfilling suggests that the lack of niche conservatism observed in many regions might be transient.  Overall, our results shed light on the context dependency of climatic niche changes when species are introduced to new regions, highlighting that the species and region-specific context should be accounted for when assessing the potential for niche changes. 
+
 
 ## Workflow
 
