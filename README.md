@@ -158,6 +158,13 @@ data
 │   ├── PCA
 │   ├── niche_breadth_centroid 
 ├── phylogenies
+├── buffer_sensitivity
+│   ├── coords_final_nat
+│   ├── coords_final_intr
+│   ├── final_input_nat
+│   ├── final_input_intr
+│   ├── niche_dynamics
+│   ├── results
 
 results
 ├── ecospat
