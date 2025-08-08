@@ -127,6 +127,9 @@ Identifying the species' native ranges (by adding tags, mostly at a continental 
 ### 10 - Figures
 script [10_figures](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/10_figures.R)
 
+### Buffer sensitivity
+This folder contains all scripts for the buffer size sensitivity analysis.
+
 ### Misc.
 scripts [species_overview](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/misc/species_overview.R), [data_supp_prep](https://github.com/UP-macroecology/Roennfeldt_PacificPlantInvaders_NicheAnalysis_2023/blob/main/scripts/misc/data_supp_prep.R)
 
