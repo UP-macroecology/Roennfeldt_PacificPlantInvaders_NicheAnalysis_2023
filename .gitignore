@@ -11,7 +11,7 @@ scripts/clutter*
 scripts/explore_results*
 scripts/status_scripts*
 
-*.xlsx
+Pacific_Species.xlsx
 ecospat/
 other_studies/
 !results/intermediate
