@@ -15,8 +15,8 @@ sapply(package_vec, install.load.package)
 
 # required paths and data -------------------------------------------------
 
-path_data <- "/import/ecoc9z/data-zurell/roennfeldt/C1"
-path_chelsa <- "/import/ecoc9z/data-zurell/roennfeldt/C1/input/Chelsa_V2"
+path_data <- ""
+path_chelsa <- ""
 
 load(paste0(path_data, "/input/species_selection/spp_buf_comp.RData")) # object: spp_buf_comp
 

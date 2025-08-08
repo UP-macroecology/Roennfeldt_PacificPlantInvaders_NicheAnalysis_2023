@@ -29,7 +29,6 @@ similarity_res <- function(df, spec, reg, setting, metric){
 # required data -----------------------------------------------------------
 load("data/species_selection/AC_occs_df.RData")
 load("data/species_selection/spp_buf_comp.RData")
-spp_buf_comp <- spp_buf_comp[!spp_buf_comp %in% c("Asparagus setaceus")]
 
 # similarity  --------------------------------------------------------
 

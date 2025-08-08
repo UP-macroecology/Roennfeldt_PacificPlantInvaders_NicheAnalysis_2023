@@ -29,7 +29,7 @@ sapply(package_vec, install.load.package)
 
 
 # path to data location (here on HPC)
-path_data <- "/import/ecoc9z/data-zurell/roennfeldt/C1"
+path_data <- ""
 
 # required functions -----------------------------------------------------------
 
@@ -93,20 +93,9 @@ thin <- function(sf, thin_dist = 3000, runs = 10, ncores = 1){
 # required data -----------------------------------------------------------
 
 # species selection
-load(paste0(path_data, "/input/species_selection/spp_buffer_2.RData"))
+load(paste0(path_data, "/input/species_selection/spp_buffer.RData"))
 
-spp <- spp_buffer_2
-
-
-# specs_done <- list.files(paste0(path_data, "/occurrence_data/coords_final_intr/")) %>% 
-#   str_remove(".RData") %>% 
-#   str_split(pattern = "_") %>%
-#   map(~ .x[[6]]) %>%
-#   simplify() %>%
-#   unique()
-# 
-# spp <- setdiff(spp_final, specs_done)
-
+spp <- spp_buffer
 
 
 # Start parallel computing
@@ -198,76 +187,6 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "tidyverse", "sf", "pu
 } # end of foreach
 
 stopCluster(cl)
-
-
-
-# load(paste0(path_data, "/input/species_selection/df_pending.RData"))
-# 
-# 
-# foreach(row_index = 1:nrow(df_pending), .packages = c("terra", "tidyverse", "sf", "purrr", "furrr", "sfheaders")) %dopar% {
-#   
-#   spp <- df_pending[row_index, "species"]
-#   reg <- df_pending[row_index, "region"]
-#   
-#   
-#   # load world mask
-#   world_mask <- rast(paste0(path_data, "/input/spatial_data/world_mask.tif"))
-#   
-#   t <- loadRData(paste0(path_data,"/regional_occs/criterion_1/introduced/intr_occs_",reg,"_",spp,".RData"))
-#   
-#   print(nrow(t))
-#   
-#   # select coordinates of the occs
-#   occ_coords <- as.data.frame(t[,c("lon", "lat")])
-#   
-#   cellnumbers <- terra::extract(world_mask, occ_coords, cells = TRUE)
-#   occ_coords <- occ_coords[!duplicated(cellnumbers[,"cell"]),]
-#   occ_coords_sf <- st_as_sf(occ_coords, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
-#   
-#   # spatial thinning using the thin function
-#   occ_thinned <- thin(occ_coords_sf, thin_dist = 3000, runs = 10, ncores = 1)
-#   
-#   # presence points as refference for the buffer
-#   presences <- vect(occ_coords, crs = "+proj=longlat +datum=WGS84")
-#   
-#   # place buffer around presence points (radius = 50)
-#   buf_50 <- buffer(presences, width = 50000)
-#   
-#   # create mask
-#   mask_buf_50 <- crop(world_mask, ext(buf_50))
-#   values(mask_buf_50)[!is.na(values(mask_buf_50))] <- 1
-#   
-#   # use mask_buf to rasterize buf (which has been a vector so far; !raster required for later steps)
-#   buf_50 <- rasterize(buf_50, mask_buf_50)
-#   
-#   # set raster cells outside the buffer to NA
-#   buf_50 <- terra::mask(mask_buf_50, buf_50, overwrite = TRUE)
-#   
-#   # randomly select background data within the buffer, excluding presence locations (sampling 10x as many background points as presences)
-#   occ_cells_50 <- terra::extract(buf_50, occ_coords, cells = TRUE)[,"cell"]
-#   buf_cells_50 <- terra::extract(buf_50, crds(buf_50), cells = TRUE)[,"cell"]
-#   diff_cells_50 <- setdiff(buf_cells_50, occ_cells_50)
-#   
-#   abs_indices_50 <- sample(diff_cells_50, ifelse(length(diff_cells_50) < nrow(occ_thinned)*10, length(diff_cells_50), nrow(occ_thinned)*10))
-#   abs_coords_50 <- as.data.frame(xyFromCell(buf_50, abs_indices_50))
-#   colnames(abs_coords_50) = c("lon", "lat")
-#   abs_coords_50_sf <- st_as_sf(abs_coords_50, coords = c("lon", "lat"), crs = crs(world_mask)) # transform it into sf object to use in thin function
-#   
-#   # thin background data
-#   abs_thinned_50 <- thin(abs_coords_50_sf, thin_dist = 3000, runs = 10, ncores = 1)
-#   
-#   #Merge presence and absence coordinates
-#   coords_final_nat_50 <- bind_rows(bind_cols(species = spp, present = 1, occ_thinned),
-#                                    bind_cols(species = spp, present = 0, abs_thinned_50)) %>%
-#     as.data.frame() %>%
-#     mutate(status = "Intr")
-#   
-#   save(coords_final_nat_50, file = paste0(path_data, "/output/buffer_sensitivity/coords_final_intr/coords_final_intr1_50_",reg,"_",spp,".RData"))
-#   
-#   
-# } # end of foreach
-# 
-# stopCluster(cl)
 
 gc()
 rm(list = ls())

@@ -27,7 +27,7 @@ sapply(package_vec, install.load.package)
 # required paths ----------------------------------------------------------
 
 # path to data location (here on HPC)
-path_data <- "/import/ecoc9z/data-zurell/roennfeldt/C1"
+path_data <- ""
 
 
 # required functions -----------------------------------------------------------
@@ -96,18 +96,9 @@ load(paste0(path_data, "/regional_occs/criterion_1/occ_count_crit_1.RData"))
 
 
 # species selection
-load(paste0(path_data, "/input/species_selection/spp_buffer_2.RData"))
+load(paste0(path_data, "/input/species_selection/spp_buffer.RData"))
 
-spp <- spp_buffer_2
-
-
-# specs_done <- list.files(paste0(path_data, "/output/buffer_sensitivity/coords_final_nat/")) %>%
-#   str_remove(".RData") %>%
-#   str_split(pattern = "_") %>%
-#   map(~ .x[[5]]) %>%
-#   simplify()
-# 
-# spp <- setdiff(spp_buffer, specs_done)
+spp <- spp_buffer
 
 
 # Start parallel computing

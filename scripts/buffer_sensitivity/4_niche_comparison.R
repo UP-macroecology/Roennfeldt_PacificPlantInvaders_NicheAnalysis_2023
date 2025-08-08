@@ -15,11 +15,11 @@ sapply(package_vec, install.load.package)
 
 # prepare paths and data ------------------
 
-path_data <- "/import/ecoc9z/data-zurell/roennfeldt/C1/"
+path_data <- ""
 
 # load final species selection
 load(paste0(path_data, "input/species_selection/spp_buf_comp.RData"))
-spp <- spp_buf_comp[! spp_buf_comp %in% c("Asparagus setaceus")]
+spp <- spp_buf_comp
 
 
 # ecospat niche comparison ---
@@ -148,14 +148,14 @@ foreach(spp_index = 1:length(spp), .packages = c("terra", "dplyr", "ade4", "ecos
         
         # niche dynamics ----------------------------------------------------------
         
-        # # over whole environmental extent
-        # niche_dyn_whole <- ecospat.niche.dyn.index(grid_clim_nat, grid_clim_intr, intersection = NA)
-        # # intersection between native and introduced range (= analogue climate)
-        # niche_dyn_inter <- ecospat.niche.dyn.index(grid_clim_nat, grid_clim_intr, intersection = 0)
-        # 
-        # # save results
-        # save(niche_dyn_whole, file = paste0(path_data,"output/buffer_sensitivity/niche_dynamics/niche_dyn_whole_",spp[spp_index],"_",region,".RData")) 
-        # save(niche_dyn_inter, file = paste0(path_data, "output/buffer_sensitivity/niche_dynamics/niche_dyn_inter_",spp[spp_index],"_",region,".RData")) 
+        # over whole environmental extent
+        niche_dyn_whole <- ecospat.niche.dyn.index(grid_clim_nat, grid_clim_intr, intersection = NA)
+        # intersection between native and introduced range (= analogue climate)
+        niche_dyn_inter <- ecospat.niche.dyn.index(grid_clim_nat, grid_clim_intr, intersection = 0)
+
+        # save results
+        save(niche_dyn_whole, file = paste0(path_data,"output/buffer_sensitivity/niche_dynamics/niche_dyn_whole_",spp[spp_index],"_",region,".RData"))
+        save(niche_dyn_inter, file = paste0(path_data, "output/buffer_sensitivity/niche_dynamics/niche_dyn_inter_",spp[spp_index],"_",region,".RData"))
         
         
       } # end of if condition over input_intr
